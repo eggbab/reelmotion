@@ -8,7 +8,6 @@ export const LANGS: { id: Lang; label: string }[] = [
 ]
 
 type Messages = {
-  draftBadge: string
   tagline: string
   videoHeading: string
   pickVideo: string
@@ -24,7 +23,6 @@ type Messages = {
 
 export const MESSAGES: Record<Lang, Messages> = {
   ko: {
-    draftBadge: '가칭',
     tagline: '영상에 한국 예능식 움직이는 자막을 얹습니다',
     videoHeading: '1. 영상',
     pickVideo: '영상 고르기',
@@ -44,7 +42,6 @@ export const MESSAGES: Record<Lang, Messages> = {
     sampleScript: '여러분 오늘은요\n진짜 대박 사건이 있었어요\n이게 말이 돼?\n끝까지 보면 알게 됩니다',
   },
   ja: {
-    draftBadge: '仮称',
     tagline: '動画に韓国バラエティ風の動くテロップをのせます',
     videoHeading: '1. 動画',
     pickVideo: '動画を選ぶ',
@@ -64,7 +61,6 @@ export const MESSAGES: Record<Lang, Messages> = {
     sampleScript: 'みなさん 今日はですね\n本当に すごい ことが ありました\nこれ ありえる?\n最後まで 見れば わかります',
   },
   en: {
-    draftBadge: 'working title',
     tagline: 'Add Korean variety-show style animated captions to your video',
     videoHeading: '1. Video',
     pickVideo: 'Choose a video',

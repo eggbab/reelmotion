@@ -108,8 +108,7 @@ export default function App() {
     <div className="app">
       <header className="top">
         <div className="brand">
-          <strong>Jamak</strong>
-          <span className="badge">{t.draftBadge}</span>
+          <strong>ReelMotion</strong>
           <span className="tagline">{t.tagline}</span>
         </div>
         <div className="langs" role="group" aria-label="Language">
