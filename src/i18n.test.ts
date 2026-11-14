@@ -26,3 +26,10 @@ describe('MESSAGES', () => {
     }
   })
 })
+
+describe('fill', () => {
+  it('이름 붙은 자리에 값을 넣고, 모르는 자리는 그대로 둔다', async () => {
+    const { fill } = await import('./i18n')
+    expect(fill('{percent}% · {count}개 · {none}', { percent: 42, count: 3 })).toBe('42% · 3개 · {none}')
+  })
+})

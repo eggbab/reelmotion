@@ -9,24 +9,32 @@ const HOLD_SECONDS = 0.4
 
 const SENTENCE_END = /[.!?…。！？]$/
 
-function spokenLength(text: string): number {
+/** 문장 부호를 뺀 글자 수(최소 1). 말하는 데 걸리는 시간을 어림할 때 쓴다. */
+export function spokenLength(text: string): number {
   return Math.max(1, text.replace(/[\p{P}\p{S}]/gu, '').length)
+}
+
+/** 대본을 어절로 나눈다. 줄의 마지막 어절에는 lineEnd 를 남긴다. */
+export function scriptTokens(script: string): { text: string; lineEnd: boolean }[] {
+  const tokens: { text: string; lineEnd: boolean }[] = []
+  for (const line of script.split(/\n+/)) {
+    const parts = line.trim().split(/\s+/).filter(Boolean)
+    parts.forEach((text, i) => tokens.push({ text, lineEnd: i === parts.length - 1 }))
+  }
+  return tokens
 }
 
 /**
  * 대본을 어절로 나눠 영상 길이에 글자 수 비율로 놓는다.
- * 실제 말소리를 듣고 맞춘 시간이 아니라 어림값이다 — 음성 인식이 붙기 전까지만 쓴다.
+ * 실제 말소리를 듣고 맞춘 시간이 아니라 어림값이다 — 말소리 인식을 하기 전까지만 쓴다.
  */
 export function scriptToWords(script: string, duration: number): Word[] {
   if (!(duration > 0)) return []
-  const tokens: { text: string; weight: number; pause: number }[] = []
-  for (const line of script.split(/\n+/)) {
-    const parts = line.trim().split(/\s+/).filter(Boolean)
-    parts.forEach((text, i) => {
-      const breaks = i === parts.length - 1 || SENTENCE_END.test(text)
-      tokens.push({ text, weight: spokenLength(text), pause: breaks ? PAUSE_WEIGHT : 0 })
-    })
-  }
+  const tokens = scriptTokens(script).map((token) => ({
+    ...token,
+    weight: spokenLength(token.text),
+    pause: token.lineEnd || SENTENCE_END.test(token.text) ? PAUSE_WEIGHT : 0,
+  }))
   if (tokens.length === 0) return []
   tokens[tokens.length - 1].pause = 0
 
@@ -37,7 +45,7 @@ export function scriptToWords(script: string, duration: number): Word[] {
     const start = cursor
     const end = start + t.weight * unit
     cursor = end + t.pause * unit
-    return { text: t.text, start, end }
+    return t.lineEnd ? { text: t.text, start, end, lineEnd: true } : { text: t.text, start, end }
   })
 }
 
@@ -56,7 +64,7 @@ export function wordsToCues(words: Word[], options: { maxChars: number }): Cue[]
     if (prev) {
       const overflows = chars + 1 + word.text.length > options.maxChars
       const longGap = word.start - prev.end > MAX_GAP_SECONDS
-      if (overflows || longGap || SENTENCE_END.test(prev.text)) flush()
+      if (overflows || longGap || prev.lineEnd || SENTENCE_END.test(prev.text)) flush()
     }
     chars += (current.length > 0 ? 1 : 0) + word.text.length
     current.push(word)

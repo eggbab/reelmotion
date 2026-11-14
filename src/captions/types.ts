@@ -1,5 +1,11 @@
 /** 한 어절(띄어쓰기 단위)과 그 말이 나오는 시간(초). */
-export type Word = { text: string; start: number; end: number }
+export type Word = {
+  text: string
+  start: number
+  end: number
+  /** 대본에서 이 어절 뒤에 줄이 바뀐다 — 자막도 여기서 끊는다. */
+  lineEnd?: boolean
+}
 
 /** 화면에 한 번에 뜨는 자막 한 덩어리. */
 export type Cue = { words: Word[]; start: number; end: number }

@@ -16,6 +16,21 @@ type Messages = {
   scriptHeading: string
   scriptHint: string
   timingNote: string
+  speechButton: string
+  speechLanguage: string
+  speechAuto: string
+  speechQuality: string
+  speechStandard: string
+  speechPrecise: string
+  speechFirstTime: string
+  speechNeedsVideo: string
+  speechDecoding: string
+  speechDownload: string
+  speechListening: string
+  speechDone: string
+  speechNoAudio: string
+  speechEmpty: string
+  speechFailed: string
   styleHeading: string
   styleNames: Record<string, string>
   sampleScript: string
@@ -29,9 +44,23 @@ export const MESSAGES: Record<Lang, Messages> = {
     useSample: '예시 배경으로 보기',
     videoError: '이 브라우저에서 열 수 없는 영상입니다. 다른 파일을 골라 주세요.',
     scriptHeading: '2. 대본',
-    scriptHint: '한 줄에 한 문장씩 적으면 줄이 바뀌는 곳에서 잠깐 쉽니다.',
-    timingNote:
-      '지금은 대본을 영상 길이에 맞춰 고르게 나눕니다. 말소리를 듣고 자동으로 맞추는 기능은 다음 단계입니다.',
+    scriptHint: '틀린 글자는 여기서 바로 고치세요. 줄을 바꾸면 자막도 거기서 끊깁니다.',
+    timingNote: '말소리를 듣고 만든 자막이 아니라서, 지금은 대본을 영상 길이에 고르게 나눠 보여 줍니다.',
+    speechButton: '말소리로 자막 만들기',
+    speechLanguage: '말하는 언어',
+    speechAuto: '자동',
+    speechQuality: '정확도',
+    speechStandard: '보통 (빠름)',
+    speechPrecise: '높음 (느림, 큰 내려받기)',
+    speechFirstTime: '처음 한 번만 약 {megabytes}MB 를 내려받습니다. 영상과 소리는 이 컴퓨터 밖으로 나가지 않습니다.',
+    speechNeedsVideo: '내 영상을 고르면 쓸 수 있습니다.',
+    speechDecoding: '영상에서 소리를 꺼내는 중…',
+    speechDownload: '준비물을 내려받는 중 {percent}%',
+    speechListening: '말소리를 듣고 있습니다. 영상 길이만큼 걸릴 수 있습니다…',
+    speechDone: '어절 {count}개를 받아 적었습니다.',
+    speechNoAudio: '이 영상에서 소리를 찾지 못했습니다.',
+    speechEmpty: '말소리를 찾지 못했습니다.',
+    speechFailed: '자막을 만들지 못했습니다. 다시 눌러 주세요.',
     styleHeading: '3. 자막 디자인',
     styleNames: {
       'kr-yeneung': '예능 기본',
@@ -48,9 +77,23 @@ export const MESSAGES: Record<Lang, Messages> = {
     useSample: 'サンプル背景で見る',
     videoError: 'このブラウザでは開けない動画です。別のファイルを選んでください。',
     scriptHeading: '2. 台本',
-    scriptHint: '1行に1文ずつ書くと、改行のところで少し間を置きます。',
-    timingNote:
-      '今は台本を動画の長さに合わせて均等に割り当てます。音声を聞いて自動で合わせる機能は次の段階です。',
+    scriptHint: '間違った文字はここで直せます。改行するとテロップもそこで切れます。',
+    timingNote: '音声から作ったテロップではないため、今は台本を動画の長さに均等に割り当てています。',
+    speechButton: '音声からテロップを作る',
+    speechLanguage: '話している言語',
+    speechAuto: '自動',
+    speechQuality: '精度',
+    speechStandard: '標準 (速い)',
+    speechPrecise: '高い (遅い、大きなダウンロード)',
+    speechFirstTime: '初回のみ約{megabytes}MBをダウンロードします。動画と音声はこのパソコンの外に出ません。',
+    speechNeedsVideo: '自分の動画を選ぶと使えます。',
+    speechDecoding: '動画から音声を取り出しています…',
+    speechDownload: '必要なファイルをダウンロード中 {percent}%',
+    speechListening: '音声を聞いています。動画の長さくらいかかることがあります…',
+    speechDone: '{count}語を書き起こしました。',
+    speechNoAudio: 'この動画から音声が見つかりませんでした。',
+    speechEmpty: '話し声が見つかりませんでした。',
+    speechFailed: 'テロップを作れませんでした。もう一度押してください。',
     styleHeading: '3. テロップデザイン',
     styleNames: {
       'kr-yeneung': 'バラエティ 基本',
@@ -67,9 +110,23 @@ export const MESSAGES: Record<Lang, Messages> = {
     useSample: 'Use the sample backdrop',
     videoError: 'This browser cannot open that video. Please choose another file.',
     scriptHeading: '2. Script',
-    scriptHint: 'Write one sentence per line; captions pause briefly at each line break.',
-    timingNote:
-      'For now the script is spread evenly over the video length. Matching captions to the actual speech comes in the next step.',
+    scriptHint: 'Fix any wrong words right here. A line break also breaks the caption there.',
+    timingNote: 'These captions were not made from the speech, so the script is spread evenly over the video length.',
+    speechButton: 'Make captions from speech',
+    speechLanguage: 'Spoken language',
+    speechAuto: 'Auto',
+    speechQuality: 'Accuracy',
+    speechStandard: 'Standard (fast)',
+    speechPrecise: 'High (slow, large download)',
+    speechFirstTime: 'Downloads about {megabytes}MB the first time only. Your video and audio never leave this computer.',
+    speechNeedsVideo: 'Choose your own video to use this.',
+    speechDecoding: 'Extracting audio from the video…',
+    speechDownload: 'Downloading what is needed {percent}%',
+    speechListening: 'Listening to the speech. This can take about as long as the video…',
+    speechDone: 'Transcribed {count} words.',
+    speechNoAudio: 'No audio was found in this video.',
+    speechEmpty: 'No speech was found.',
+    speechFailed: 'Could not make captions. Please try again.',
     styleHeading: '3. Caption design',
     styleNames: {
       'kr-yeneung': 'Variety Basic',
@@ -87,4 +144,9 @@ export function detectLang(preferred: readonly string[]): Lang {
     if (base === 'ko' || base === 'ja' || base === 'en') return base
   }
   return 'en'
+}
+
+/** '{이름}' 자리에 값을 넣는다. */
+export function fill(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (whole, key: string) => (key in values ? String(values[key]) : whole))
 }

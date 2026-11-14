@@ -81,3 +81,16 @@ describe('cueAt · activeWordIndex', () => {
     expect(activeWordIndex(cues[0], 3.3)).toBe(1)
   })
 })
+
+describe('줄바꿈', () => {
+  it('대본에서 줄이 바뀌는 어절에 표시를 남긴다', () => {
+    const words = scriptToWords('하나 둘\n셋 넷', 8)
+    expect(words.map((x) => Boolean(x.lineEnd))).toEqual([false, true, false, true])
+  })
+
+  it('줄이 바뀐 곳에서는 글자 수가 남아도 자막을 끊는다', () => {
+    const words: Word[] = [w('하나', 0, 1), { ...w('둘', 1, 2), lineEnd: true }, w('셋', 2, 3)]
+    const cues = wordsToCues(words, { maxChars: 30 })
+    expect(cues.map((c) => c.words.map((x) => x.text).join(' '))).toEqual(['하나 둘', '셋'])
+  })
+})

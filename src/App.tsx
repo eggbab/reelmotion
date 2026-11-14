@@ -3,13 +3,26 @@ import type { ChangeEvent, CSSProperties } from 'react'
 import { drawCaption, fontSpec } from './captions/render'
 import { cueAt, scriptToWords, wordsToCues } from './captions/segment'
 import { CAPTION_STYLES, styleById } from './captions/styles'
-import type { CaptionStyle, Cue } from './captions/types'
-import { LANGS, MESSAGES, detectLang } from './i18n'
+import type { CaptionStyle, Cue, Word } from './captions/types'
+import { LANGS, MESSAGES, detectLang, fill } from './i18n'
 import type { Lang } from './i18n'
+import { NoAudioError } from './speech/audio'
+import { retime } from './speech/retime'
+import { SPEECH_MODELS, transcribe } from './speech/transcribe'
+import type { SpeechLanguage, SpeechProgress, SpeechQuality } from './speech/transcribe'
 
 const SAMPLE_URL = '/sample.webm'
 
 type Frame = { width: number; height: number; duration: number }
+
+type SpeechState =
+  | { stage: 'idle' }
+  | SpeechProgress
+  | { stage: 'done'; count: number }
+  | { stage: 'failed'; reason: 'noAudio' | 'empty' | 'error' }
+
+/** 받아 적은 글을 대본 칸에 보여 줄 때 한 줄의 길이. */
+const SCRIPT_LINE_CHARS = 24
 
 function StyleThumb({ style, label }: { style: CaptionStyle; label: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -46,15 +59,23 @@ export default function App() {
   const [script, setScript] = useState(t.sampleScript)
   const [styleId, setStyleId] = useState(CAPTION_STYLES[0].id)
   const style = styleById(styleId)
+  /** 말소리 인식으로 얻은 어절 시간. 없으면 대본을 영상 길이에 고르게 나눈다. */
+  const [recognized, setRecognized] = useState<Word[] | null>(null)
+  const [speech, setSpeech] = useState<SpeechState>({ stage: 'idle' })
+  const [speechLanguage, setSpeechLanguage] = useState<Lang | 'auto'>(lang)
+  const [speechQuality, setSpeechQuality] = useState<SpeechQuality>('standard')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pickedUrlRef = useRef<string | null>(null)
+  const pickedFileRef = useRef<File | null>(null)
+  /** 영상을 바꾼 뒤에 도착한 옛 인식 결과를 버리기 위한 번호. */
+  const speechRunRef = useRef(0)
 
-  const cues = useMemo(
-    () => wordsToCues(scriptToWords(script, frame.duration), { maxChars: style.maxCharsPerCue }),
-    [script, frame.duration, style.maxCharsPerCue],
-  )
+  const cues = useMemo(() => {
+    const words = recognized ? retime(recognized, script) : scriptToWords(script, frame.duration)
+    return wordsToCues(words, { maxChars: style.maxCharsPerCue })
+  }, [recognized, script, frame.duration, style.maxCharsPerCue])
 
   // 영상이 멈춰 있어도(찾아가기, 대본·디자인 바꾸기) 자막이 바로 따라오도록 매 화면마다 다시 그린다.
   useEffect(() => {
@@ -89,18 +110,71 @@ export default function App() {
     [],
   )
 
-  const showVideo = (url: string, picked: boolean) => {
+  const showVideo = (file: File | null) => {
     if (pickedUrlRef.current) URL.revokeObjectURL(pickedUrlRef.current)
-    pickedUrlRef.current = picked ? url : null
+    const url = file ? URL.createObjectURL(file) : SAMPLE_URL
+    pickedUrlRef.current = file ? url : null
+    pickedFileRef.current = file
+    speechRunRef.current += 1
     setVideoFailed(false)
     setVideoUrl(url)
+    setRecognized(null)
+    setSpeech({ stage: 'idle' })
+    setScript(file ? '' : t.sampleScript)
   }
 
   const onPickVideo = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (file) showVideo(URL.createObjectURL(file), true)
+    if (file) showVideo(file)
   }
+
+  const makeCaptionsFromSpeech = async () => {
+    const file = pickedFileRef.current
+    if (!file) return
+    const run = ++speechRunRef.current
+    const current = () => speechRunRef.current === run
+    try {
+      const language: SpeechLanguage = speechLanguage === 'auto' ? null : speechLanguage
+      const words = await transcribe(file, {
+        quality: speechQuality,
+        language,
+        onProgress: (progress) => {
+          if (current()) setSpeech(progress)
+        },
+      })
+      if (!current()) return
+      if (words.length === 0) {
+        setSpeech({ stage: 'failed', reason: 'empty' })
+        return
+      }
+      const lines = wordsToCues(words, { maxChars: SCRIPT_LINE_CHARS })
+      setRecognized(words)
+      setScript(lines.map((cue) => cue.words.map((word) => word.text).join(' ')).join('\n'))
+      setSpeech({ stage: 'done', count: words.length })
+    } catch (error) {
+      if (current()) setSpeech({ stage: 'failed', reason: error instanceof NoAudioError ? 'noAudio' : 'error' })
+    }
+  }
+
+  const speechBusy = speech.stage === 'decoding' || speech.stage === 'download' || speech.stage === 'listening'
+  const hasOwnVideo = videoUrl !== SAMPLE_URL
+  const speechMessage = (() => {
+    switch (speech.stage) {
+      case 'idle':
+        return hasOwnVideo ? fill(t.speechFirstTime, { megabytes: SPEECH_MODELS[speechQuality].megabytes }) : t.speechNeedsVideo
+      case 'decoding':
+        return t.speechDecoding
+      case 'download':
+        return fill(t.speechDownload, { percent: Math.round(speech.progress * 100) })
+      case 'listening':
+        return t.speechListening
+      case 'done':
+        return fill(t.speechDone, { count: speech.count })
+      case 'failed':
+        return { noAudio: t.speechNoAudio, empty: t.speechEmpty, error: t.speechFailed }[speech.reason]
+    }
+  })()
 
   const stageStyle = { '--ratio': frame.width / frame.height } as CSSProperties
 
@@ -151,8 +225,8 @@ export default function App() {
               {t.pickVideo}
               <input type="file" accept="video/*" onChange={onPickVideo} hidden />
             </label>
-            {videoUrl !== SAMPLE_URL && (
-              <button type="button" className="button" onClick={() => showVideo(SAMPLE_URL, false)}>
+            {hasOwnVideo && (
+              <button type="button" className="button" onClick={() => showVideo(null)}>
                 {t.useSample}
               </button>
             )}
@@ -161,9 +235,49 @@ export default function App() {
           <h2>
             <label htmlFor="script">{t.scriptHeading}</label>
           </h2>
-          <textarea id="script" rows={6} value={script} onChange={(event) => setScript(event.target.value)} />
+          <div className="row">
+            <button
+              type="button"
+              className="button primary"
+              disabled={!hasOwnVideo || speechBusy}
+              onClick={() => void makeCaptionsFromSpeech()}
+            >
+              {t.speechButton}
+            </button>
+            <label className="select">
+              {t.speechLanguage}
+              <select
+                value={speechLanguage}
+                disabled={speechBusy}
+                onChange={(event) => setSpeechLanguage(event.target.value as Lang | 'auto')}
+              >
+                {LANGS.map(({ id, label }) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+                <option value="auto">{t.speechAuto}</option>
+              </select>
+            </label>
+            <label className="select">
+              {t.speechQuality}
+              <select
+                value={speechQuality}
+                disabled={speechBusy}
+                onChange={(event) => setSpeechQuality(event.target.value as SpeechQuality)}
+              >
+                <option value="standard">{t.speechStandard}</option>
+                <option value="precise">{t.speechPrecise}</option>
+              </select>
+            </label>
+          </div>
+          <p className={speech.stage === 'failed' ? 'error' : 'hint'} role="status" data-testid="speech-status">
+            {speechMessage}
+          </p>
+          {speech.stage === 'download' && <progress value={speech.progress} max={1} />}
+          <textarea id="script" rows={7} value={script} onChange={(event) => setScript(event.target.value)} />
           <p className="hint">{t.scriptHint}</p>
-          <p className="note">{t.timingNote}</p>
+          {!recognized && script.trim() !== '' && <p className="note">{t.timingNote}</p>}
 
           <h2>{t.styleHeading}</h2>
           <div className="styles">
