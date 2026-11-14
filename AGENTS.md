@@ -9,7 +9,8 @@
 
 ## 서비스 전체 범위 (사용자 지시 2026-11-14)
 - "기능만이 아니라 하나의 서비스라면 마땅히 있어야 할 요소를 전부 만들라(웹사이트 등)." 전체 목록과 상태는 **`docs/service-scope.md`** 가 주인이다. 일을 끝낼 때마다 그 표를 고친다.
-- 디자인은 마음대로 만들지 않는다: 실제 사이트 레퍼런스(`docs/website/references/`, 그날 캡처해 잰 값)와 디자인용 스킬·플러그인을 써서 정하고, 규칙은 `docs/website/DESIGN.md` 에 적은 뒤에 화면을 만든다. 2026-11-14 에 권한 플러그인: Website Design(UXKIN) · frontend-design(Anthropic) · Website Copywriting & Positioning — 설치 여부는 사용자 계정에서 확인.
+- 디자인은 마음대로 만들지 않는다: 실제 사이트 레퍼런스(`docs/website/references/`, 그날 캡처해 잰 값)와 디자인용 플러그인의 절차로 정한다. 규칙의 주인은 **저장소 맨 위 `DESIGN.md`**(흰 바탕 · 검정 글자와 단추 · 강조색 「자막 노랑」 하나)이고 값은 `src/index.css` 의 CSS 변수다. 화면에는 변수 이름만 쓴다.
+- 2026-11-14 사용자가 「Website Design」(UXKIN) 플러그인을 설치했다(스킬 `website-design:web-design-system` · `landing-page` · `web-review`). DESIGN.md 는 그 절차로 썼고 편집 화면에 입혔다. 소개 페이지는 계획(`docs/website/landing-plan.md`)을 사용자에게 보여 주고 승인을 기다리는 중이다 — 승인과 사실(요금·사업자 정보)을 받으면 `landing-page` 스킬로 만든다. 함께 권한 frontend-design · Website Copywriting & Positioning 은 설치 여부 확인 전. UXKIN 연결(실제 사이트 디자인 모음)은 사용자 로그인이 필요해 쓰지 않았다.
 
 ## 조사해 둔 것 (2026-11-14 검색, 다시 확인하고 쓸 것)
 - ChatCut: 2025년 말 모션그래픽 자동 생성, 약 135만 달러 투자(ZhenFund 주도), 월 21달러부터, 일본어 사이트 있음(`chatcut.io/ja`), 한국어 사이트 없음.
@@ -26,7 +27,14 @@
 - 자막은 어절 단위로 뜨고, 지금 말하는 어절의 색이 바뀌며 톡 튄다. 등장 움직임 3종(튀어나오기·올라오기·흔들리기).
 - 화면 글자는 한국어·일본어·영어(`src/i18n.ts`).
 
-## 말소리 인식 (사용자 결정 2026-11-14: 유료 서비스로 시작하지 않는다. Whisper 가 최선인지 더 따져 볼 것)
+## 말소리 인식 (사용자 결정 2026-11-14: 유료 서비스로 시작하지 않는다 → "그럼 Qwen3-ASR 를 쓰면 되잖아")
+- **다음 방향(사용자 지시): Qwen3-ASR 을 우리 서버에서 돌린다.** 아직 만들지 않았다. 지금 화면에 붙어 있는 것은 아래의 브라우저 안 Whisper 다.
+- Qwen3-ASR 직접 시험(2026-11-14, 이 작업 공간, 그래픽 카드 없이 CPU 4개, `pip install qwen-asr`, 정렬 모델 Qwen3-ForcedAligner-0.6B 포함): 15초 한국어 음성을 0.6B 는 6.5초, 1.7B 는 13.3초에 받아 적었다(모델 올리는 데 약 27초, 내려받기 약 8GB). 그래픽 카드 없이도 영상 길이쯤이면 끝난다.
+- 같은 음성에서 1.7B 는 「족히」를 「조기」로, 0.6B 는 「이집트인들은」을 「일트인들은」으로 틀렸다. Whisper turbo 는 그 문장을 다 맞혔다. 음성 3개뿐이라 우열을 말할 수 없다 — 서버를 만들 때 수십 개로 재서 기본 엔진을 정한다(서버에서는 Qwen 과 큰 Whisper 를 둘 다 돌릴 수 있다).
+- 정렬 모델은 한국어를 어절보다 잘게 준다(「과학」「적」「데이터」「가」). 띄어쓰기에 맞춰 어절로 다시 묶어야 한다.
+- 재지 않은 것: 메모리 사용량(1.7B 는 클 것 — 운영 PC 는 다른 서비스와 14GB 를 나눠 쓴다), 운영 PC 의 그래픽 카드 유무, 동시에 여러 명이 쓸 때.
+
+### 지금 붙어 있는 방식: 브라우저 안 Whisper
 - 고른 것: Whisper(무료, Apache-2.0)를 브라우저 안에서 돌린다(`@huggingface/transformers` 4.3.2, `src/speech/`). 엔진을 바꿀 때 고칠 곳은 `transcribe()` 하나다 — 돌려주는 것은 어절과 시간(`Word[]`)뿐.
 - Whisper 를 고른 까닭: 조건 셋(① 무료이고 상업 이용 가능 ② 지금 브라우저 안에서 돈다 ③ **어절마다 시간을 바로 준다**)을 모두 채우는 것이 2026-11-14 기준 Whisper 뿐이었다.
 - 한국어 성적(FLEURS, 틀린 글자 비율 %, 낮을수록 좋음, 출처 models.handy.computer/languages/ko — 2026-11-14 확인): Qwen3-ASR-1.7B 4.60 · whisper-large-v3 4.89 · Fun-ASR-MLT-Nano 5.20 · whisper-large-v3-turbo 5.24 · whisper-medium 5.46 · Qwen3-ASR-0.6B 5.82 · cohere-transcribe 6.57 · whisper-small 7.70 · moonshine-base-ko 8.12 · SenseVoiceSmall 8.27 · moonshine-tiny-ko 9.00 · whisper-base 12.98.

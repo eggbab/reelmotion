@@ -1,11 +1,41 @@
+/* 값의 주인은 DESIGN.md. 화면에서는 아래 이름만 쓴다. */
 :root {
-  --bg: #0f1115;
-  --panel: #171a21;
-  --line: #2a2f3a;
-  --text: #eef0f4;
-  --muted: #9aa3b2;
+  --ink: #0e0f12;
+  --ink-hover: #2a2d35;
+  --text: #1b1d22;
+  --muted: #5b6270;
+  --line: #e4e6eb;
+  --surface: #f6f7f9;
+  --bg: #ffffff;
   --accent: #ffe600;
-  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  --focus: #1d4ed8;
+  --success: #0e7a46;
+  --warning: #a14a05;
+  --error: #c2261c;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 20px;
+  --radius-pill: 999px;
+  --shadow-float: 0 1px 2px rgb(14 15 18 / 6%), 0 12px 32px rgb(14 15 18 / 10%);
+
+  --text-h3: 600 20px/1.4 var(--font);
+  --text-body: 400 16px/1.65 var(--font);
+  --text-small: 400 14px/1.5 var(--font);
+  --text-tiny: 500 12px/1.4 var(--font);
+  --font: 'Pretendard JP Variable', 'Pretendard JP', system-ui, sans-serif;
+
+  font: var(--text-body);
   color: var(--text);
   background: var(--bg);
 }
@@ -29,8 +59,8 @@ body {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 20px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--line);
 }
 
@@ -38,62 +68,73 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .brand strong {
-  font-size: 20px;
+  font: var(--text-h3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .tagline {
+  font: var(--text-small);
   color: var(--muted);
-  font-size: 14px;
 }
 
 .langs {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .langs button {
-  padding: 6px 10px;
+  min-height: 36px;
+  padding: 0 var(--space-3);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-s);
   background: none;
   color: var(--muted);
-  font: inherit;
-  font-size: 13px;
+  font: var(--text-small);
   cursor: pointer;
+}
+
+.langs button:hover {
+  background: var(--surface);
 }
 
 .langs button[aria-pressed='true'] {
   border-color: var(--line);
-  color: var(--text);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .work {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  gap: var(--space-5);
+  padding: var(--space-5);
+  background: var(--surface);
 }
 
 .stage-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
+/* 영상이 놓이는 자리만 검정이다. */
 .stage {
   position: relative;
   width: min(100%, calc(min(78vh, 760px) * var(--ratio)));
   aspect-ratio: var(--ratio);
-  border-radius: 14px;
+  border-radius: var(--radius-l);
   overflow: hidden;
-  background: #000;
+  background: var(--ink);
+  box-shadow: var(--shadow-float);
 }
 
 .stage video,
@@ -109,16 +150,18 @@ body {
 }
 
 .panel {
-  background: var(--panel);
+  background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px;
+  border-radius: var(--radius-m);
+  padding: var(--space-5);
   align-self: start;
 }
 
 .panel h2 {
-  margin: 18px 0 10px;
-  font-size: 15px;
+  margin: var(--space-6) 0 var(--space-3);
+  font: var(--text-body);
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .panel h2:first-child {
@@ -128,27 +171,37 @@ body {
 .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .button {
   display: inline-flex;
   align-items: center;
-  padding: 9px 14px;
+  min-height: 44px;
+  padding: 0 var(--space-4);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
+  border-radius: var(--radius-m);
+  background: var(--bg);
+  color: var(--ink);
+  font: var(--text-small);
+  font-weight: 600;
   cursor: pointer;
 }
 
+.button:hover {
+  background: var(--surface);
+}
+
 .button.primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #111;
-  font-weight: 700;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.button.primary:hover {
+  border-color: var(--ink-hover);
+  background: var(--ink-hover);
 }
 
 .button:disabled {
@@ -159,78 +212,77 @@ body {
 .select {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: var(--space-2);
+  font: var(--text-small);
   color: var(--muted);
 }
 
 .select select {
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-s);
   background: var(--bg);
   color: var(--text);
-  font: inherit;
-  font-size: 14px;
+  font: var(--text-small);
 }
 
 progress {
   width: 100%;
   height: 6px;
-  margin-top: 8px;
-  accent-color: var(--accent);
+  margin-top: var(--space-2);
+  accent-color: var(--ink);
 }
 
 textarea {
-  margin-top: 10px;
   width: 100%;
-  padding: 10px 12px;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-s);
   background: var(--bg);
   color: var(--text);
-  font: inherit;
-  font-size: 15px;
-  line-height: 1.6;
+  font: var(--text-body);
   resize: vertical;
 }
 
 .hint,
 .note,
 .error {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.5;
+  margin: var(--space-2) 0 0;
+  font: var(--text-small);
   color: var(--muted);
 }
 
 .note {
-  padding: 8px 10px;
-  border: 1px dashed var(--line);
-  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-s);
+  background: var(--surface);
 }
 
 .error {
-  color: #ff8a8a;
+  color: var(--error);
 }
 
 .styles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
+/* 자막 견본은 영상 위에 놓인 모습이라 검정 바탕이다. */
 .style {
   padding: 0;
-  border: 2px solid var(--line);
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2b3a67, #7e2553);
+  border: 2px solid transparent;
+  border-radius: var(--radius-m);
+  background: var(--ink);
   overflow: hidden;
   cursor: pointer;
 }
 
 .style[aria-pressed='true'] {
-  border-color: var(--accent);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--accent);
 }
 
 .style canvas {
@@ -240,16 +292,17 @@ textarea {
 }
 
 button:focus-visible,
+select:focus-visible,
 .button:focus-within,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 @media (max-width: 860px) {
   .work {
     grid-template-columns: minmax(0, 1fr);
-    padding: 16px;
+    padding: var(--space-4);
   }
 
   .stage {
