@@ -18,7 +18,7 @@ import type { ClipId } from '../media/clips'
 import { fetchDraft } from '../connect/api'
 import { reportError } from '../errors'
 import { release } from '../http'
-import { direct } from '../motion/direct'
+import { direct, resolveOverlaps } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
@@ -41,6 +41,10 @@ import type { SpeechProgress, SpeechQuality } from '../speech/transcribe'
 import { EDITOR_COPY, SAMPLE_SCRIPTS } from './copy'
 import type { EditorCopy } from './copy'
 import { clampToDuration, createGraphic, syncCaptions } from './graphics'
+import { AiPicks } from './AiPicks'
+import type { AiPicksState } from './AiPicks'
+import { findHighlights } from './aiPicks'
+import { coveredSentences, picksToGraphics, toSentences } from './highlights'
 import { Inspector } from './Inspector'
 import { applyOps } from './assist'
 import { ChatPanel } from './ChatPanel'
@@ -327,6 +331,11 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [tab, setTab] = useState<'graphics' | 'transcript' | 'chat'>(initial.graphics.length > 0 ? 'graphics' : 'transcript')
   const [chat, setChat] = useState<ChatEntry[]>([])
+  // 「AI로 강조할 순간 찾기」: 상태와, 되돌릴 때 쓸 더하기 전·후의 그래픽(그 뒤에 손으로 고치면 되돌리기를 감춘다)
+  const [aiPicks, setAiPicks] = useState<AiPicksState>({ stage: 'idle' })
+  const [aiUndo, setAiUndo] = useState<{ before: Graphic[]; after: Graphic[] } | null>(null)
+  // AI 의 답은 몇십 초 뒤에 온다 — 그때의 그래픽(기다리는 동안 손으로 고친 것 포함)에 더하려고 마지막 그래픽을 붙잡아 둔다
+  const latestGraphics = useRef<Graphic[]>([])
   const [assistReady, setAssistReady] = useState<boolean | null>(null)
   const [duration, setDuration] = useState(initial.duration)
   const [size, setSize] = useState(initial.portrait ? { width: 720, height: 1280 } : { width: 1280, height: 720 })
@@ -534,9 +543,47 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   const makeGraphics = () => {
     pulse('graphics_made')
+    setAiPicks({ stage: 'idle' })
+    setAiUndo(null)
     setGraphics(clampToDuration(direct(words), duration))
     setSelectedId(null)
     setTab('graphics')
+    touch()
+  }
+
+  // AI 가 문장 번호를 고르면 그 문장의 시간에 그래픽을 놓는다(src/editor/highlights.ts). 기다리는 동안 고친 것을 덮지 않게
+  // 답이 온 때의 그래픽에 더하고, 가운데 그래픽끼리 겹치지 않게 시간을 나눈다.
+  const findMoments = async () => {
+    if (words.length === 0 || duration <= 0) return
+    const sentences = toSentences(words)
+    setAiPicks({ stage: 'running' })
+    const result = await findHighlights({ sentences, covered: coveredSentences(sentences, graphics), duration })
+    if (!result.ok) {
+      setAiPicks({ stage: 'failed', reason: result.reason })
+      return
+    }
+    if (result.picks.length === 0) {
+      setAiPicks({ stage: 'none' })
+      return
+    }
+    const added = picksToGraphics(result.picks, sentences, duration, () => `u${++serial.current}`)
+    const current = latestGraphics.current
+    const merged = resolveOverlaps([...current.map((graphic) => ({ ...graphic })), ...added])
+    setGraphics(merged)
+    setAiUndo({ before: current, after: merged })
+    setAiPicks({ stage: 'done', added: added.length })
+    touch()
+  }
+
+  useEffect(() => {
+    latestGraphics.current = graphics
+  }, [graphics])
+
+  const undoMoments = () => {
+    if (!aiUndo || graphics !== aiUndo.after) return
+    setGraphics(aiUndo.before)
+    setAiUndo(null)
+    setAiPicks({ stage: 'undone' })
     touch()
   }
 
@@ -944,7 +991,19 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                 }}
               />
             ) : (
-              <Inspector copy={copy} graphics={shown} selected={selected} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
+              <>
+                {assistReady === true && words.length > 0 && duration > 0 && (
+                  <AiPicks
+                    copy={copy}
+                    thin={graphics.length > 0 && !graphics.some((graphic) => graphic.kind === 'stat' || graphic.kind === 'bars' || graphic.kind === 'list' || graphic.kind === 'quote')}
+                    state={aiPicks}
+                    canUndo={aiUndo !== null && graphics === aiUndo.after}
+                    onRun={() => void findMoments()}
+                    onUndo={undoMoments}
+                  />
+                )}
+                <Inspector copy={copy} graphics={shown} selected={selected} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
+              </>
             )}
           </aside>
 

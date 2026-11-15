@@ -17,7 +17,7 @@ export const CLIENT_EVENTS = [
   'export_failed',
   'export_unsupported',
 ] as const
-export const SERVER_EVENTS = ['chat_edit', 'connector_plan', 'connector_link'] as const
+export const SERVER_EVENTS = ['chat_edit', 'ai_highlights', 'connector_plan', 'connector_link'] as const
 
 export type ClientEvent = (typeof CLIENT_EVENTS)[number]
 export type PulseEvent = ClientEvent | (typeof SERVER_EVENTS)[number]

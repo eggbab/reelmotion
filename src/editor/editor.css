@@ -1496,3 +1496,77 @@
     padding: 0 12px;
   }
 }
+
+/* 「AI로 강조할 순간 찾기」 — 그래픽 탭 맨 위(AiPicks.tsx) */
+.ai-picks {
+  display: grid;
+  gap: 8px;
+  margin: 16px 16px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 3%);
+}
+
+/* 규칙이 제목·자막만 만들었을 때는 눈에 띄게 */
+.ai-picks.is-thin {
+  border-color: rgb(0 255 221 / 35%);
+  background: rgb(0 255 221 / 5%);
+}
+
+.ai-picks h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--text);
+  font: 600 14px/1.4 var(--font);
+}
+
+.ai-picks h3 svg {
+  color: var(--mint);
+}
+
+.ai-picks p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ai-picks__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-picks__row .chat-undo {
+  margin-top: 0;
+}
+
+.pill.ai-picks__run {
+  border-color: rgb(0 255 221 / 45%);
+  color: var(--text);
+}
+
+.pill.ai-picks__run:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.ai-picks__status:empty {
+  display: none;
+}
+
+.ai-picks p.ai-picks__status {
+  color: var(--muted);
+}
+
+.ai-picks p.ai-picks__status.is-running {
+  animation: chat-pulse 1.2s var(--ease) infinite alternate;
+}
+
+.ai-picks p.ai-picks__status.is-error {
+  color: #ffc4c4;
+}

@@ -16,7 +16,7 @@ import type { LegalDocs } from './types'
  *   계획만 볼 때는 저장하지 않고, 「편집기로 열기」는 초안을 최대 7일 둔다(drafts.db — 백업에 넣지 않는다. 표가 차면 더 일찍 지울 수 있다).
  *   남용 막기로 링크를 만든 횟수를 셀 때 요청을 보낸 곳의 IP(보통 그 서비스의 서버)를 메모리에 1분까지.
  * - 계정(server/app, 2026-11-15): 구글 로그인(고유번호·메일·이름), 로그인한 사람의 작업(영상 제외)을 서버 SQLite 에. 탈퇴하면 바로 지운다.
- * - 말로 고치기(server/app/assist.ts): 적은 말과 작업의 글을 우리 서버의 AI 가 읽고 버린다. 로그인하지 않았으면 남용 막기로 IP 를 메모리에 10분까지.
+ * - 말로 고치기(server/app/assist.ts)·AI 로 강조할 순간 찾기(server/app/highlights.ts — 대본의 문장과 시간): 우리 서버의 AI 가 읽고 버린다. 로그인하지 않았으면 남용 막기로 IP 를 메모리에 10분까지.
  * - 내보내기(server/app/app.ts /api/usage/export): 내보내기 전에 영상 길이(초)만 받아 요금제 한도를 보고 버린다. 다 만들면 로그인한 사람의
  *   달마다 횟수(usage 표)를 하나 센다. 탈퇴하면 함께 지운다(on delete cascade).
  * - 백업(server/app/backup.ts): 앱 서버가 하루 한 번 저장소 전체를 같은 서버 안에 백업하고 7일(BACKUP_DAYS, 30 이하)이 지나면 지운다.
@@ -41,7 +41,7 @@ export const PRIVACY: LegalDocs = {
               ['접속 정보', '페이지와 받아쓰기 서버에 접속하면 통신을 위해 IP 주소와 브라우저 정보가 회사 서버에 전달됩니다.'],
               ['계정 정보', '구글로 로그인하면(선택) 구글 계정의 고유번호, 메일 주소, 이름을 받습니다.'],
               ['계정에 저장한 작업', '로그인하면 만든 작업(대본, 받아 적은 글, 그래픽, 스타일, 작은 미리보기 그림)을 계정에 저장합니다.'],
-              ['말로 고치기에 적은 말', '말로 고치기를 쓰면 적은 말과 작업의 글(대본, 그래픽의 글·시간, 스타일)을 받습니다.'],
+              ['말로 고치기·AI 그래픽 찾기에 보낸 글', '말로 고치기를 쓰면 적은 말과 작업의 글(대본, 그래픽의 글·시간, 스타일)을, 「AI로 강조할 순간 찾기」를 누르면 대본의 문장과 그 시간을 받습니다.'],
               ['커넥터로 보낸 대본', 'Claude·ChatGPT 에 ReelMotion 커넥터를 더해 쓰면, 그 서비스가 보내는 대본·스타일·말한 언어를 받습니다. 누가 보냈는지(계정·이름)는 받지 않습니다.'],
               ['내보내기 횟수', '내보내기 전에 요금제 한도를 확인하려고 영상 길이(초)를 받습니다. 로그인했으면 달마다 다 만든 내보내기 수를 계정에 셉니다. 영상과 그 내용은 받지 않습니다.'],
               ['쓰임 횟수와 오류', '서비스가 얼마나 쓰이는지와 고장을 알려고, 편집기에서 한 일의 이름(편집기 열기, 영상 넣기, 내보내기 시작·끝·실패 등)과 브라우저 종류(예: 크롬·윈도우)를 받아 날짜마다 횟수만 셉니다. 편집기에서 오류가 나면 오류 글(프로그램이 만든 글로, 드물게 파일 이름 같은 값이 섞일 수 있습니다), 오류가 난 코드의 위치, 쪽 주소(물음표 뒤는 빼고), 브라우저 종류, 판 번호를 받습니다. 누가 했는지(계정·IP 주소)는 함께 저장하지 않습니다.'],
@@ -59,7 +59,7 @@ export const PRIVACY: LegalDocs = {
               '접속 정보: 페이지와 받아쓰기 결과를 이용자에게 보내는 데만 씁니다.',
               '계정 정보: 로그인을 유지하고, 계정에 저장한 작업을 보여 주고, 요금제를 관리하고, 문의에 답하는 데 씁니다.',
               '계정에 저장한 작업: 이용자가 여러 기기에서 작업을 열 수 있게 하는 데만 씁니다.',
-              '말로 고치기에 적은 말: 회사 서버의 AI 가 그 말대로 그래픽 고치기를 만드는 데만 씁니다. 학습에 쓰지 않습니다.',
+              '말로 고치기·AI 그래픽 찾기에 보낸 글: 회사 서버의 AI 가 그래픽 고치기를 만들거나 그래픽을 더할 순간을 고르는 데만 씁니다. 학습에 쓰지 않습니다.',
               '커넥터로 보낸 대본: 그래픽 계획을 만들어 돌려주고, 「편집기로 열기」를 하면 편집기에서 열 링크를 만드는 데만 씁니다. 학습에 쓰지 않습니다.',
               '내보내기 횟수: 요금제의 영상 길이·한 달 횟수 한도를 지키고 「내 계정」에 보여 주는 데만 씁니다.',
               '쓰임 횟수와 오류: 서비스가 얼마나 쓰이는지, 어느 브라우저에서 무엇이 안 되는지 알아 고치는 데만 씁니다.',
@@ -78,7 +78,7 @@ export const PRIVACY: LegalDocs = {
               '로그인 기록: 로그인 유지 기간(30일, 쓸 때마다 다시 30일)이 끝나거나 로그아웃하면 지웁니다.',
               '커넥터로 보낸 대본: 계획만 볼 때는 돌려주면 바로 지웁니다. 「편집기로 열기」로 링크를 만들면 그 대본과 스타일을 최대 7일 보관한 뒤 지우며, 백업에는 넣지 않습니다. 그동안 링크를 아는 사람은 그 대본을 열 수 있습니다. 남용을 막으려고 링크를 만든 횟수를 셀 때, 요청을 보낸 서버(보통 Claude·ChatGPT 의 서버)의 IP 주소를 서버 메모리에 1분까지 둡니다.',
               '백업: 장애에 대비해 계정 정보, 계정에 저장한 작업, 내보내기 횟수, 쓰임 횟수와 오류를 하루 한 번 백업하고, 30일이 지난 백업은 지웁니다. 그래서 탈퇴하거나 지운 정보도 백업에는 최대 30일 남을 수 있습니다.',
-              '말로 고치기에 적은 말: 고치기를 돌려주면 바로 지웁니다. 로그인하지 않았으면 남용을 막으려고 요청 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
+              '말로 고치기·AI 그래픽 찾기에 보낸 글: 답을 돌려주면 바로 지웁니다. 로그인하지 않았으면 남용을 막으려고 요청 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
               '쓰임 횟수와 오류: 날짜별 횟수는 400일, 오류는 30일이 지나면 지웁니다. 남용을 막으려고 요청 횟수를 셀 때 보낸 곳의 IP 주소를 서버 메모리에 1분까지 둡니다.',
             ],
           },
@@ -162,7 +162,7 @@ export const PRIVACY: LegalDocs = {
               ['Connection information', 'When you open our pages or use the speech server, your IP address and browser information reach our servers as part of the connection.'],
               ['Account information', 'If you log in with Google (optional), we receive your Google account ID, email address and name.'],
               ['Projects kept in your account', 'When you are logged in, the projects you make (script, transcript, graphics, style and a small preview image) are kept in your account.'],
-              ['What you type in chat editing', 'When you use chat editing, we receive what you type and your project text (script, graphic text and timing, style).'],
+              ['Text sent for chat editing and AI moments', 'When you use chat editing, we receive what you type and your project text (script, graphic text and timing, style). When you press “Find more moments with AI”, we receive the sentences of your script and their timing.'],
               ['Scripts sent through the connector', 'If you add the ReelMotion connector to Claude or ChatGPT, we receive the script, style and spoken language that service sends. We do not receive who sent it (no account or name).'],
               ['Export count', 'Before an export, we receive the length of the video (in seconds) to check your plan’s limits. If you are logged in, we count the exports you finish each month in your account. We do not receive the video or what is in it.'],
               ['Usage counts and errors', 'To see how much the Service is used and what breaks, we receive the name of what you did in the editor (opening the editor, adding a video, starting, finishing or failing an export, and so on) and the kind of browser (for example Chrome on Windows), and only count them per day. If the editor hits an error, we receive the error text (written by the program; on rare occasions it may include a value such as a file name), where in our code it happened, the page address (without anything after the question mark), the kind of browser and the build number. We do not store who did it (no account or IP address).'],
@@ -180,7 +180,7 @@ export const PRIVACY: LegalDocs = {
               'Connection information: only to deliver pages and transcripts to you.',
               'Account information: to keep you logged in, show you the projects kept in your account, manage your plan and answer your questions.',
               'Projects kept in your account: only to let you open your projects on any of your devices.',
-              'What you type in chat editing: only for the AI on our server to turn it into graphic edits. It is not used for training.',
+              'Text sent for chat editing and AI moments: only for the AI on our server to make graphic edits or pick moments for new graphics. It is not used for training.',
               'Scripts sent through the connector: only to make the graphics plan we send back and, when you ask to open it in the editor, the link that opens it. They are not used for training.',
               'Export count: only to apply your plan’s limits on video length and exports per month, and to show them in My account.',
               'Usage counts and errors: only to know how much the Service is used and what does not work in which browser, so we can fix it.',
@@ -199,7 +199,7 @@ export const PRIVACY: LegalDocs = {
               'Login records: deleted when the login period ends (30 days, renewed as you use the Service) or when you log out.',
               'Scripts sent through the connector: when you only preview a plan, deleted as soon as the plan is returned. When a link to the editor is made, the script and style are kept for up to 7 days and then deleted, and they are not included in backups. During that time anyone who has the link can open the script. To prevent abuse, the IP address of the server that sent the request (normally a Claude or ChatGPT server) is held in server memory for up to 1 minute to count how many links were made.',
               'Backups: to recover from failures, we back up account information, projects kept in accounts, export counts, and usage counts and errors once a day, and delete backups older than 30 days. Information you delete, including a closed account, may therefore remain in a backup for up to 30 days.',
-              'What you type in chat editing: deleted as soon as the edits are returned. If you are not logged in, your IP address is held in server memory for up to 10 minutes to count requests and prevent abuse.',
+              'Text sent for chat editing and AI moments: deleted as soon as the answer is returned. If you are not logged in, your IP address is held in server memory for up to 10 minutes to count requests and prevent abuse.',
               'Usage counts and errors: daily counts are deleted after 400 days and errors after 30 days. To prevent abuse, the IP address a request comes from is held in server memory for up to 1 minute while requests are counted.',
             ],
           },
@@ -283,7 +283,7 @@ export const PRIVACY: LegalDocs = {
               ['接続情報', 'ページや文字起こしサーバーに接続すると、通信のために IP アドレスとブラウザ情報が当社サーバーに届きます。'],
               ['アカウント情報', 'Google でログインする場合(任意)、Google アカウントの固有番号、メールアドレス、名前を受け取ります。'],
               ['アカウントに保存したプロジェクト', 'ログインすると、作ったプロジェクト(台本、文字起こし、グラフィックス、スタイル、小さなプレビュー画像)をアカウントに保存します。'],
-              ['話して直すに書いた言葉', '話して直すを使うと、書いた言葉とプロジェクトの文字(台本、グラフィックスの文字・時間、スタイル)を受け取ります。'],
+              ['話して直す・AIで見せ場を探すに送った文', '話して直すを使うと、書いた言葉とプロジェクトの文字(台本、グラフィックスの文字・時間、スタイル)を、「AIで見せ場を探す」を押すと、台本の文とその時間を受け取ります。'],
               ['コネクターで送られた台本', 'Claude・ChatGPT に ReelMotion のコネクターを追加して使う場合、そのサービスが送る台本・スタイル・話している言語を受け取ります。誰が送ったか(アカウント・名前)は受け取りません。'],
               ['書き出し回数', '書き出しの前に、プランの上限を確かめるため動画の長さ(秒)を受け取ります。ログインしている場合は、月ごとに書き出しを終えた回数をアカウントで数えます。動画とその内容は受け取りません。'],
               ['利用回数とエラー', '本サービスがどれだけ使われ、どこで不具合が起きているかを知るため、エディターで行ったことの名前(エディターを開く、動画を追加する、書き出しの開始・完了・失敗など)とブラウザの種類(例: Windows の Chrome)を受け取り、日ごとの回数だけを数えます。エディターでエラーが起きた場合は、エラーの文(プログラムが作った文で、まれにファイル名のような値が含まれることがあります)、エラーが起きたコードの場所、ページのアドレス(? 以降は除く)、ブラウザの種類、ビルド番号を受け取ります。誰が行ったか(アカウント・IP アドレス)は一緒に保存しません。'],
@@ -301,7 +301,7 @@ export const PRIVACY: LegalDocs = {
               '接続情報: ページと文字起こしの結果をお届けするためだけに使います。',
               'アカウント情報: ログインを保ち、アカウントに保存したプロジェクトを表示し、プランを管理し、お問い合わせに答えるために使います。',
               'アカウントに保存したプロジェクト: 複数の端末でプロジェクトを開けるようにするためだけに使います。',
-              '話して直すに書いた言葉: 当社サーバーの AI がその言葉どおりのグラフィックスの変更を作るためだけに使います。学習には使いません。',
+              '話して直す・AIで見せ場を探すに送った文: 当社サーバーの AI がグラフィックスの変更を作るか、グラフィックスを追加する場面を選ぶためだけに使います。学習には使いません。',
               'コネクターで送られた台本: グラフィックの計画を作ってお返しし、「エディターで開く」を行った場合はエディターで開くリンクを作るためだけに使います。学習には使いません。',
               '書き出し回数: プランの動画の長さ・月の回数の上限を守り、「マイアカウント」に表示するためだけに使います。',
               '利用回数とエラー: 本サービスがどれだけ使われ、どのブラウザで何が動かないかを知って直すためだけに使います。',
@@ -320,7 +320,7 @@ export const PRIVACY: LegalDocs = {
               'ログインの記録: ログインの保持期間(30日、使うたびに延長)が終わるか、ログアウトすると消します。',
               'コネクターで送られた台本: 計画を見るだけの場合は、お返ししたらすぐに消します。「エディターで開く」でリンクを作った場合は、その台本とスタイルを最大7日間保管してから消し、バックアップには含めません。その間、リンクを知っている人はその台本を開けます。不正利用を防ぐため、リンクを作った回数を数えるあいだ、要求を送ってきたサーバー(通常は Claude・ChatGPT のサーバー)の IP アドレスをサーバーのメモリに最大1分置きます。',
               'バックアップ: 障害に備えて、アカウント情報・アカウントに保存したプロジェクト・書き出し回数・利用回数とエラーを1日1回バックアップし、30日を過ぎたバックアップは削除します。そのため、退会や削除をした情報もバックアップには最大30日残ることがあります。',
-              '話して直すに書いた言葉: 変更をお返ししたらすぐに消します。ログインしていない場合は、不正利用を防ぐため、回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
+              '話して直す・AIで見せ場を探すに送った文: 答えをお返ししたらすぐに消します。ログインしていない場合は、不正利用を防ぐため、回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
               '利用回数とエラー: 日ごとの回数は400日、エラーは30日を過ぎると削除します。不正利用を防ぐため、回数を数えるあいだ送信元の IP アドレスをサーバーのメモリに最大1分置きます。',
             ],
           },

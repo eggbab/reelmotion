@@ -43,6 +43,9 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
   `ASSIST_URL=http://<assist 주소>:8080 npx vitest run server/app/assist.live.test.ts` (2026-11-15: 8/8).
 - 남용 막기: 로그인했으면 계정마다, 아니면 방문자 주소마다 10분에 20번, 동시에 기다리는 요청 3개까지(`server/app/app.ts`). 방문자 주소는 앞단이 알려 준 값을 믿는다(Caddyfile 의 `trusted_proxies`).
 
+- **AI로 강조할 순간 찾기**(같은 모델, 2026-11-15): 편집기 「그래픽」 탭 맨 위의 카드. 번호 붙인 문장과 시간을 보내면 AI 는 문장 번호와 글만 고르고(제목·목록·인용), 시간은 편집기가 그 문장의 시간으로 정한다 — AI 가 시간을 지어내지 않는다. 답은 서버와 편집기가 같은 검사(`src/editor/highlights.ts` 의 `validatePicks`)로 걸러, 그 문장에 실제로 있는 말만 인용으로 받고, 이미 그래픽이 있는 문장·범위 밖·틀린 꼴은 버린다. 6초에 하나, 많아야 6개. 말로 고치기와 한도(10분에 20번)·기다리는 줄을 함께 쓴다. CPU 로 대본 하나에 7~18초.
+  - 실제 모델 시험: 평범한 대본 여섯(브이로그·요리·요령·동기부여, 세 언어)으로 `ASSIST_URL=http://<assist 주소>:8080 npx vitest run server/app/highlights.live.test.ts`(2026-11-15: 6/6 — 규칙으로는 제목·자막뿐이던 브이로그·요리 대본에 제목·목록·인용이 더해졌고, 글은 대본과 같은 말). 화면 시험 `e2e/tests/ai-picks.cjs`(실제 AI, 10개).
+
 ## 구글 로그인 켜기 (도메인이 정해진 뒤)
 1. [Google Cloud 콘솔](https://console.cloud.google.com/) → 「API 및 서비스」 → 「OAuth 동의 화면」: 앱 이름 ReelMotion, 지원 메일, 범위는 `openid`·`email`·`profile` 만(민감하지 않은 범위라 심사가 가볍다), 게시 상태 「프로덕션」.
 2. 「사용자 인증 정보」 → 「OAuth 클라이언트 ID 만들기」 → 「웹 애플리케이션」 → 승인된 리디렉션 URI: `https://도메인/api/auth/google/callback`.

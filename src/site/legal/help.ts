@@ -44,6 +44,7 @@ export const HELP: LegalDocs = {
               '첫 문장: 제목, 말 전체: 자막',
             ],
           },
+          '숫자·순서·이름이 없는 이야기라 제목과 자막만 나오면 「그래픽」 탭 위의 「AI로 강조할 순간 찾기」를 눌러 보세요. 우리 서버의 AI가 대본을 읽고 제목·목록·인용을 그 말을 하는 때에 더해요(되돌릴 수 있어요). 말하지 않은 말을 인용으로 넣지는 않아요.',
         ],
       },
       {
@@ -162,6 +163,7 @@ export const HELP: LegalDocs = {
               'First sentence: a title, everything said: captions',
             ],
           },
+          'If a talk without numbers, steps or names only gets a title and captions, press “Find more moments with AI” at the top of the Graphics tab. The AI on our server reads the script and adds titles, checklists and quotes at the moment they are said (you can undo it). It never quotes words that were not said.',
         ],
       },
       {
@@ -280,6 +282,7 @@ export const HELP: LegalDocs = {
               '最初の文: タイトル、話した内容すべて: 字幕',
             ],
           },
+          '数字・順番・名前のない話でタイトルと字幕しか出ないときは、「グラフィック」タブの上の「AIで見せ場を探す」を押してください。当社サーバーの AI が台本を読み、タイトル・チェックリスト・引用を、その言葉を話すときに追加します(元に戻せます)。話していない言葉を引用にすることはありません。',
         ],
       },
       {

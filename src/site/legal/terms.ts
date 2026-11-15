@@ -3,7 +3,7 @@ import type { LegalDocs } from './types'
 /**
  * 이용약관. 원문은 한국어이고 영어·일본어는 번역이다. 같은 사업자의 AllMails 약관처럼 꼭 필요한 것만 짧게 쓴다.
  * 서비스가 실제로 하는 일과 맞아야 한다: 구글 계정(선택) · 영상은 올리지 않음 · 소리만 받아쓰기 서버로 · 서버 한도 10분(ASR_MAX_SECONDS) ·
- * 말로 고치기 10분에 20번 · 요금제 한도와 무료 워터마크는 결제를 붙이는 날부터(ENFORCE_PLANS, src/site/entitlements.ts).
+ * 말로 고치기와 AI 그래픽 찾기 합쳐 10분에 20번 · 요금제 한도와 무료 워터마크는 결제를 붙이는 날부터(ENFORCE_PLANS, src/site/entitlements.ts).
  * 카드 결제를 붙이면 「유료 서비스」 절을 고친다(docs/operations.md 「결제 붙이기」).
  * Claude·ChatGPT 커넥터(server/app/connect.ts): 대본에서 계획·편집기 링크(최대 7일, 링크를 아는 사람은 누구나 연다) — 「이용 방법」.
  */
@@ -60,7 +60,7 @@ export const TERMS: LegalDocs = {
       {
         title: '이용 한도',
         blocks: [
-          '받아쓰기 서버는 한 번에 10분까지의 소리를 받고, 말로 고치기는 10분에 20번까지 쓸 수 있습니다. 여러 사람이 함께 쓰면 잠시 기다리거나 다시 시도해야 할 수 있습니다. 한도는 서비스를 안정적으로 제공하기 위해 바뀔 수 있고, 바뀌면 서비스 화면에 알립니다.',
+          '받아쓰기 서버는 한 번에 10분까지의 소리를 받고, 말로 고치기와 「AI로 강조할 순간 찾기」는 합쳐 10분에 20번까지 쓸 수 있습니다. 여러 사람이 함께 쓰면 잠시 기다리거나 다시 시도해야 할 수 있습니다. 한도는 서비스를 안정적으로 제공하기 위해 바뀔 수 있고, 바뀌면 서비스 화면에 알립니다.',
           '요금제마다 영상 하나의 길이와 한 달 내보내기 횟수가 정해져 있고(요금 안내), 무료 요금제로 내보낸 영상에는 오른쪽 아래에 작은 ReelMotion 표시가 들어갑니다. 이 한도와 표시는 유료 요금제 판매를 시작할 때부터 적용하며, 그 전에는 모든 기능을 한도 없이 쓸 수 있습니다. 한 달 횟수는 서울 시간으로 매달 1일에 새로 세고, 취소하거나 실패한 내보내기는 세지 않습니다.',
         ],
       },
@@ -140,7 +140,7 @@ export const TERMS: LegalDocs = {
       {
         title: 'Usage limits',
         blocks: [
-          'The speech server accepts up to 10 minutes of sound at a time, and chat editing can be used up to 20 times every 10 minutes. When many people use them at once, you may need to wait or try again. Limits may change to keep the Service stable, and changes will be shown in the Service.',
+          'The speech server accepts up to 10 minutes of sound at a time, and chat editing and “Find more moments with AI” together can be used up to 20 times every 10 minutes. When many people use them at once, you may need to wait or try again. Limits may change to keep the Service stable, and changes will be shown in the Service.',
           'Each plan sets a maximum video length and a number of exports per month (see pricing), and videos exported on the Free plan carry a small ReelMotion mark in the bottom-right corner. These limits and the mark apply from when paid plans go on sale; until then, every feature can be used without limits. The monthly count restarts on the 1st of each month, Seoul time, and exports that you cancel or that fail are not counted.',
         ],
       },
@@ -220,7 +220,7 @@ export const TERMS: LegalDocs = {
       {
         title: '利用上限',
         blocks: [
-          '文字起こしサーバーは一度に10分までの音声を受け付け、話して直すは10分に20回まで使えます。多くの人が同時に使うと、しばらく待つか、やり直す必要があることがあります。上限は本サービスを安定して提供するために変わることがあり、変わる場合は本サービスの画面でお知らせします。',
+          '文字起こしサーバーは一度に10分までの音声を受け付け、話して直すと「AIで見せ場を探す」は合わせて10分に20回まで使えます。多くの人が同時に使うと、しばらく待つか、やり直す必要があることがあります。上限は本サービスを安定して提供するために変わることがあり、変わる場合は本サービスの画面でお知らせします。',
           'プランごとに動画1本の長さと月の書き出し回数が決まっており(料金案内)、無料プランで書き出した動画には右下に小さな ReelMotion の表示が入ります。この上限と表示は有料プランの販売開始時から適用し、それまではすべての機能を上限なしで使えます。月の回数はソウル時間で毎月1日に数え直し、キャンセルした書き出しや失敗した書き出しは数えません。',
         ],
       },

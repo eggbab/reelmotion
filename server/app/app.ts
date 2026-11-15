@@ -18,6 +18,8 @@ import type { AssistModel } from './assist'
 import { BACKUP_FILE, effectivePlan, listBackups, overview, searchUsers, setPlan } from './admin-data'
 import type { BillingProvider } from './billing'
 import { createConnector, openDraftStore } from './connect'
+import { HIGHLIGHT_SCHEMA } from '../../src/editor/highlights'
+import { highlightMessages, parseHighlightRequest, parseHighlights } from './highlights'
 import { ERRORS_PER_MINUTE, MAX_ERROR_BODY, PULSE_PER_MINUTE, agentOf, cleanError, createPulse } from './pulse'
 import { isClientEvent } from '../../src/pulseEvents'
 import type { DraftStore } from './connect'
@@ -355,6 +357,29 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
       return c.json(result)
     } catch (error) {
       console.error('assist failed:', error instanceof Error ? error.message : error)
+      return c.json({ error: 'assist_failed' }, 502)
+    } finally {
+      assistWaiting -= 1
+    }
+  })
+
+  // 「AI로 강조할 순간 찾기」: 문장과 시간을 보내면 AI 가 고른 순간(문장 번호·글)을 검사해 돌려준다. 말로 고치기와 같은 한도·줄을 쓴다.
+  app.post('/assist/highlights', bodyLimit({ maxSize: 100_000, onError: (c) => c.json({ error: 'too_large' }, 413) }), async (c) => {
+    if (!assist) return c.json({ error: 'assist_off' }, 503)
+    const request = parseHighlightRequest(await c.req.json().catch(() => null))
+    if (!request) return c.json({ error: 'bad_request' }, 400)
+    const user = c.get('user')
+    const key = user ? `u:${user.id}` : `ip:${visitorOf(c)}`
+    if (!assistLimiter.hit(key)) return c.json({ error: 'rate_limited' }, 429)
+    if (assistWaiting >= ASSIST_WAITING) return c.json({ error: 'busy' }, 503)
+    assistWaiting += 1
+    try {
+      const picks = parseHighlights(await assist.complete(highlightMessages(request), HIGHLIGHT_SCHEMA), request)
+      if (!picks) return c.json({ error: 'bad_reply' }, 502)
+      pulse.count('ai_highlights', agentOf(c.req.header('user-agent')))
+      return c.json({ picks })
+    } catch (error) {
+      console.error('highlights failed:', error instanceof Error ? error.message : error)
       return c.json({ error: 'assist_failed' }, 502)
     } finally {
       assistWaiting -= 1

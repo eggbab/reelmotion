@@ -107,6 +107,22 @@ export type EditorCopy = {
     undone: string
     note: string
   }
+  /** 「AI로 강조할 순간 찾기」(그래픽 탭 맨 위 — AiPicks.tsx) */
+  aiPicks: {
+    title: string
+    body: string
+    thin: string
+    run: string
+    running: string
+    done: string
+    none: string
+    undo: string
+    undone: string
+    unavailable: string
+    busy: string
+    limited: string
+    failed: string
+  }
   /** 「내 작업」: 이 브라우저에 저장하고 다시 열기(projects.ts) */
   projects: {
     open: string
@@ -259,6 +275,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       undone: 'Undone.',
       note: 'What you type and your project text are read by the AI on the ReelMotion server and not kept.',
     },
+    aiPicks: {
+      title: 'Find more moments with AI',
+      body: 'Our server’s AI reads the script and adds titles, checklists and quotes. Graphics you already have stay as they are.',
+      thin: 'This talk has no numbers, steps or names, so only a title and captions were made. AI can look for more moments to highlight.',
+      run: 'Find with AI',
+      running: 'Looking… this can take a few dozen seconds.',
+      done: 'Added {n}.',
+      none: 'No moments worth adding were found.',
+      undo: 'Undo',
+      undone: 'Undone.',
+      unavailable: 'AI is unavailable right now. You can still add graphics yourself.',
+      busy: 'Lots of requests right now. Please try again in a moment.',
+      limited: 'You can use it 20 times every 10 minutes, together with chat editing. Please try again soon.',
+      failed: 'Could not find any. Please try again in a moment.',
+    },
     projects: {
       open: 'My projects',
       title: 'My projects',
@@ -408,6 +439,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       undone: '되돌렸어요.',
       note: '적은 말과 작업의 글은 ReelMotion 서버의 AI 가 읽고 남기지 않아요.',
     },
+    aiPicks: {
+      title: 'AI로 강조할 순간 찾기',
+      body: '우리 서버의 AI가 대본을 읽고 제목·목록·인용을 더해요. 지금 있는 그래픽은 그대로 둬요.',
+      thin: '숫자·순서·이름이 없는 이야기라 제목과 자막만 만들었어요. AI가 강조할 순간을 더 찾아 볼 수 있어요.',
+      run: 'AI로 찾기',
+      running: '찾는 중… 수십 초 걸릴 수 있어요.',
+      done: '{n}개를 더했어요.',
+      none: '더할 만한 순간을 찾지 못했어요.',
+      undo: '되돌리기',
+      undone: '되돌렸어요.',
+      unavailable: 'AI를 지금 쓸 수 없어요. 그래픽은 직접 더할 수 있어요.',
+      busy: '지금 요청이 많아요. 잠시 뒤 다시 눌러 주세요.',
+      limited: '말로 고치기와 합쳐 10분에 20번까지 쓸 수 있어요. 잠시 뒤 다시 눌러 주세요.',
+      failed: '찾지 못했어요. 잠시 뒤 다시 눌러 주세요.',
+    },
     projects: {
       open: '내 작업',
       title: '내 작업',
@@ -556,6 +602,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       undo: '元に戻す',
       undone: '元に戻しました。',
       note: '書いた言葉とプロジェクトの文字は ReelMotion サーバーの AI が読み、保存しません。',
+    },
+    aiPicks: {
+      title: 'AIで見せ場を探す',
+      body: '当社サーバーの AI が台本を読み、タイトル・チェックリスト・引用を追加します。今あるグラフィックはそのままです。',
+      thin: '数字・順番・名前のない話なので、タイトルと字幕だけを作りました。AI で見せ場をさらに探せます。',
+      run: 'AIで探す',
+      running: '探しています… 数十秒かかることがあります。',
+      done: '{n}個追加しました。',
+      none: '追加できる見せ場は見つかりませんでした。',
+      undo: '元に戻す',
+      undone: '元に戻しました。',
+      unavailable: 'AI は今使えません。グラフィックは自分で追加できます。',
+      busy: 'リクエストが混み合っています。少し待ってからもう一度押してください。',
+      limited: '「話して直す」と合わせて10分に20回まで使えます。少し待ってからもう一度押してください。',
+      failed: '見つかりませんでした。少し待ってからもう一度押してください。',
     },
     projects: {
       open: 'マイプロジェクト',
