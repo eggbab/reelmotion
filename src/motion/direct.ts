@@ -110,7 +110,9 @@ export function direct(words: Word[]): Graphic[] {
       j++
     }
     if (items.length >= 2) {
-      const lead = i > 0 && !used.has(i - 1) ? sentences[i - 1] : null
+      const prev = i > 0 ? sentences[i - 1] : null
+      // 앞 문장이 숫자·인용·자기소개를 담고 있으면 그 그래픽을 살리고, 목록 머리글로 쓰지 않는다.
+      const lead = prev && !used.has(i - 1) && findNumbers(prev.text).length === 0 && !QUOTE.test(prev.text) ? prev : null
       graphics.push({
         id: id(),
         kind: 'list',

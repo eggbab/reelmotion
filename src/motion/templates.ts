@@ -106,7 +106,7 @@ export function drawLowerThird(f: Frame, g: LowerThirdGraphic, t: number, theme:
   const nameSize = 3.9 * u
   const roleSize = 2.4 * u
   const x = w * (portrait ? 0.07 : 0.05)
-  const bottom = h * (portrait ? 0.7 : 0.86)
+  const bottom = h * (portrait ? 0.68 : 0.8)
 
   ctx.save()
   ctx.font = fontString(theme.font, nameSize, theme.strongWeight)

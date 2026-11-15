@@ -52,6 +52,12 @@ describe('direct', () => {
     expect(ko.items).toEqual(['물 마시기', '스트레칭'])
   })
 
+  it('숫자가 든 문장은 바로 뒤에 목록이 와도 목록 머리글로 쓰지 않는다', () => {
+    const graphics = direct(timed('Big intro.\nMost people sleep 37% faster.\nFirst, no screens.\nSecond, same wake time.', 20))
+    expect(byKind(graphics, 'stat')).toHaveLength(1)
+    expect(byKind(graphics, 'list')[0].title).toBe('')
+  })
+
   it('따옴표 속 말은 인용으로 만든다', () => {
     const [quote] = byKind(direct(timed('My mentor said "done is better than perfect" and it stuck.', 10)), 'quote')
     expect(quote.text).toBe('done is better than perfect')
