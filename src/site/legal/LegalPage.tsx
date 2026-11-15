@@ -9,6 +9,7 @@ import { pageMeta } from '../meta'
 import { pagePath } from '../routes'
 import { usePageMeta, useSiteBody } from '../usePageMeta'
 import { AGENCIES, LEGAL_DOCS, LEGAL_UI, formatDate } from './docs'
+import { HELP, HELP_EYEBROW } from './help'
 import { LEGAL_EFFECTIVE } from './types'
 import type { LegalBlock, LegalPageId } from './types'
 
@@ -108,11 +109,12 @@ function Block({ block, lang }: { block: LegalBlock; lang: Lang }) {
   )
 }
 
-/** 이용약관·개인정보처리방침·환불 규정. 글은 terms.ts·privacy.ts·refund.ts 에 있고 여기서는 그리기만 한다. */
-export function LegalPage({ page }: { page: LegalPageId }) {
+/** 이용약관·개인정보처리방침·환불 규정과 도움말. 글은 terms.ts·privacy.ts·refund.ts·help.ts 에 있고 여기서는 그리기만 한다. */
+export function LegalPage({ page }: { page: LegalPageId | 'help' }) {
   const { lang } = useLang()
   const copy = SITE_COPY[lang]
-  const doc = LEGAL_DOCS[page][lang]
+  const legal = page !== 'help'
+  const doc = legal ? LEGAL_DOCS[page][lang] : HELP[lang]
   const ui = LEGAL_UI[lang]
   usePageMeta(pageMeta(page, lang))
   useSiteBody()
@@ -122,12 +124,14 @@ export function LegalPage({ page }: { page: LegalPageId }) {
       <main id="main" className="legal">
         <div className="glow glow--top" aria-hidden="true" />
         <article className="legal__inner">
-          <p className="eyebrow">{ui.eyebrow}</p>
+          <p className="eyebrow">{legal ? ui.eyebrow : HELP_EYEBROW[lang]}</p>
           <h1>{doc.title}</h1>
-          <p className="legal__meta">
-            {ui.effective} <time dateTime={LEGAL_EFFECTIVE}>{formatDate(LEGAL_EFFECTIVE, lang)}</time>
-          </p>
-          {lang !== 'ko' && (
+          {legal && (
+            <p className="legal__meta">
+              {ui.effective} <time dateTime={LEGAL_EFFECTIVE}>{formatDate(LEGAL_EFFECTIVE, lang)}</time>
+            </p>
+          )}
+          {legal && lang !== 'ko' && (
             <p className="legal__note">
               {ui.translation}{' '}
               <Link to={pagePath(page, 'ko')} hrefLang="ko" lang="ko">

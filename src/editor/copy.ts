@@ -12,7 +12,7 @@ export type EditorCopy = {
   exportUnsupported: string
   cancel: string
   close: string
-  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string }
+  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string }
   tabs: { graphics: string; transcript: string }
   style: string
   themes: Record<ThemeId, string>
@@ -127,6 +127,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       drop: 'or drop a file here',
       samples: 'Or try a sample clip',
       privacy: 'Your video stays in this browser.',
+      help: 'How it works',
     },
     tabs: { graphics: 'Graphics', transcript: 'Transcript' },
     style: 'Style',
@@ -239,6 +240,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       drop: '또는 파일을 여기로 끌어 놓기',
       samples: '또는 예시 영상으로 해 보기',
       privacy: '영상은 이 브라우저 밖으로 나가지 않아요.',
+      help: '쓰는 법 보기',
     },
     tabs: { graphics: '그래픽', transcript: '받아쓴 말' },
     style: '스타일',
@@ -351,6 +353,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       drop: 'またはファイルをここにドロップ',
       samples: 'またはサンプル動画で試す',
       privacy: '動画はこのブラウザの外に出ません。',
+      help: '使い方を見る',
     },
     tabs: { graphics: 'グラフィック', transcript: '書き起こし' },
     style: 'スタイル',

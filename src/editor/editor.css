@@ -169,6 +169,10 @@
   color: var(--dim);
 }
 
+.drop small a {
+  color: var(--mint-soft);
+}
+
 .ed-start__label {
   margin: 40px 0 14px;
   color: var(--muted);

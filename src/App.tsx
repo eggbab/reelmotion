@@ -3,6 +3,7 @@ import { useLocation } from 'react-router'
 import { LangProvider } from './lang'
 import { LandingPage } from './site/LandingPage'
 import { LegalPage } from './site/legal/LegalPage'
+import { LicensesPage } from './site/legal/LicensesPage'
 import { NotFoundPage } from './site/NotFoundPage'
 import { langOfPath, matchPage } from './site/routes'
 
@@ -45,6 +46,8 @@ export function AppRoutes() {
         </Suspense>
       ) : page === 'home' ? (
         <LandingPage />
+      ) : page === 'licenses' ? (
+        <LicensesPage />
       ) : (
         <LegalPage page={page} />
       )}

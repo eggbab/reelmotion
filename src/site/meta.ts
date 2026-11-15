@@ -1,5 +1,7 @@
 import type { Lang } from '../langs'
+import { LICENSES_UI } from './legal/credits'
 import { LEGAL_DOCS } from './legal/docs'
+import { HELP } from './legal/help'
 import type { PageId } from './routes'
 
 /** 쪽의 제목(브라우저 탭·검색 결과)과 설명(검색 결과 아래 글, 160자 안팎). */
@@ -65,6 +67,7 @@ export const NOT_FOUND: Record<Lang, PageMeta & { heading: string; body: string;
 export function pageMeta(page: PageId, lang: Lang): PageMeta {
   if (page === 'home') return HOME[lang]
   if (page === 'app') return APP[lang]
-  const doc = LEGAL_DOCS[page][lang]
+  if (page === 'licenses') return { title: `${LICENSES_UI[lang].title} — ReelMotion`, description: LICENSES_UI[lang].description }
+  const doc = page === 'help' ? HELP[lang] : LEGAL_DOCS[page][lang]
   return { title: `${doc.title} — ReelMotion`, description: doc.description }
 }

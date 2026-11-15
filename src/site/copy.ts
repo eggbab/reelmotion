@@ -52,7 +52,7 @@ export type SiteCopy = {
     title: string
     product: string
     company: string
-    links: { editor: string; styles: string; pricing: string; faq: string }
+    links: { editor: string; help: string; styles: string; pricing: string; faq: string }
     business: { name: string; representative: string; registration: string; mailOrder: string; address: string; hosting: string; contact: string }
     rights: string
   }
@@ -193,7 +193,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: 'Your voice, in motion.',
       product: 'PRODUCT',
       company: 'COMPANY',
-      links: { editor: 'Editor', styles: 'Style packs', pricing: 'Pricing', faq: 'FAQ' },
+      links: { editor: 'Editor', help: 'Help', styles: 'Style packs', pricing: 'Pricing', faq: 'FAQ' },
       business: { name: 'Company', representative: 'Representative', registration: 'Business registration', mailOrder: 'Mail-order registration', address: 'Address', hosting: 'Hosting provider', contact: 'Contact' },
       rights: '© 2026 브이미랩스. All rights reserved.',
     },
@@ -332,7 +332,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: '목소리를, 모션으로.',
       product: '제품',
       company: '회사',
-      links: { editor: '편집기', styles: '스타일 묶음', pricing: '요금', faq: '자주 묻는 질문' },
+      links: { editor: '편집기', help: '도움말', styles: '스타일 묶음', pricing: '요금', faq: '자주 묻는 질문' },
       business: { name: '상호', representative: '대표', registration: '사업자등록번호', mailOrder: '통신판매업 신고번호', address: '주소', hosting: '호스팅 제공자', contact: '문의' },
       rights: '© 2026 브이미랩스. 모든 권리 보유.',
     },
@@ -471,7 +471,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: '声を、モーションに。',
       product: '製品',
       company: '会社',
-      links: { editor: 'エディター', styles: 'スタイルパック', pricing: '料金', faq: 'よくある質問' },
+      links: { editor: 'エディター', help: 'ヘルプ', styles: 'スタイルパック', pricing: '料金', faq: 'よくある質問' },
       business: { name: '商号', representative: '代表', registration: '事業者登録番号', mailOrder: '通信販売業届出番号', address: '住所', hosting: 'ホスティング事業者', contact: 'お問い合わせ' },
       rights: '© 2026 브이미랩스. All rights reserved.',
     },

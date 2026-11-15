@@ -10,6 +10,17 @@ describe('빌드 때 미리 그리기', () => {
     }
   })
 
+  it('도움말과 오픈소스 라이선스 쪽', () => {
+    expect(render('/ko/help')).toContain('그래픽 만들기')
+    expect(render('/ja/help')).toContain('書き出し')
+    const licenses = render('/licenses')
+    expect(licenses).toContain('Mediabunny')
+    expect(licenses).toContain('href="/licenses.txt"')
+    expect(licenses).toContain('SIL Open Font License 1.1')
+    expect(render('/ko')).toContain('href="/ko/help"')
+    expect(render('/ko')).toContain('href="/ko/licenses"')
+  })
+
   it('언어는 주소 앞말을 따른다', () => {
     expect(render('/ko/terms')).toContain('이용약관')
     expect(render('/ja/privacy')).toContain('プライバシーポリシー')

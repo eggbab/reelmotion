@@ -833,7 +833,7 @@ function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }
           <input type="file" accept="video/*" hidden onChange={(event: ChangeEvent<HTMLInputElement>) => onFile(event.target.files?.[0])} />
         </label>
         <small>
-          {copy.start.drop} · {copy.start.privacy}
+          {copy.start.drop} · {copy.start.privacy} · <Link to={pagePath('help', lang)}>{copy.start.help}</Link>
         </small>
       </div>
       {recent.length > 0 && (

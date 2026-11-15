@@ -1575,6 +1575,34 @@
   white-space: nowrap;
 }
 
+/* 오픈소스 라이선스: 이름 · 사용 허가 · 링크를 한 줄씩 */
+.legal .credits {
+  margin: 0 0 14px;
+  border-top: 1px solid var(--line);
+}
+
+.legal .credits li {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal .credits li::before {
+  display: none;
+}
+
+.legal .credits span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.legal .credits a {
+  justify-self: start;
+  font-size: 14px;
+}
+
 /* 없는 주소 */
 .notfound {
   position: relative;

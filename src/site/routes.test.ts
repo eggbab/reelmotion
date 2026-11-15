@@ -17,6 +17,8 @@ describe('matchPage', () => {
     expect(matchPage('/ko')).toEqual({ page: 'home', lang: 'ko' })
     expect(matchPage('/ja/refund')).toEqual({ page: 'refund', lang: 'ja' })
     expect(matchPage('/app')).toEqual({ page: 'app', lang: 'en' })
+    expect(matchPage('/ko/help')).toEqual({ page: 'help', lang: 'ko' })
+    expect(matchPage('/licenses')).toEqual({ page: 'licenses', lang: 'en' })
   })
 
   it('끝의 / 와 index.html 은 같은 쪽으로 본다', () => {
@@ -61,8 +63,8 @@ describe('langOfPath / renderKey', () => {
 })
 
 describe('SITE_PAGES', () => {
-  it('쪽 다섯 × 언어 셋, 주소가 겹치지 않는다', () => {
-    expect(SITE_PAGES).toHaveLength(15)
-    expect(new Set(SITE_PAGES.map((item) => item.path)).size).toBe(15)
+  it('쪽 일곱 × 언어 셋, 주소가 겹치지 않는다', () => {
+    expect(SITE_PAGES).toHaveLength(21)
+    expect(new Set(SITE_PAGES.map((item) => item.path)).size).toBe(21)
   })
 })

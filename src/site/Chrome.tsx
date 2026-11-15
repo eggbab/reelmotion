@@ -8,6 +8,7 @@ import type { Lang } from '../langs'
 import { BUSINESS } from './business'
 import type { SiteCopy } from './copy'
 import { EditorLink } from './EditorLink'
+import { LICENSES_UI } from './legal/credits'
 import { LEGAL_DOCS, LEGAL_PAGES, LEGAL_UI } from './legal/docs'
 import { pagePath } from './routes'
 
@@ -146,6 +147,9 @@ export function Footer({ copy }: { copy: SiteCopy }) {
                 <EditorLink>{f.links.editor}</EditorLink>
               </li>
               <li>
+                <Link to={pagePath('help', lang)}>{f.links.help}</Link>
+              </li>
+              <li>
                 <a href={`${home}#styles`}>{f.links.styles}</a>
               </li>
               <li>
@@ -202,6 +206,7 @@ export function Footer({ copy }: { copy: SiteCopy }) {
                 {LEGAL_DOCS[page][lang].title}
               </Link>
             ))}
+            <Link to={pagePath('licenses', lang)}>{LICENSES_UI[lang].title}</Link>
           </nav>
           <LangPicker label={copy.nav.language} className="lang-picker--light" />
         </div>

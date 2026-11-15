@@ -45,9 +45,11 @@ describe('headTags', () => {
 })
 
 describe('sitemap / robots / llms', () => {
-  it('사이트 지도에는 미리 그린 쪽 넷 × 언어 셋과 서로의 언어별 주소가 들어간다', () => {
+  it('사이트 지도에는 미리 그린 쪽 여섯 × 언어 셋과 서로의 언어별 주소가 들어간다', () => {
     const xml = sitemapXml(ORIGIN)
-    expect(xml.match(/<url>/g)).toHaveLength(12)
+    expect(xml.match(/<url>/g)).toHaveLength(18)
+    expect(xml).toContain('<loc>https://reelmotion.test/ko/help</loc>')
+    expect(xml).toContain('<loc>https://reelmotion.test/licenses</loc>')
     expect(xml).toContain('<loc>https://reelmotion.test/ja/privacy</loc>')
     expect(xml).toContain('<xhtml:link rel="alternate" hreflang="ko" href="https://reelmotion.test/ko/privacy" />')
     expect(xml).not.toContain('/app')
@@ -65,6 +67,8 @@ describe('sitemap / robots / llms', () => {
     expect(text).toContain('[Editor](https://reelmotion.test/app)')
     expect(text).toContain('14,900')
     expect(text).toContain('Does my video get uploaded?')
+    expect(text).toContain('[Help](https://reelmotion.test/help)')
+    expect(text).toContain('[Open-source licenses](https://reelmotion.test/licenses)')
     expect(llmsTxt(null)).toContain('[Editor](/app)')
   })
 })
@@ -88,9 +92,9 @@ describe('fillTemplate / prerenderPlan', () => {
     expect(() => fillTemplate('<html>', { lang: 'en', head: '', html: '', key: '/' })).toThrow()
   })
 
-  it('파일 목록: 쪽 15개 + 404 셋', () => {
+  it('파일 목록: 쪽 21개 + 404 셋', () => {
     const plan = prerenderPlan()
-    expect(plan).toHaveLength(18)
+    expect(plan).toHaveLength(24)
     const files = plan.map((item) => item.file)
     expect(files).toContain('index.html')
     expect(files).toContain('ko/terms/index.html')

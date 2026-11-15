@@ -10,6 +10,7 @@
 - **소개 페이지 `/`**: 레퍼런스(vigloostudio.com)와 거의 같은 글꼴·색·구성·움직임(`DESIGN.md`). 그림은 모두 실제 영상 위에서 우리 엔진이 그리는 모션그래픽. 세 언어. 요금·질문·사업자 정보·떠 있는 입력 칸(적은 말이 편집기로 넘어가 그래픽이 된다).
 - **약관·정책(2026-11-15)**: 이용약관 `/terms` · 개인정보처리방침 `/privacy` · 환불 규정 `/refund`(세 언어, 원문 한국어, 글은 `src/site/legal/`). 같은 사업자의 AllMails 처럼 꼭 필요한 것만 짧게, 환불 기준도 AllMails 와 같다(`refund-math.ts`). 문의 메일은 `business.ts` 의 `contactEmail`(비우면 「정식 공개 전에 적습니다」).
 - **없는 주소**: 언어별 404 쪽, 서버가 404 상태로 보낸다(`deploy/Caddyfile`).
+- **도움말 `/help`·오픈소스 라이선스 `/licenses`(2026-11-15)**: 도움말은 편집기 쓰는 법(단추 이름은 `src/editor/copy.ts` 와 같게 — 편집기 글을 바꾸면 `src/site/legal/help.ts` 도). 라이선스 쪽은 글꼴·받아쓰기 모델·예시 영상·주요 프로그램(`credits.ts`), 빌드할 때 사이트에 실제로 들어간 모든 공개 프로그램의 사용 허가 전문을 `/licenses.txt` 로 만든다(`vite.config.ts` 의 `thirdPartyNotices`). **의존성을 더하면 `credits.ts` 에도 적는다**(`credits.test.ts` 가 잡는다).
 - **검색·AI 노출**: 빌드할 때 쪽마다 HTML 을 미리 그린다(`src/entry-server.tsx` → `scripts/prerender.mjs`). 제목·설명·공유 그림(`public/og/`, 우리 엔진으로 그림)·`robots.txt`·`llms.txt`. 바른 주소·언어별 주소·`sitemap.xml` 은 도메인이 필요해 `SITE_ORIGIN` 을 줄 때만 들어간다.
 - **편집기 `/app`**(`/ko/app` · `/ja/app`): 영상 넣기(끌어 놓기 포함) 또는 예시 영상 8개 → 말 받아쓰기(브라우저 안 Whisper) 또는 대본 적기 → 「그래픽 만들기」(말에서 자동 배치) → 타임라인에서 끌어 옮기기·양 끝 끌어 길이 바꾸기(화살표 키도) → 오른쪽에서 글·숫자·시간 고치기, 그래픽 더하기·지우기 → 스타일 6종 → **MP4 내보내기**(브라우저 안, H.264. 안 되면 WebM).
   - 주소 매개변수: `?script=<대본>`(예시 영상에 대본을 입혀 바로 그래픽), `?theme=<스타일>`, `?project=<id>`(저장된 작업 열기).
@@ -58,7 +59,7 @@
 ## 아직 안 되는 것 (다음 할 일, 이 순서 — 전체 목록은 `docs/service-scope.md`)
 1. 운영 배포 — 도메인(사용자 결정, 「일단 냅둬」)이 정해지면 `docs/operations.md` 순서대로. 실제 GTX 1070 Ti 에서 받아쓰기 서버 확인.
 2. 계정(다른 기기에서도 작업 열기), 결제와 요금제 한도, 백업·알림·관리자 화면.
-3. 말로 고치는 대화창(로컬 LLM 후보), 데스크톱 앱, 글꼴·공개 프로그램 사용 허가 목록 쪽.
+3. 말로 고치는 대화창(로컬 LLM 후보), 데스크톱 앱, 공지 쪽.
 
 ## 기술 스택과 명령
 - Vite 8 · React 19 · TypeScript 7 · Vitest · oxlint · motion(스크롤 연동) · mediabunny(내보내기) · @huggingface/transformers(받아쓰기). 패키지 관리자는 npm 만.
