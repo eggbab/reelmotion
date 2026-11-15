@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { AccountLink } from '../account/AccountLink'
-import { deleteRemote, getRemote, putRemote } from '../account/api'
+import { deleteRemote, getRemote, putRemote, reportExportDone, requestExport } from '../account/api'
 import { ACCOUNT_COPY } from '../account/copy'
 import { currentUser, sessionReady, useSession } from '../account/session'
 import { pushLocalProjects } from '../account/sync'
@@ -61,7 +61,13 @@ type SpeechState =
 /** 받아쓰는 곳: ReelMotion 서버(Qwen3-ASR) 또는 이 브라우저(Whisper 보통·높음) */
 type SpeechEngine = 'server' | SpeechQuality
 
-type ExportState = { stage: 'idle' } | { stage: 'running'; progress: number } | { stage: 'done'; url: string; extension: string } | { stage: 'failed'; unsupported: boolean }
+type ExportState =
+  | { stage: 'idle' }
+  | { stage: 'running'; progress: number }
+  | { stage: 'done'; url: string; extension: string; watermark: boolean; remaining: number | null }
+  | { stage: 'failed'; unsupported: boolean }
+  /** 요금제 한도에 걸림(결제를 붙인 뒤 켠다 — entitlements.ts) */
+  | { stage: 'blocked'; reason: 'login' | 'too_long' | 'limit' }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'savedNoVideo' | 'failed' | 'unavailable'
 
@@ -623,10 +629,18 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     const controller = new AbortController()
     exportAbort.current = controller
     setExportState({ stage: 'running', progress: 0 })
+    // 요금제 한도를 먼저 묻는다(세지는 않음). 다 만든 뒤에만 이번 달 횟수를 센다 — 취소·실패는 횟수를 쓰지 않는다.
+    const permit = await requestExport(duration)
+    if (controller.signal.aborted) return
+    if (!permit.ok) {
+      setExportState({ stage: 'blocked', reason: permit.reason })
+      return
+    }
     try {
       const blob = await sourceBlob(source)
-      const result = await exportVideo(blob, shown, theme, { onProgress: (progress) => setExportState({ stage: 'running', progress }), signal: controller.signal })
-      setExportState({ stage: 'done', url: URL.createObjectURL(result.blob), extension: result.extension })
+      const result = await exportVideo(blob, shown, theme, { onProgress: (progress) => setExportState({ stage: 'running', progress }), signal: controller.signal, watermark: permit.watermark })
+      reportExportDone()
+      setExportState({ stage: 'done', url: URL.createObjectURL(result.blob), extension: result.extension, watermark: permit.watermark, remaining: permit.remaining })
     } catch (error) {
       if (controller.signal.aborted) setExportState({ stage: 'idle' })
       else setExportState({ stage: 'failed', unsupported: error instanceof ExportUnsupportedError })
@@ -833,7 +847,9 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
         </div>
       )}
 
-      {exportState.stage !== 'idle' && <ExportDialog copy={copy} state={exportState} baseName={safeFileName(displayName, 'reelmotion')} onClose={closeExport} onRetry={() => void startExport()} />}
+      {exportState.stage !== 'idle' && (
+        <ExportDialog copy={copy} lang={lang} state={exportState} baseName={safeFileName(displayName, 'reelmotion')} onClose={closeExport} onRetry={() => void startExport()} />
+      )}
       {showProjects && (
         <ProjectsDialog
           copy={copy}
@@ -1045,7 +1061,12 @@ function TranscriptPanel(p: TranscriptProps) {
   )
 }
 
-function ExportDialog({ copy, state, baseName, onClose, onRetry }: { copy: EditorCopy; state: ExportState; baseName: string; onClose: () => void; onRetry: () => void }) {
+type ExportDialogProps = { copy: EditorCopy; lang: Lang; state: ExportState; baseName: string; onClose: () => void; onRetry: () => void }
+
+function ExportDialog({ copy, lang, state, baseName, onClose, onRetry }: ExportDialogProps) {
+  // 로그인하거나 요금제를 본 뒤 이 작업으로 돌아온다(주소의 ?project=).
+  const back = typeof window === 'undefined' ? pagePath('app', lang) : `${window.location.pathname}${window.location.search}`
+  const accountPath = pagePath('account', lang)
   return (
     <div className="dialog-back" role="presentation">
       <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="export-title">
@@ -1071,6 +1092,16 @@ function ExportDialog({ copy, state, baseName, onClose, onRetry }: { copy: Edito
               <Download size={16} aria-hidden="true" />
               {fill(copy.download, { ext: state.extension.toUpperCase() })}
             </a>
+            {state.watermark && <p className="hint">{copy.watermarkNote}</p>}
+            {state.remaining !== null && <p className="hint">{fill(copy.exportsLeft, { n: state.remaining })}</p>}
+          </>
+        )}
+        {state.stage === 'blocked' && (
+          <>
+            <h2 id="export-title">{copy.exportBlocked[state.reason]}</h2>
+            <Link className="btn-mint" to={`${accountPath}?next=${encodeURIComponent(back)}${state.reason === 'login' ? '' : '#plans'}`}>
+              {state.reason === 'login' ? copy.exportBlocked.loginButton : copy.exportBlocked.planButton}
+            </Link>
           </>
         )}
         {state.stage === 'failed' && (

@@ -54,6 +54,19 @@ export function renderKey(pathname: string): string {
   return match ? pagePath(match.page, match.lang) : `404:${langOfPath(pathname)}`
 }
 
+/**
+ * 로그인 뒤 돌아갈 곳: 우리 사이트 안의 주소(`/` 로 시작)만. `//다른곳`·역슬래시·공백이나 보이지 않는 글자가 든 주소는
+ * 기본값으로 바꾼다 — 브라우저가 주소 속 탭·줄바꿈을 지워 `/\t/다른곳` 이 `//다른곳` 이 되기 때문(서버와 편집기가 함께 쓴다).
+ */
+export function safeNext(value: unknown, fallback = '/app'): string {
+  if (typeof value !== 'string' || value.length > 500 || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return fallback
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i)
+    if (code <= 0x20 || code === 0x7f) return fallback
+  }
+  return value
+}
+
 /** 모든 쪽 × 모든 언어 */
 export const SITE_PAGES: readonly (PageMatch & { path: string })[] = PAGE_IDS.flatMap((page) =>
   LANGS.map(({ id: lang }) => ({ page, lang, path: pagePath(page, lang) })),

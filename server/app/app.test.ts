@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SavedProject } from '../../src/editor/projects'
-import { createApp, effectivePlan, safeNext } from './app'
+import { createApp, effectivePlan } from './app'
 import type { AppConfig } from './app'
 import { openDb } from './db'
 import type { UserRow } from './db'
@@ -60,7 +60,12 @@ const project = (id: string, updatedAt: number, name = 'Talk'): SavedProject => 
 describe('로그인', () => {
   it('로그인 전에는 사용자가 없고, 구글 로그인을 쓸 수 있는지 알려 준다', async () => {
     const { request } = setup()
-    expect(await (await request('/api/me')).json()).toEqual({ user: null, login: { google: true, dev: false } })
+    expect(await (await request('/api/me')).json()).toEqual({
+      user: null,
+      login: { google: true, dev: false },
+      billing: { enforced: false, connected: false, provider: null },
+      usage: null,
+    })
     const off = setup({ google: false })
     expect((await off.request('/api/auth/google')).status).toBe(503)
   })
@@ -93,11 +98,6 @@ describe('로그인', () => {
     const lateState = new URL(late.headers.get('location')!).searchParams.get('state')!
     advance(11 * 60 * 1000)
     expect((await request(`/api/auth/google/callback?state=${lateState}&code=good`)).headers.get('location')).toBe('/ko/account?login=failed')
-  })
-
-  it('돌아갈 곳은 우리 사이트 안의 주소만', () => {
-    expect(safeNext('/ko/app?x=1')).toBe('/ko/app?x=1')
-    for (const bad of ['//evil.example', 'https://evil.example', '/\\evil', undefined, 'app']) expect(safeNext(bad)).toBe('/app')
   })
 
   it('로그아웃하면 세션이 사라진다', async () => {
@@ -179,14 +179,17 @@ describe('작업 저장(영상 제외)', () => {
 })
 
 describe('탈퇴', () => {
-  it('계정·작업·세션을 모두 지운다', async () => {
+  it('계정·작업·세션·내보내기 횟수를 모두 지운다', async () => {
     const { db, request, login } = setup()
     const { cookie } = await login()
     await request('/api/projects/p1', { method: 'PUT', cookie, body: JSON.stringify(project('p1', 10)) })
+    await request('/api/usage/export/done', { method: 'POST', cookie, body: '{}' })
+    expect(db.prepare('select count(*) as n from usage').get()).toEqual({ n: 1 })
     expect((await request('/api/account', { method: 'DELETE', cookie })).status).toBe(200)
     expect(db.prepare('select count(*) as n from users').get()).toEqual({ n: 0 })
     expect(db.prepare('select count(*) as n from projects').get()).toEqual({ n: 0 })
     expect(db.prepare('select count(*) as n from sessions').get()).toEqual({ n: 0 })
+    expect(db.prepare('select count(*) as n from usage').get()).toEqual({ n: 0 })
     expect(((await (await request('/api/me', { cookie })).json()) as { user: unknown }).user).toBeNull()
   })
 })

@@ -7,7 +7,7 @@
 |---|---|---|
 | `web` | 소개 페이지·편집기 파일을 내보내고, `/api/asr/*` 를 받아쓰기 서버로 넘긴다(Caddy) | 저장소 맨 위 `Dockerfile`, 설정 `deploy/Caddyfile` |
 | `asr` | 소리(WAV)만 받아 Qwen3-ASR 로 받아 적고 낱말마다 시간을 돌려준다. 받은 소리는 저장하지 않고 접속 기록도 남기지 않는다 | `server/asr/` |
-| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장, 말로 고치기 요청 검사·횟수 세기. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
+| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장, 말로 고치기 요청 검사·횟수 세기, 요금제 한도·달마다 내보내기 수, 결제 연결 자리. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
 | `assist` | 말로 고치기 AI: llama.cpp 서버 + Qwen3-4B-Instruct-2507(Apache-2.0, Q4_K_M 약 2.5GB). 글만 받고 저장하지 않는다 | 공식 이미지(판 고정, `compose.yml`) |
 
 - 영상은 서버로 오지 않는다(편집기가 브라우저에서 소리만 꺼내 보낸다). 내보내기도 브라우저에서 한다.
@@ -27,6 +27,7 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
 ```
 - 웹은 `127.0.0.1:8080` 에서만 받는다. 공개 주소(https)는 운영 PC 의 기존 공개 설정에서 이 포트로 넘긴다. 넘길 때 요청 크기 25MB 이상, 기다리는 시간 15분 이상으로 둔다(CPU 로 긴 소리를 받아 적을 때).
 - 처음 띄울 때 모델(약 3.5GB)을 `asr-models` 볼륨으로 내려받는다. 몇 분 걸리고, 그동안 `/api/asr/health` 는 503 이다.
+- 빌드가 `429 Too Many Requests` 로 멈추면 Docker Hub 의 내려받기 횟수 제한이다. 잠시 뒤 다시 하거나, Docker Desktop 에 Docker 계정으로 로그인하면 한도가 늘어난다.
 
 ## 도메인·문의 메일을 정하면 (사용자 결정 대기)
 1. `deploy/.env` 에 `SITE_ORIGIN=https://도메인`(끝에 / 없이)을 적는다. 빌드할 때 쪽마다 바른 주소·언어별 주소(영어·한국어·일본어)·공유 그림 주소가 들어가고 `sitemap.xml` 이 생긴다(`scripts/prerender.mjs`). 비어 있으면 빌드 끝에 경고가 나온다.
@@ -50,6 +51,70 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
 - 셋 중 하나라도 없으면 로그인 단추가 「로그인 준비 중」으로 바뀌고, 편집기는 로그인 없이 그대로 쓴다.
 - 시험용 가짜 로그인(`AUTH_DEV=1`)은 이 작업 공간의 시험에서만 켰다. 운영 `.env` 에 넣지 않는다(켜면 서버 시작 줄에 크게 경고가 찍힌다).
 
+## 요금제 한도 (`ENFORCE_PLANS`)
+- 지금(베타)은 `0`(기본): 누구나 로그인 없이, 길이·횟수 한도 없이, 워터마크 없이 내보낸다. 로그인한 사람은 다 만든 내보내기 수만 달마다 센다(「내 계정」에 보인다).
+- `deploy/.env` 에 `ENFORCE_PLANS=1` 을 적고 `docker compose up -d` 하면: 내보내려면 로그인해야 하고, 요금제(`src/site/plans.ts`)대로 영상 하나의 길이·한 달 횟수를 지키며, 무료 요금제 영상에는 오른쪽 아래에 작은 ReelMotion 표시가 들어간다. 한 달은 서울 시간으로 센다. **결제를 붙이는 날 켠다**(아래 「결제 붙이기」) — 결제 없이 켜면 아무도 한도를 늘릴 수 없다(관리 명령 `set-plan` 으로 손으로 주는 것만 된다).
+- 순서: 편집기가 내보내기 전에 `POST /api/usage/export`(영상 길이만 보냄)로 묻고 — 이때는 세지 않는다 — 다 만들면 `POST /api/usage/export/done` 으로 알린다(이때 하나 센다). 취소하거나 실패한 내보내기는 세지 않는다.
+- 정직한 한계: 내보내기는 이용자의 브라우저 안에서 하므로, 편집기 코드를 고쳐 쓰는 사람은 이 확인을 피할 수 있다. 정직한 이용자를 위한 장치다. 피해 가는 사람이 많아지면 내보내기를 서버에서 하는 방법을 그때 정한다.
+- 앱 서버가 꺼져 있거나 없으면(정적 파일만 띄운 경우) 편집기는 한도 없이 내보낸다 — 편집기는 계정 없이도 쓰는 것이 원칙이다.
+
+## 결제 붙이기 (카드 — 사용자가 나중에 붙인다)
+지금은 연결 자리(`server/app/billing.ts` 의 `BillingProvider`)만 있고 붙인 결제사가 없다. 그래서 「내 계정」 요금제 칸은 「곧 나와요」·「카드 결제는 곧 열려요」, `POST /api/billing/checkout` 은 503(`billing_not_connected`), `POST /api/billing/webhook` 은 404 다. 붙이는 순서:
+1. 카드 결제사를 고르고 계약한다(달마다 자동으로 결제되는 정기 결제를 지원하는 곳). 시험용(샌드박스) 키와 운영 키를 받는다.
+2. 키는 `deploy/.env` 에만 적는다(git 에 넣지 않는다). `compose.yml` 의 `app` 환경 변수에 그 이름을 더한다(값은 `${이름:-}` 꼴로).
+3. `server/app/billing.ts` 의 모양대로 구현 하나를 만든다.
+   - `startCheckout({ user, plan, returnUrl })`: 결제사의 결제 화면 주소를 만들어 `{ url }` 로 돌려준다. 결제가 끝나면 돌아올 주소는 `returnUrl`(`https://도메인/<언어>/account?checkout=done` — 「내 계정」이 「결제가 확인되면 바뀐 요금제가 보여요」를 보이고 4초 뒤 다시 묻는다).
+   - `handleWebhook(request, setPlan)`: 결제사가 보내는 알림의 **서명부터 확인**한다(틀리면 400). 결제가 끝났으면 `setPlan(사용자 id, 'creator' 또는 'pro', 끝나는 시각(ms))`, 해지·환불이면 `setPlan(사용자 id, 'free', null)`. 같은 알림이 두 번 와도 결과가 같게 만든다.
+   - 결제사 관리 화면에 알림 주소 `https://도메인/api/billing/webhook` 를 적는다. 이 주소만 「우리 사이트에서 온 요청인지」(Origin)를 보지 않는다 — 대신 서명으로 확인한다.
+4. `server/app/main.ts` 에서 `createApp({ …, billing: 만든 구현 })` 으로 넘기고, 시작 줄의 `billing not connected` 를 바꾼다.
+5. `src/site/plans.ts` 에서 유료 요금제의 `available` 을 `true` 로 바꾼다(소개 페이지 요금표 단추가 「내 계정」의 그 요금제로 간다). `src/site/plans.test.ts` 의 「결제를 받을 수 있기 전에는…」 시험과, 요금표의 「베타 동안 무료」 글(`src/site/copy.ts` 의 `pricing.body`·`pricing.note`, `src/account/copy.ts` 의 `planBeta`)도 함께 고친다.
+6. `deploy/.env` 에 `ENFORCE_PLANS=1`.
+7. 약관·정책을 먼저 고치고 알린다(약관의 「약관 변경」: 시행 7일 전, 불리하면 30일 전).
+   - 이용약관 「유료 서비스」: 값, 자동 결제와 갱신일, 해지 방법, 결제사.
+   - 개인정보처리방침 「제3자 제공과 처리 위탁」: 결제사를 처리를 맡기는 곳으로 적는다(카드 번호는 결제사가 받고 우리는 받지 않는다면 그렇게). 결제사가 나라 밖이면 「국외 이전」도.
+   - 환불 규정(`src/site/legal/refund.ts`): 결제사의 취소 방법에 맞춘다.
+8. 결제사 시험 환경에서 확인한다: 결제 → 알림 → 「내 계정」 요금제가 바뀜, 해지 → 무료로 돌아감, 서명이 틀린 알림 → 400. 같은 흐름을 가짜 결제사로 확인하는 시험이 `server/app/plans.test.ts` 의 「결제사를 붙이면…」 이다.
+
+## 관리 명령 (요금제 손으로 주기·사용량·백업)
+`deploy` 폴더에서(첫 줄에 SQLite 「실험 기능」 경고가 나오면 무시해도 된다):
+```bash
+docker compose exec app node main.js admin users
+```
+```bash
+docker compose exec app node main.js admin set-plan 메일주소 creator 30
+```
+```bash
+docker compose exec app node main.js admin usage 메일주소
+```
+- `users`: 가입한 사람 수와 최근 50명(메일·요금제·끝나는 날·가입한 날).
+- `set-plan <메일> <free|creator|pro> [일수]`: 결제를 붙이기 전 시험하거나 손으로 줄 때. 일수를 빼면 30일. `free` 는 끝나는 날 없음.
+- `usage <메일>`: 달마다 다 만든 내보내기 수(최근 12달).
+
+## 백업
+백업할 것은 `app-data` 볼륨의 `reelmotion.db` 하나다(계정·작업·내보내기 수). 영상은 서버에 없다. 판을 올리기 전과, 적어도 한 달에 한 번 한다.
+1. 돌아가는 중에도 안전하게 한 파일로 복사한다(SQLite 의 `VACUUM INTO`, 같은 이름이 있으면 멈춘다):
+```bash
+docker compose exec app node main.js admin backup /data/backup-20261115.db
+```
+2. 운영 PC 로 꺼내 다른 곳(외장 디스크 등)에 둔다:
+```bash
+docker compose cp app:/data/backup-20261115.db ./backup-20261115.db
+```
+되살리기(파일을 넣고 → 앱을 끄고 → 되돌리고 → 켠다). 되돌리기 명령은 아무것도 지우지 않는다: 백업이 멀쩡한 ReelMotion 저장소인지 먼저 보고, 지금 저장소는 `reelmotion.db.before-restore-<시각>` 으로 옆에 남긴 뒤 백업을 넣는다. 앱이 켜져 있으면 멈추고 알려 준다.
+```bash
+docker compose cp ./backup-20261115.db app:/data/restore.db
+```
+```bash
+docker compose stop app
+```
+```bash
+docker compose run --rm --no-deps app node main.js admin restore /data/restore.db
+```
+```bash
+docker compose start app
+```
+- 2026-11-15 이 작업 공간에서 이 순서 그대로 해 봤다(아래 「이 작업 공간에서 확인한 것」). 남긴 파일(`restore.db`, `before-restore-…`, 백업 파일)은 볼륨에 그대로 있다 — 자리가 모자랄 때만 정리한다.
+
 ## 기록(로그)
 - 웹(Caddy)은 접속 기록을 쓰지 않는다. 오류 기록에는 요청 정보가 붙는데, 그중 IP 주소·포트·머리글을 지우게 했다(`deploy/Caddyfile` 맨 위). 2026-11-15 확인: 일부러 오류를 낸 요청(`X-Forwarded-For` 포함)의 기록에 IP 가 0번 나왔다.
 - 받아쓰기 서버는 접속 기록을 끄고(`access_log=False`), 실패했을 때 오류 내용만 남긴다(소리·IP 없음).
@@ -70,6 +135,9 @@ docker compose -f compose.yml -f compose.gpu.yml exec asr python -c "import torc
 - 받아쓰기 서버 메모리: CPU bfloat16 약 0.8GB(float32 였으면 약 7.3GB — 처음에 7GB 제한에 걸려 계속 다시 시작했다). 4GB 제한을 두었다.
 - 이 작업 공간은 HTTPS 를 다시 서명하는 프록시 뒤라 빌드에 `--secret id=extra_ca,src=<인증서>` 를 넘겼다. 운영 PC 에서는 넘기지 않는다.
 - 쪽 주소(2026-11-15, 시험 도메인으로 빌드): `/` `/ko` `/ko/` `/ja/terms` `/privacy` `/app` `/ko/app` 200, 없는 주소 `/nope` `/ko/nope` `/ja/a/b` 는 그 언어의 404 쪽을 404 상태로. 404 쪽에도 같은 보안 머리글. 크롬에서 미리 그린 화면을 다시 그리지 않고 이어받는 것(9개 주소), 첫 화면·편집기 언어 옮기기(7가지), 언어 고르기, 바닥글·머리 메뉴 이동을 확인했다.
+- 요금제 한도(`ENFORCE_PLANS=1`, 크롬, 확인 28개 모두 통과): 로그인 없이 내보내기 → 「로그인하면 내보낼 수 있어요」 → 로그인 → 하던 작업으로 돌아옴 → 무료는 워터마크(내보낸 MP4 를 잘라 보니 오른쪽 아래에 표시, 크리에이터로 내보낸 것에는 없음)와 남은 횟수 → 내보내다 그만둔 것은 세지 않음 → 3번을 다 쓰면 「다 썼어요」 → 「요금제 보기」 → 관리 명령으로 크리에이터 30일 → 워터마크 없음 → 무료에서 70초 영상은 「길어요」. 영어·일본어·휴대폰 폭의 「내 계정」도 봤다.
+- 백업·되살리기(위 「백업」 순서 그대로): 5명일 때 백업 → 1명 더 가입 → 되살리기 → 5명, 그 뒤 새 가입도 저장됨. 앱이 켜진 채 되살리기를 부르면 멈추고 알려 준다. `docker compose cp` 로 넣은 파일은 root 것이라 손으로 옮겨 넣으면 앱이 쓰지 못한다 — 그래서 되살리기 명령이 앱 사용자로 복사해 넣는다.
+- 이 작업 공간에서 Docker Hub 가 429 로 막혔을 때는 같은 공식 이미지(`node:22-slim`·`caddy:2.10-alpine`)를 Google 의 Docker Hub 거울(`mirror.gcr.io/library/…`)에서 받아 같은 이름을 붙여 빌드했다.
 - 브라우저 안 받아쓰기의 실행 파일(onnxruntime)이 jsDelivr 가 아니라 우리 서버(`/assets/ort-wasm-*`)에서 오는 것, 바깥으로 나가는 곳이 Hugging Face(`huggingface.co`, `us.aws.cdn.hf.co`)뿐인 것을 확인했다(영어 24초 음성, 43초).
 
 ## 받아쓰기 서버 설정(환경 변수)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { langOfPath, matchPage, normalizePath, pagePath, renderKey, SITE_PAGES } from './routes'
+import { langOfPath, matchPage, normalizePath, pagePath, renderKey, safeNext, SITE_PAGES } from './routes'
 
 describe('pagePath', () => {
   it('영어는 앞말 없이, 한국어·일본어는 /ko·/ja 를 붙인다', () => {
@@ -60,6 +60,17 @@ describe('langOfPath / renderKey', () => {
     expect(normalizePath('')).toBe('/')
     expect(normalizePath('//')).toBe('/')
     expect(normalizePath('/ja/terms//')).toBe('/ja/terms')
+  })
+})
+
+describe('safeNext (로그인 뒤 돌아갈 곳)', () => {
+  it('우리 사이트 안의 주소만, 아니면 기본값', () => {
+    expect(safeNext('/ko/app?project=p1')).toBe('/ko/app?project=p1')
+    // 브라우저는 주소 속 탭·줄바꿈을 지우므로 「/\t/다른곳」은 「//다른곳」이 된다.
+    for (const bad of ['//evil.example', 'https://evil.example', '/\\evil', '/\t/evil.example', '/\n/evil.example', ' /app', undefined, null, 42, 'app', `/${'x'.repeat(600)}`]) {
+      expect(safeNext(bad), String(bad)).toBe('/app')
+    }
+    expect(safeNext('//evil.example', '/ko/account')).toBe('/ko/account')
   })
 })
 

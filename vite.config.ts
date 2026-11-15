@@ -87,5 +87,5 @@ export default defineConfig({
   worker: { format: 'es', plugins: () => [thirdPartyNotices(false)] },
   // 글꼴 조각을 CSS 안에 넣지 않는다(넣으면 첫 화면 CSS 가 1MB 를 넘는다).
   build: { assetsInlineLimit: 0 },
-  test: { include: ['src/**/*.test.ts', 'server/app/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.{ts,tsx}', 'server/app/**/*.test.ts'] },
 })

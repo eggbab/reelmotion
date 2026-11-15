@@ -3,6 +3,8 @@ import { motion, useScroll, useTransform } from 'motion/react'
 import type { MotionValue } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { Link } from 'react-router'
+import { useLang } from '../lang'
 import { fill } from '../langs'
 import type { Lang } from '../langs'
 import { posterUrl } from '../media/clips'
@@ -16,7 +18,9 @@ import { demo } from './demos'
 import type { Demo, DemoId } from './demos'
 import { MotionStage } from './MotionStage'
 import { PLANS, formatWon } from './plans'
+import type { Plan } from './plans'
 import { EditorLink } from './EditorLink'
+import { pagePath } from './routes'
 
 /* ───────── 만들 수 있는 것 ───────── */
 
@@ -403,8 +407,10 @@ export function Features({ copy }: { copy: SiteCopy }) {
 
 /* ───────── 요금 ───────── */
 
-export function Pricing({ copy }: { copy: SiteCopy }) {
+/** plans 는 시험에서 결제를 연 모습을 보려고 바꿀 수 있다. */
+export function Pricing({ copy, plans = PLANS }: { copy: SiteCopy; plans?: Plan[] }) {
   const p = copy.pricing
+  const { lang } = useLang()
   return (
     <section className="pricing" id="pricing">
       <div className="container center">
@@ -413,7 +419,7 @@ export function Pricing({ copy }: { copy: SiteCopy }) {
         <p className="lead-sm">{p.body}</p>
       </div>
       <ul className="container plans">
-        {PLANS.map((plan) => (
+        {plans.map((plan) => (
           <li key={plan.id} className={`plan ${plan.available ? 'plan--open' : ''}`}>
             <h3>
               {p.names[plan.id]}
@@ -429,11 +435,15 @@ export function Pricing({ copy }: { copy: SiteCopy }) {
               <li>{fill(p.exports, { n: plan.exportsPerMonth })}</li>
               <li>{plan.watermark ? p.watermark : p.noWatermark}</li>
             </ul>
-            {plan.available && (
-              <EditorLink className="btn-mint">
-                {p.cta}
-              </EditorLink>
-            )}
+            {plan.available &&
+              (plan.monthlyWon === 0 ? (
+                <EditorLink className="btn-mint">{p.cta}</EditorLink>
+              ) : (
+                // 카드 결제는 내 계정에서(로그인한 뒤 그 요금제를 골라 둔 채로).
+                <Link className="btn-mint" to={`${pagePath('account', lang)}?plan=${plan.id}`}>
+                  {fill(p.choose, { plan: p.names[plan.id] })}
+                </Link>
+              ))}
           </li>
         ))}
       </ul>

@@ -40,6 +40,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ASSIST_URL: http://assist:8080
+      # 요금제 한도(영상 길이·한 달 횟수·무료 워터마크). 베타 동안은 0, 카드 결제를 붙이는 날 1 로(docs/operations.md 「결제 붙이기」).
+      ENFORCE_PLANS: ${ENFORCE_PLANS:-0}
     volumes:
       - app-data:/data
     restart: unless-stopped

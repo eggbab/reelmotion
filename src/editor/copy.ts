@@ -10,6 +10,10 @@ export type EditorCopy = {
   download: string
   exportFailed: string
   exportUnsupported: string
+  /** 요금제 한도(결제를 붙인 뒤 켠다) */
+  exportBlocked: { login: string; too_long: string; limit: string; loginButton: string; planButton: string }
+  watermarkNote: string
+  exportsLeft: string
   cancel: string
   close: string
   start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string }
@@ -134,6 +138,15 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     download: 'Download {ext}',
     exportFailed: 'The export stopped. Please try again.',
     exportUnsupported: 'This browser cannot make video files. Please use a recent Chrome, Edge or Safari on a computer.',
+    exportBlocked: {
+      login: 'Log in to export your video.',
+      too_long: 'This video is longer than your plan allows. Shorten it or choose a bigger plan.',
+      limit: 'You have used all of this month’s exports on your plan.',
+      loginButton: 'Log in',
+      planButton: 'See plans',
+    },
+    watermarkNote: 'Videos on the Free plan carry a small ReelMotion mark in the corner.',
+    exportsLeft: 'You have {n} exports left this month.',
     cancel: 'Cancel',
     close: 'Close',
     start: {
@@ -262,6 +275,15 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     download: '{ext} 내려받기',
     exportFailed: '내보내기가 멈췄어요. 다시 눌러 주세요.',
     exportUnsupported: '이 브라우저에서는 영상 파일을 만들 수 없어요. 컴퓨터의 최신 크롬·엣지·사파리에서 열어 주세요.',
+    exportBlocked: {
+      login: '로그인하면 내보낼 수 있어요.',
+      too_long: '이 영상은 지금 요금제가 받는 길이보다 길어요. 줄이거나 더 큰 요금제를 골라 주세요.',
+      limit: '이번 달 내보내기를 다 썼어요.',
+      loginButton: '로그인',
+      planButton: '요금제 보기',
+    },
+    watermarkNote: '무료 요금제로 내보낸 영상에는 오른쪽 아래에 작은 ReelMotion 표시가 들어가요.',
+    exportsLeft: '이번 달 내보내기가 {n}번 남았어요.',
     cancel: '그만두기',
     close: '닫기',
     start: {
@@ -390,6 +412,15 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     download: '{ext} をダウンロード',
     exportFailed: '書き出しが止まりました。もう一度お試しください。',
     exportUnsupported: 'このブラウザでは動画ファイルを作れません。パソコンの最新の Chrome・Edge・Safari で開いてください。',
+    exportBlocked: {
+      login: 'ログインすると書き出せます。',
+      too_long: 'この動画は今のプランで扱える長さを超えています。短くするか、上のプランを選んでください。',
+      limit: '今月の書き出し回数を使い切りました。',
+      loginButton: 'ログイン',
+      planButton: 'プランを見る',
+    },
+    watermarkNote: '無料プランで書き出した動画には、右下に小さな ReelMotion の表示が入ります。',
+    exportsLeft: '今月の書き出しはあと{n}回です。',
     cancel: 'やめる',
     close: '閉じる',
     start: {

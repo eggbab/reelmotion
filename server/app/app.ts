@@ -6,9 +6,13 @@ import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { MAX_INSTRUCTION, parseAssistState } from '../../src/editor/assist'
 import { parseProject } from '../../src/editor/projects'
 import type { Lang } from '../../src/langs'
-import { langOfPath, pagePath } from '../../src/site/routes'
+import { checkExport, monthKey } from '../../src/site/entitlements'
+import { PLANS } from '../../src/site/plans'
+import type { PlanId } from '../../src/site/plans'
+import { langOfPath, pagePath, safeNext } from '../../src/site/routes'
 import { buildMessages, createRateLimiter, parseReply, RESPONSE_SCHEMA } from './assist'
 import type { AssistModel } from './assist'
+import type { BillingProvider } from './billing'
 import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
 import type { GoogleClaims, GoogleClient } from './google'
@@ -25,11 +29,13 @@ export type AppConfig = {
   secureCookies: boolean
   /** 개발·시험용 가짜 로그인(POST /api/auth/dev). 운영에서는 끈다. */
   devLogin: boolean
+  /** 요금제 한도(길이·횟수·워터마크)를 지킨다. 베타 동안은 끄고, 결제를 붙이는 날 켠다. */
+  enforcePlans?: boolean
 }
 
 type Env = { Variables: { user: UserRow | null; token: string | null } }
 
-export type AppDeps = { db: Db; google: GoogleClient | null; config: AppConfig; now?: () => number; assist?: AssistModel | null }
+export type AppDeps = { db: Db; google: GoogleClient | null; config: AppConfig; now?: () => number; assist?: AssistModel | null; billing?: BillingProvider | null }
 
 /** 말로 고치기: 계정(로그인) 또는 IP 마다 10분에 20번, 동시에 기다리는 요청은 3개까지. */
 export const ASSIST_LIMIT = 20
@@ -39,12 +45,6 @@ export const ASSIST_WAITING = 3
 export const MAX_PROJECT_BYTES = 1_000_000
 export const MAX_PROJECTS = 500
 const LOGIN_WINDOW = 10 * 60 * 1000
-
-/** 로그인 뒤 돌아갈 곳: 우리 사이트 안의 주소만(//다른곳 같은 주소로 내보내지 않게). */
-export function safeNext(value: string | undefined): string {
-  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') || value.includes('\\') || value.length > 500) return '/app'
-  return value
-}
 
 /** 요금제 기간이 끝났으면 무료로 본다. */
 export function effectivePlan(user: UserRow, now: number): string {
@@ -76,7 +76,7 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now, assist = null }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null, billing = null }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
   const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
   let assistWaiting = 0
@@ -91,7 +91,8 @@ export function createApp({ db, google, config, now = Date.now, assist = null }:
   }
 
   app.use('*', async (c, next) => {
-    if (c.req.method !== 'GET' && c.req.method !== 'HEAD') {
+    // 결제사 알림(webhook)은 다른 곳에서 오므로 Origin 대신 결제사 서명으로 확인한다(billing.ts).
+    if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && c.req.path !== '/api/billing/webhook') {
       const origin = c.req.header('origin')
       if (!origin || !sameSite(origin, c, config)) return c.json({ error: 'bad_origin' }, 403)
     }
@@ -110,9 +111,56 @@ export function createApp({ db, google, config, now = Date.now, assist = null }:
 
   app.get('/health', (c) => c.json({ ok: true }))
 
+  const exportsThisMonth = (userId: string) =>
+    ((db.prepare('select exports from usage where user_id = ? and month = ?').get(userId, monthKey(now())) as { exports: number } | undefined)?.exports ?? 0)
+  const billingStatus = () => ({ enforced: config.enforcePlans === true, connected: billing !== null, provider: billing?.name ?? null })
+
   app.get('/me', (c) => {
     const user = c.get('user')
-    return c.json({ user: user ? publicUser(user, now()) : null, login: { google: google !== null, dev: config.devLogin } })
+    return c.json({
+      user: user ? publicUser(user, now()) : null,
+      login: { google: google !== null, dev: config.devLogin },
+      billing: billingStatus(),
+      usage: user ? { month: monthKey(now()), exports: exportsThisMonth(user.id) } : null,
+    })
+  })
+
+  // ── 요금제 한도·사용량 ──
+  /** 내보내기 전에 묻는다(세지 않음). 허락하면 워터마크를 넣을지와 이번 것을 빼고 남는 횟수를 알려 준다. */
+  app.post('/usage/export', async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { duration?: unknown } | null
+    const duration = typeof body?.duration === 'number' && Number.isFinite(body.duration) && body.duration >= 0 ? body.duration : null
+    if (duration === null) return c.json({ error: 'bad_request' }, 400)
+    const user = c.get('user')
+    const used = user ? exportsThisMonth(user.id) : 0
+    const check = checkExport({ enforced: config.enforcePlans === true, plan: user ? effectivePlan(user, now()) : null, durationSeconds: duration, usedThisMonth: used })
+    if (!check.ok) return c.json({ error: check.reason }, check.reason === 'login' ? 401 : 403)
+    return c.json(check)
+  })
+
+  /** 영상을 다 만들었을 때 센다(로그인했을 때만). 취소하거나 실패한 내보내기는 횟수를 쓰지 않는다. */
+  app.post('/usage/export/done', (c) => {
+    const user = c.get('user')
+    if (!user) return c.json({ ok: true, exports: null })
+    db.prepare('insert into usage (user_id, month, exports) values (?, ?, 1) on conflict(user_id, month) do update set exports = exports + 1').run(user.id, monthKey(now()))
+    return c.json({ ok: true, exports: exportsThisMonth(user.id) })
+  })
+
+  // ── 결제(카드) — 결제사를 붙이기 전에는 「준비 중」 ──
+  app.post('/billing/checkout', requireUser, async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { plan?: unknown; returnUrl?: unknown } | null
+    const plan = PLANS.find((item) => item.id === body?.plan && item.monthlyWon > 0)
+    if (!plan) return c.json({ error: 'bad_plan' }, 400)
+    if (!billing) return c.json({ error: 'billing_not_connected' }, 503)
+    const returnUrl = `${config.siteOrigin ?? ''}${safeNext(typeof body?.returnUrl === 'string' ? body.returnUrl : '/account')}`
+    return c.json(await billing.startCheckout({ user: userOf(c), plan: plan.id as Exclude<PlanId, 'free'>, returnUrl }))
+  })
+
+  app.post('/billing/webhook', async (c) => {
+    if (!billing) return c.json({ error: 'not_found' }, 404)
+    return billing.handleWebhook(c.req.raw, (userId, plan, until) => {
+      db.prepare('update users set plan = ?, plan_until = ? where id = ?').run(plan, until, userId)
+    })
   })
 
   // ── 구글 로그인 ──

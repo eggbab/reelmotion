@@ -18,6 +18,12 @@ describe('앱 서버 설정', () => {
     expect(readConfig({ AUTH_DEV: '1', COOKIE_SECURE: '0', SITE_ORIGIN: 'https://x.test' })).toMatchObject({ secureCookies: false, devLogin: true })
   })
 
+  it('요금제 한도는 기본으로 끄고(베타), 1 일 때만 켠다', () => {
+    expect(readConfig({}).enforcePlans).toBe(false)
+    expect(readConfig({ ENFORCE_PLANS: '0' }).enforcePlans).toBe(false)
+    expect(readConfig({ ENFORCE_PLANS: '1' }).enforcePlans).toBe(true)
+  })
+
   it('사이트 주소 꼴이 틀리면 멈춘다', () => {
     expect(() => readConfig({ SITE_ORIGIN: 'x.test/path' })).toThrow()
   })

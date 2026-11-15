@@ -1691,6 +1691,111 @@
   font-size: 18px;
 }
 
+.account-usage {
+  color: var(--text-2);
+}
+
+/* 요금제 바꾸기(카드 결제) */
+.legal .account-card#plans {
+  scroll-margin-top: 104px;
+}
+
+.account-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 20px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.legal .account-plans > li {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 2%);
+}
+
+.legal .account-plans > li::before {
+  display: none;
+}
+
+.legal .account-plans > li.is-chosen {
+  border-color: rgb(0 255 221 / 55%);
+  box-shadow: inset 0 0 0 1px rgb(0 255 221 / 35%);
+}
+
+.legal .account-plans p {
+  margin: 0;
+}
+
+.account-plans__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.account-plans__name strong {
+  color: var(--text);
+  font: 600 17px/1.3 var(--font);
+}
+
+.account-plans__name span {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.legal .account-plans__limits {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.account-plans__current,
+.account-plans__soon {
+  justify-self: start;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  font: 600 12.5px/1 var(--font);
+}
+
+.account-plans__current {
+  background: rgb(0 255 221 / 14%);
+  color: var(--mint);
+}
+
+.account-plans__soon {
+  border: 1px solid var(--line-strong);
+  color: var(--text-2);
+}
+
+.account-plans button.btn-mint {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.account-plans button.btn-mint:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.legal .account-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .account-actions {
   display: flex;
   flex-wrap: wrap;

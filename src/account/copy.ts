@@ -33,6 +33,18 @@ export type AccountCopy = {
   synced: string
   syncFailed: string
   syncStale: string
+  /** 요금제·사용량·결제 */
+  usage: string
+  usageBeta: string
+  current: string
+  choose: string
+  billingSoon: string
+  checkoutFailed: string
+  checkoutDone: string
+  manage: string
+  refundLink: string
+  backToWork: string
+  backToEditor: string
 }
 
 export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
@@ -69,6 +81,17 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     synced: 'Saved in this browser and your account',
     syncFailed: 'Saved in this browser · not in your account yet',
     syncStale: 'A newer version from another device is in your account — reopen it from My projects',
+    usage: 'Exports this month: {used} of {limit}',
+    usageBeta: 'Exports this month: {used} · no limits during the beta',
+    current: 'Your plan',
+    choose: 'Switch to {plan}',
+    billingSoon: 'Card payments open soon.',
+    checkoutFailed: 'We could not open the payment page. Please try again.',
+    checkoutDone: 'Thank you. Your new plan shows up here once the payment is confirmed — refresh in a moment if it has not changed yet.',
+    manage: 'To cancel a paid plan or ask for a refund, see the refund policy.',
+    refundLink: 'Refund policy',
+    backToWork: 'After you log in, you will go back to your project.',
+    backToEditor: 'Back to your project',
   },
   ko: {
     title: '내 계정',
@@ -103,6 +126,17 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     synced: '이 브라우저와 계정에 저장됨',
     syncFailed: '이 브라우저에 저장됨 · 계정에는 아직',
     syncStale: '다른 기기에서 더 나중에 고친 판이 계정에 있어요 — 「내 작업」에서 다시 여세요',
+    usage: '이번 달 내보내기 {used}/{limit}번',
+    usageBeta: '이번 달 내보내기 {used}번 · 베타 동안은 한도 없음',
+    current: '지금 요금제',
+    choose: '{plan} 요금제로 바꾸기',
+    billingSoon: '카드 결제는 곧 열려요.',
+    checkoutFailed: '결제 화면을 열지 못했어요. 다시 시도해 주세요.',
+    checkoutDone: '고마워요. 결제가 확인되면 바뀐 요금제가 여기 보여요. 아직 그대로면 잠시 뒤 새로 고침해 주세요.',
+    manage: '유료 요금제를 해지하거나 환불받으려면 환불 정책을 보세요.',
+    refundLink: '환불 정책',
+    backToWork: '로그인하면 하던 작업으로 돌아가요.',
+    backToEditor: '하던 작업으로 돌아가기',
   },
   ja: {
     title: 'マイアカウント',
@@ -137,5 +171,16 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     synced: 'このブラウザとアカウントに保存済み',
     syncFailed: 'このブラウザに保存済み・アカウントにはまだ',
     syncStale: 'ほかの端末でより新しく直した版がアカウントにあります — 「マイプロジェクト」から開き直してください',
+    usage: '今月の書き出し {used}/{limit}回',
+    usageBeta: '今月の書き出し {used}回・ベータ期間中は上限なし',
+    current: '現在のプラン',
+    choose: '{plan}プランにする',
+    billingSoon: 'カード決済はまもなく始まります。',
+    checkoutFailed: '決済画面を開けませんでした。もう一度お試しください。',
+    checkoutDone: 'ありがとうございます。決済が確認されると、新しいプランがここに表示されます。まだ変わっていなければ、少ししてから再読み込みしてください。',
+    manage: '有料プランの解約や返金については、返金ポリシーをご覧ください。',
+    refundLink: '返金ポリシー',
+    backToWork: 'ログインすると、作業中のプロジェクトに戻ります。',
+    backToEditor: '作業に戻る',
   },
 }

@@ -38,6 +38,8 @@ export type SiteCopy = {
     perMonth: string
     soon: string
     cta: string
+    /** 결제가 열린 유료 요금제의 단추 */
+    choose: string
     names: Record<PlanId, string>
     whoFor: Record<PlanId, string>
     maxMinutes: string
@@ -171,6 +173,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       perMonth: 'KRW / month',
       soon: 'Coming soon',
       cta: 'Start creating',
+      choose: 'Get {plan}',
       names: { free: 'Free', creator: 'Creator', pro: 'Pro' },
       whoFor: { free: 'For trying it out', creator: 'For weekly creators', pro: 'For long videos and teams' },
       maxMinutes: 'Videos up to {n} min',
@@ -311,6 +314,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       perMonth: '원 / 월',
       soon: '곧 나와요',
       cta: '지금 시작하기',
+      choose: '{plan} 시작하기',
       names: { free: '무료', creator: '크리에이터', pro: '프로' },
       whoFor: { free: '먼저 써 보려는 분', creator: '매주 올리는 크리에이터', pro: '긴 영상과 팀' },
       maxMinutes: '영상 하나 {n}분까지',
@@ -451,6 +455,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       perMonth: 'ウォン / 月',
       soon: '近日公開',
       cta: 'いますぐはじめる',
+      choose: '{plan}をはじめる',
       names: { free: '無料', creator: 'クリエイター', pro: 'プロ' },
       whoFor: { free: 'まず試したい方', creator: '毎週投稿するクリエイター', pro: '長い動画とチーム' },
       maxMinutes: '動画1本 {n}分まで',

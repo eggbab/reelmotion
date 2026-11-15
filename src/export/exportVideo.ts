@@ -1,6 +1,7 @@
 import { ALL_FORMATS, BlobSource, BufferTarget, Conversion, Input, Mp4OutputFormat, Output, WebMOutputFormat, canEncodeVideo } from 'mediabunny'
 import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
+import { WATERMARK_FONT, drawWatermark } from '../motion/watermark'
 import type { Graphic, Theme } from '../motion/types'
 
 export type ExportResult = { blob: Blob; extension: 'mp4' | 'webm' }
@@ -18,10 +19,11 @@ export async function exportVideo(
   source: Blob,
   graphics: Graphic[],
   theme: Theme,
-  options: { onProgress: (progress: number) => void; signal?: AbortSignal },
+  options: { onProgress: (progress: number) => void; signal?: AbortSignal; watermark?: boolean },
 ): Promise<ExportResult> {
   if (typeof VideoEncoder === 'undefined') throw new ExportUnsupportedError()
   await loadFontsForGraphics(theme, graphics)
+  if (options.watermark) await document.fonts.load(WATERMARK_FONT, 'ReelMotion').catch(() => null)
 
   const input = new Input({ source: new BlobSource(source), formats: ALL_FORMATS })
   const track = await input.getPrimaryVideoTrack()
@@ -54,6 +56,7 @@ export async function exportVideo(
         ctx.clearRect(0, 0, width, height)
         sample.draw(ctx, 0, 0, width, height)
         renderGraphics(ctx, width, height, graphics, sample.timestamp, theme)
+        if (options.watermark) drawWatermark(ctx, width, height)
         return canvas
       },
     },
