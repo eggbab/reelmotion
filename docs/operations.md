@@ -150,10 +150,11 @@ docker compose start app
 
 ## 장애 알림
 - 앱 서버가 5분마다 확인한다: 웹사이트, 받아쓰기 서버, 말로 고치기 AI, 저장 공간(2GB 미만이면 문제 — `DISK_MIN_GB`), 자동 백업(오늘이나 어제 것이 없으면 문제). **15분(세 번 잇달아) 넘게 이어지면** 받는 곳(`ALERT_EMAIL`, 기본 `vmelabs@outlook.com` — 2026-11-15 사용자 지시)으로 메일을 보낸다. 풀리면 「다시 정상이에요」, 계속되면 6시간마다 「아직 문제가 있어요」. 메일에는 부분 이름·상태·시각만 들어간다(이용자 정보 없음).
-- **보내는 메일 계정이 있어야 메일이 간다.** Outlook.com 개인 계정은 2024년 9월부터 다른 프로그램이 비밀번호로 메일을 보내는 것을 막았다는 보고가 많다(받는 것은 된다). 그래서 보내는 쪽은 Gmail 앱 비밀번호를 권한다:
+- **보내는 메일 계정이 있어야 메일이 간다.** Outlook.com 개인 계정은 2024년 9월부터 다른 프로그램이 비밀번호로 메일을 보내는 것을 막았다는 보고가 많다(받는 것은 된다). 그래서 보내는 쪽은 Gmail 앱 비밀번호를 쓴다.
+- **보내는 계정은 사용자의 개인 Gmail 로 정했다(2026-11-15 사용자 지시).** 주소와 앱 비밀번호는 운영 PC 의 `deploy/.env` 에만 적는다(저장소·대화에 적지 않는다). AllMails 에서 가져다 쓸 설정은 없다 — 같은 날 AllMails 저장소를 확인하니, AllMails 는 자기 메일을 보내지 않고(`SYSTEM_MAIL_PROVIDER=none`, 가입 확인 메일 없음) Gmail 은 구글의 허락 화면으로 연결해 앱 비밀번호를 쓰지 않는다. 앱 비밀번호는 만들 때 한 번만 보이므로, 적어 둔 것이 없으면 새로 하나 만든다(여러 개 만들 수 있고 언제든 지울 수 있다):
   1. 보낼 Gmail 계정에서 2단계 인증을 켠다.
   2. Google 계정 → 보안 → 「앱 비밀번호」에서 하나 만든다(16자리).
-  3. `deploy/.env`(git 에 넣지 않는다)에 적는다: `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=보낼주소@gmail.com`, `SMTP_PASS=앱 비밀번호`.
+  3. `deploy/.env`(git 에 넣지 않는다)에 적는다: `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=그 Gmail 주소`, `SMTP_PASS=앱 비밀번호`(빈칸 없이 16자리). 받는 곳은 그대로 vmelabs@outlook.com 이다.
   4. `docker compose up -d` 로 다시 띄운 뒤 시험 메일을 보낸다. vmelabs@outlook.com 받은편지함(처음에는 스팸함도)을 본다:
 ```bash
 docker compose exec app node main.js admin test-alert
