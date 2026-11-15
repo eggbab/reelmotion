@@ -1,6 +1,6 @@
 import { Download, FolderOpen, Pause, Play, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent } from 'react'
+import type { CSSProperties, ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { AccountLink } from '../account/AccountLink'
 import { deleteRemote, getRemote, putRemote, reportExportDone, requestExport } from '../account/api'
@@ -391,7 +391,10 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   const seek = useCallback((t: number) => {
     const video = videoRef.current
-    if (video) video.currentTime = t
+    if (!video) return
+    video.currentTime = t
+    // 화면의 시각도 바로 옮긴다 — 다음 그리기를 기다리면 빠르게 이어 누르거나 끌 때 막대가 옛 자리로 되돌아간다.
+    setTime(t)
   }, [])
 
   const togglePlay = () => {
@@ -401,9 +404,13 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     else video.pause()
   }
 
+  /** 시작 화면을 아래로 내려 고른 뒤에도 편집 화면은 맨 위(미리보기)부터 보이게 한다. */
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'instant' })
+
   const openFile = (file: File | undefined) => {
     if (!file || !file.type.startsWith('video/')) return
     run.current += 1
+    toTop()
     setSource({ kind: 'file', file })
     setName((current) => current || defaultName(fileMeta(file), copy.untitled))
     setRecognized(null)
@@ -425,6 +432,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   const openSample = (clip: ClipId) => {
     run.current += 1
+    toTop()
     setSource({ kind: 'sample', clip })
     setRecognized(null)
     setScript(SAMPLE_SCRIPTS[lang])
@@ -735,12 +743,13 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       {!source ? (
         <StartScreen copy={copy} lang={lang} notice={notice} onFile={openFile} onSample={openSample} onOpen={onOpen} onShowAll={() => setShowProjects(true)} />
       ) : (
-        <div className="ed-body">
+        <div className={`ed-body${shown.length === 0 ? ' is-empty' : ''}`}>
           <section className="ed-stage">
             {source.kind === 'missing' ? (
               <Reconnect copy={copy} meta={source.meta} onFile={reconnect} />
             ) : (
-              <div className="ed-frame" style={{ aspectRatio: `${size.width} / ${size.height}` }}>
+              // --ar(가로÷세로)로 상자 크기를 정한다 — 창이 좁든 낮든 영상 비율을 지켜야 그래픽이 영상과 어긋나지 않는다(editor.css).
+              <div className="ed-frame" style={{ aspectRatio: `${size.width} / ${size.height}`, '--ar': size.width / size.height } as CSSProperties}>
                 <video
                   ref={videoRef}
                   playsInline
@@ -761,6 +770,18 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
               <button type="button" className="round-btn" onClick={togglePlay} aria-label={playing ? copy.pause : copy.play} disabled={source.kind === 'missing'}>
                 {playing ? <Pause size={18} /> : <Play size={18} />}
               </button>
+              <input
+                type="range"
+                className="ed-seek"
+                min={0}
+                max={duration || 0}
+                step={0.1}
+                value={Math.min(time, duration)}
+                onChange={(event) => seek(Number(event.target.value))}
+                aria-label={copy.scrub}
+                disabled={source.kind === 'missing' || duration === 0}
+                style={{ '--played': duration > 0 ? `${(Math.min(time, duration) / duration) * 100}%` : '0%' } as CSSProperties}
+              />
               <span className="ed-time">
                 {time.toFixed(1)}s / {duration.toFixed(1)}s
               </span>

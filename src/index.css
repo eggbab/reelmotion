@@ -67,6 +67,13 @@ textarea {
   background: rgb(255 255 255 / 8%);
 }
 
+/* 손가락으로 쓰는 기기에서는 누르는 곳을 40px 이상으로 */
+@media (pointer: coarse) {
+  .account-link {
+    min-height: 40px;
+  }
+}
+
 .account-avatar {
   display: inline-grid;
   place-items: center;

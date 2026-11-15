@@ -234,11 +234,16 @@
   background: radial-gradient(circle at 50% 30%, #15151b, var(--bg) 70%);
 }
 
+/*
+ * 미리보기 상자: 높이 한도(--max-h) 안에서 가장 크게, 폭이 모자라면 폭에 맞춘다. 어느 쪽이든 영상 비율(--ar, EditorPage 가 넣음)을
+ * 지킨다 — 상자 비율이 영상과 다르면 그 위에 그리는 그래픽이 영상과 어긋난다.
+ */
 .ed-frame {
+  --max-h: max(160px, min(calc(100vh - 380px), 620px));
   position: relative;
-  width: auto;
-  height: min(calc(100vh - 380px), 620px);
-  max-width: 100%;
+  flex: none;
+  width: min(100%, calc(var(--max-h) * var(--ar, 1.7778)));
+  height: auto;
   overflow: hidden;
   border-radius: 14px;
   background: #000;
@@ -253,7 +258,8 @@
   height: 100%;
 }
 
-.ed-frame video {
+.ed-frame video,
+.ed-frame canvas {
   object-fit: contain;
 }
 
@@ -265,9 +271,65 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: min(100%, 560px);
+}
+
+/* 영상 위치 막대(끌거나 화살표 키로 옮긴다). 지나온 만큼 민트색(--played 는 EditorPage 가 넣음). */
+.ed-seek {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  appearance: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ed-seek::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--mint) var(--played, 0%), var(--line-strong) var(--played, 0%));
+}
+
+.ed-seek::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+
+.ed-seek::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--mint);
+}
+
+.ed-seek::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--text);
+  appearance: none;
+}
+
+.ed-seek::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--text);
+}
+
+.ed-seek:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .round-btn {
+  flex: none;
   display: grid;
   place-items: center;
   width: 40px;
@@ -280,6 +342,7 @@
 }
 
 .ed-time {
+  flex: none;
   color: var(--muted);
   font: 500 12px/1 var(--font);
   font-variant-numeric: tabular-nums;
@@ -556,8 +619,11 @@
   accent-color: var(--mint);
 }
 
-/* 타임라인 */
+/* 타임라인. 줄 높이는 변수로 두고 손가락으로 쓰는 기기에서는 키운다(아래 pointer: coarse). */
 .timeline {
+  --ruler: 24px;
+  --lane: 40px;
+  --block: 34px;
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);
   border-top: 1px solid var(--line);
@@ -566,7 +632,7 @@
 
 .timeline__labels {
   display: grid;
-  grid-template-rows: 24px repeat(4, 40px);
+  grid-template-rows: var(--ruler) repeat(4, var(--lane));
   padding-bottom: 8px;
   border-right: 1px solid var(--line);
 }
@@ -579,44 +645,93 @@
   font: 500 11px/1 var(--font);
 }
 
-.timeline__area {
-  position: relative;
-  height: calc(24px + 4 * 40px + 8px);
-  margin: 0 16px 0 0;
-  cursor: pointer;
-  touch-action: none;
+/* 확대·축소 단추(왼쪽 위 모서리) */
+.timeline__labels .timeline__zoom {
+  gap: 2px;
+  padding-left: 8px;
 }
 
+.timeline__zoom button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: var(--ruler);
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+/* 손가락으로 누른 뒤 색이 남지 않게, 마우스가 있는 기기에서만 */
+@media (hover: hover) {
+  .timeline__zoom button:hover:not(:disabled) {
+    background: rgb(255 255 255 / 8%);
+    color: var(--text);
+  }
+}
+
+.timeline__zoom button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* 긴 영상은 가로로 밀어 본다. 끝까지 밀어도 브라우저의 「뒤로 가기」 손짓이 나오지 않게 한다. */
+.timeline__scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* 폭(영상 길이 × 배율)은 Timeline.tsx 가 넣는다. 오른쪽 여백 16px 은 그 밖에 더한다(TAIL). */
+.timeline__area {
+  position: relative;
+  box-sizing: content-box;
+  height: calc(var(--ruler) + 4 * var(--lane) + 8px);
+  padding-right: 16px;
+  cursor: pointer;
+}
+
+/* 눈금 줄은 영상 위치를 옮기는 자리라 손가락으로 밀어도 화면이 움직이지 않는다. */
 .timeline__ruler {
   position: absolute;
   inset: 0 0 auto;
-  height: 24px;
+  height: var(--ruler);
+  cursor: ew-resize;
+  touch-action: none;
 }
 
 .timeline__ruler span {
   position: absolute;
-  top: 6px;
+  top: calc(var(--ruler) / 2 - 6px);
+  min-height: 12px;
   padding-left: 3px;
   border-left: 1px solid var(--line-strong);
   color: var(--dim);
   font: 400 10px/1 var(--font);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .timeline__lane {
-  height: 40px;
+  height: var(--lane);
   border-bottom: 1px solid var(--line);
 }
 
 .timeline__lane:first-of-type {
-  margin-top: 24px;
+  margin-top: var(--ruler);
 }
 
+/* 고르지 않은 블록 위에서는 손가락으로 화면을 밀 수 있고, 고른 블록은 가로로 끌린다(세로로는 화면이 밀린다). */
 .block {
   position: absolute;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 34px;
+  height: var(--block);
   margin-top: 3px;
   padding: 0 8px;
   overflow: hidden;
@@ -625,7 +740,23 @@
   color: var(--mint-ink);
   text-align: left;
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-x pan-y;
+}
+
+.block.is-selected {
+  touch-action: pan-y;
+}
+
+@media (pointer: coarse) {
+  .timeline {
+    --ruler: 32px;
+    --lane: 46px;
+    --block: 40px;
+  }
+
+  .timeline__zoom button {
+    width: 30px;
+  }
 }
 
 .block:active {
@@ -1164,21 +1295,36 @@
 }
 
 @media (max-width: 900px) {
+  /* 좁은 화면(휴대폰·태블릿): 미리보기 → 타임라인 → 판 순서로 쌓는다. 타임라인이 미리보기 바로 아래라 끌면서 영상을 본다. */
   .ed-body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ed-stage {
+    order: 0;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .timeline {
+    order: 1;
+  }
+
+  /* 그래픽이 아직 없으면 빈 타임라인 대신 판(받아쓰기)이 바로 보이게 */
+  .ed-body.is-empty .timeline {
+    display: none;
   }
 
   .ed-panel {
-    grid-row: auto;
+    order: 2;
+    overflow: visible;
     border-left: 0;
     border-top: 1px solid var(--line);
   }
 
   .ed-frame {
-    height: auto;
-    width: 100%;
-    max-height: 60vh;
+    --max-h: 42vh;
   }
 
   .samples {
@@ -1196,11 +1342,83 @@
   }
 }
 
+/* 세로로 넉넉하면 미리보기를 위에 붙여 둔다 — 아래의 타임라인·판을 보면서도 영상이 보인다. */
+@media (max-width: 900px) and (min-height: 620px) {
+  .ed-stage {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* 손가락으로 쓰는 기기: 누르는 곳을 40px 이상으로 */
+@media (pointer: coarse) {
+  .pill,
+  .swatch,
+  .btn-outline {
+    min-height: 40px;
+  }
+
+  .glist button {
+    min-height: 44px;
+  }
+
+  .editor .ed-name {
+    min-height: 40px;
+  }
+
+  .editor select,
+  .editor input:not([type='range']):not([type='file']):not([type='checkbox']):not([type='radio']):not(.ed-name) {
+    min-height: 40px;
+  }
+
+  .ed-seek {
+    height: 40px;
+  }
+
+  .ed-seek::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+  }
+
+  .ed-seek::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 /* 휴대폰: 머리줄에 다 들어가게 로고 글자와 내보내기 글자를 숨기고 그림만(단추 이름은 aria-label 로 남는다) */
 @media (max-width: 560px) {
   .ed-top {
     gap: 8px;
     padding: 0 12px;
+  }
+
+  /* 언어 고르기는 지구본만 보이고(누르면 고르는 창이 뜬다) 작업 이름에 자리를 준다 */
+  .ed-top .lang-picker {
+    flex: none;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .ed-top .lang-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .ed-top .ed-logo {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 40px;
   }
 
   .ed-logo .logo {
