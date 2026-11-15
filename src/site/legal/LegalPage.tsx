@@ -18,13 +18,28 @@ function Contact({ lang }: { lang: Lang }) {
   return <span className="legal__pending">{LEGAL_UI[lang].contactPending}</span>
 }
 
-/** 문장 안의 {contact}·{terms}·{privacy}·{refund} 를 링크로 바꾼다. */
+/** 문장 안의 {contact}·{terms}·{privacy}·{refund}·{account}·{pricing} 을 링크로 바꾼다. */
 function Rich({ text, lang }: { text: string; lang: Lang }) {
   return (
     <>
       {text.split(/(\{\w+\})/).map((part, index) => {
         const token = /^\{(\w+)\}$/.exec(part)?.[1]
         if (token === 'contact') return <Contact key={index} lang={lang} />
+        if (token === 'account') {
+          return (
+            <Link key={index} to={pagePath('account', lang)}>
+              {LEGAL_UI[lang].account}
+            </Link>
+          )
+        }
+        // 소개 페이지의 구역으로 가는 링크는 바닥글처럼 보통 링크로 — 브라우저가 그 구역까지 내려간다.
+        if (token === 'pricing') {
+          return (
+            <a key={index} href={`${pagePath('home', lang)}#pricing`}>
+              {LEGAL_UI[lang].pricing}
+            </a>
+          )
+        }
         if (token === 'terms' || token === 'privacy' || token === 'refund') {
           return (
             <Link key={index} to={pagePath(token, lang)}>

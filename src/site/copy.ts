@@ -191,6 +191,9 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
         { q: 'Which languages does it understand?', a: 'English, Korean and Japanese — for speech, for the graphics it picks and for this site. The Seoul and Tokyo style packs are made for Korean and Japanese text.' },
         { q: 'Can I use what I make commercially?', a: 'Yes. What you export is yours, and every font in the style packs is licensed for commercial video.' },
         { q: 'What do I need to run it?', a: 'A recent desktop browser such as Chrome, Edge or Safari. If you choose to transcribe inside your browser, the first time downloads about 250 MB once.' },
+        { q: 'Do I need an account?', a: 'No. During the beta you can use the editor without logging in, and your projects are saved in this browser. Log in with Google to keep them in your account and open them on your other devices. You can delete your account at any time in My account.' },
+        { q: 'How does chat editing work?', a: 'Type what you want to change, such as “make the title shorter” or “switch to the Tokyo style”, and an AI model running on ReelMotion’s own server turns it into edits. Each change is checked before it is applied, and you can undo the last one. What you type is not kept or used for training.' },
+        { q: 'What happens to the Free plan when paid plans open?', a: 'Everything is free during the beta. When paid plans open, the Free plan stays free but gets the length and export limits shown in the pricing above, and videos exported on it carry a small ReelMotion mark in the corner. Creator and Pro raise the limits and remove the mark. Exports you cancel or that fail are never counted.' },
       ],
     },
     footer: {
@@ -332,6 +335,9 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
         { q: '어떤 언어를 알아듣나요?', a: '영어·한국어·일본어예요. 받아쓰기, 그래픽 고르기, 이 사이트 모두요. 서울 예능과 도쿄 텔롭 스타일은 한국어와 일본어 글자에 맞춰 만들었어요.' },
         { q: '만든 영상을 상업적으로 써도 되나요?', a: '네. 내보낸 영상은 내 것이고, 스타일에 쓰인 글꼴은 모두 상업 영상에 쓸 수 있는 라이선스예요.' },
         { q: '무엇이 필요한가요?', a: '크롬·엣지·사파리 같은 최신 데스크톱 브라우저면 돼요. 브라우저 안에서 받아 적기를 고르면 처음 한 번 약 250MB를 내려받아요.' },
+        { q: '계정이 있어야 하나요?', a: '아니요. 베타 동안은 로그인하지 않아도 편집기를 쓸 수 있고, 작업은 이 브라우저에 저장돼요. 구글로 로그인하면 작업이 계정에도 저장돼 다른 기기에서도 열려요. 탈퇴는 「내 계정」에서 언제든 할 수 있어요.' },
+        { q: '말로 고치기는 어떻게 하나요?', a: '「제목을 짧게」, 「도쿄 스타일로 바꿔 줘」처럼 바꾸고 싶은 것을 적으면 ReelMotion 서버에서 돌아가는 AI가 고치기로 바꿔요. 고치기는 적용하기 전에 검사하고, 마지막 고치기는 되돌릴 수 있어요. 적은 말은 남기지 않고 학습에도 쓰지 않아요.' },
+        { q: '유료 요금제가 열리면 무료 요금제는 어떻게 되나요?', a: '베타 동안은 모든 기능이 무료예요. 유료 요금제가 열려도 무료 요금제는 계속 무료지만, 위 요금 안내의 길이·횟수 한도가 생기고 내보낸 영상 모서리에 작은 ReelMotion 표시가 들어가요. 크리에이터와 프로는 한도가 크고 표시가 없어요. 그만두거나 실패한 내보내기는 세지 않아요.' },
       ],
     },
     footer: {
@@ -473,6 +479,9 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
         { q: 'どの言語に対応していますか?', a: '英語・韓国語・日本語です。書き起こし、グラフィックの選択、このサイトのすべてで。ソウルと東京のスタイルは韓国語と日本語の文字に合わせて作りました。' },
         { q: '作った動画を商用で使えますか?', a: 'はい。書き出した動画はあなたのものです。スタイルに使われているフォントはすべて商用動画に使えるライセンスです。' },
         { q: '何が必要ですか?', a: 'Chrome・Edge・Safari などの最新のデスクトップブラウザ。ブラウザの中で書き起こす場合は、最初に一度だけ約 250MB をダウンロードします。' },
+        { q: 'アカウントは必要ですか?', a: 'いいえ。ベータ期間中はログインしなくてもエディターを使え、プロジェクトはこのブラウザに保存されます。Google でログインすると、プロジェクトがアカウントにも保存され、ほかの端末でも開けます。退会は「マイアカウント」でいつでもできます。' },
+        { q: '話して直すはどう使いますか?', a: '「タイトルを短く」「東京スタイルにして」のように直したいことを書くと、ReelMotion のサーバーで動く AI が変更に変えます。変更は反映する前に確認され、最後の変更は元に戻せます。書いた言葉は残さず、学習にも使いません。' },
+        { q: '有料プランが始まったら、無料プランはどうなりますか?', a: 'ベータ期間中はすべての機能が無料です。有料プランが始まっても無料プランは無料のままですが、上の料金案内にある長さ・回数の上限が付き、書き出した動画の隅に小さな ReelMotion の表示が入ります。クリエイターとプロは上限が大きく、表示もありません。途中でやめた書き出しや失敗した書き出しは数えません。' },
       ],
     },
     footer: {

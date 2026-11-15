@@ -17,6 +17,11 @@ describe('빌드 때 미리 그리기', () => {
     expect(licenses).toContain('Mediabunny')
     expect(licenses).toContain('href="/licenses.txt"')
     expect(licenses).toContain('SIL Open Font License 1.1')
+    // 도움말의 계정·요금제 절은 내 계정과 요금 안내로 잇는다.
+    expect(render('/ko/help')).toContain('href="/ko/account"')
+    expect(render('/ko/help')).toContain('href="/ko#pricing"')
+    expect(render('/help')).toContain('href="/#pricing"')
+    expect(render('/ja/help')).toContain('href="/ja/account"')
     expect(render('/ko')).toContain('href="/ko/help"')
     expect(render('/ko')).toContain('href="/ko/licenses"')
   })
@@ -26,6 +31,10 @@ describe('빌드 때 미리 그리기', () => {
     expect(render('/ja/privacy')).toContain('プライバシーポリシー')
     expect(render('/refund')).toContain('Refund Policy')
     expect(render('/ko')).toContain('에 모션을.')
+    // 자주 묻는 질문: 계정·말로 고치기·무료 요금제
+    expect(render('/ko')).toContain('계정이 있어야 하나요?')
+    expect(render('/')).toContain('How does chat editing work?')
+    expect(render('/ja')).toContain('無料プランはどうなりますか?')
   })
 
   it('없는 주소는 그 언어의 404 화면', () => {

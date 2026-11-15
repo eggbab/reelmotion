@@ -8,13 +8,16 @@ export const LEGAL_DOCS: Record<LegalPageId, LegalDocs> = { terms: TERMS, privac
 
 export const LEGAL_PAGES: readonly LegalPageId[] = ['terms', 'privacy', 'refund']
 
-export const LEGAL_UI: Record<Lang, { eyebrow: string; effective: string; translation: string; original: string; contactPending: string }> = {
+/** account·pricing 은 글 속 {account}·{pricing} 링크의 글자 */
+export const LEGAL_UI: Record<Lang, { eyebrow: string; effective: string; translation: string; original: string; contactPending: string; account: string; pricing: string }> = {
   ko: {
     eyebrow: '약관과 정책',
     effective: '시행일',
     translation: '',
     original: '',
     contactPending: '문의 메일(정식 공개 전에 이 자리에 적습니다)',
+    account: '내 계정',
+    pricing: '요금 안내',
   },
   en: {
     eyebrow: 'LEGAL',
@@ -22,6 +25,8 @@ export const LEGAL_UI: Record<Lang, { eyebrow: string; effective: string; transl
     translation: 'This is a translation of the Korean original. If they differ, the Korean original applies.',
     original: 'Read the Korean original',
     contactPending: 'our contact email (listed here before launch)',
+    account: 'My account',
+    pricing: 'pricing',
   },
   ja: {
     eyebrow: '規約とポリシー',
@@ -29,6 +34,8 @@ export const LEGAL_UI: Record<Lang, { eyebrow: string; effective: string; transl
     translation: 'これは韓国語原文の翻訳です。内容が異なる場合は、韓国語の原文に従います。',
     original: '韓国語の原文を読む',
     contactPending: 'お問い合わせ用メール(正式公開前にここに記載します)',
+    account: 'マイアカウント',
+    pricing: '料金案内',
   },
 }
 

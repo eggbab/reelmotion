@@ -71,6 +71,13 @@ export const HELP: LegalDocs = {
         blocks: ['고칠 때마다 이 브라우저에 저장돼요. 「내 작업」에서 다시 열거나 지울 수 있어요. 구글로 로그인하면 계정에도 저장돼 다른 기기에서도 열려요(영상은 그 기기에서 다시 골라요). 브라우저 데이터를 지우면 이 브라우저의 작업은 지워지니 다 만든 영상은 내보내 두세요. 자세한 내용은 {privacy}에 있어요.'],
       },
       {
+        title: '계정과 요금제',
+        blocks: [
+          '구글로 로그인하면 작업이 계정에도 저장돼요. {account}에서 요금제와 이번 달 내보내기 수를 보고, 로그아웃하거나 탈퇴할 수 있어요.',
+          '베타 동안은 로그인하지 않아도 모든 기능을 한도 없이 무료로 써요. 유료 요금제가 열리면 내보내려면 로그인해야 하고, 요금제마다 영상 하나의 길이와 한 달 내보내기 횟수가 정해져요(자세한 한도는 {pricing}). 무료 요금제로 내보낸 영상에는 오른쪽 아래에 작은 ReelMotion 표시가 들어가요. 내보내다 그만두거나 실패한 것은 횟수에 들어가지 않아요.',
+        ],
+      },
+      {
         title: '잘 안 될 때',
         blocks: [
           {
@@ -78,6 +85,7 @@ export const HELP: LegalDocs = {
               '받아쓰기 서버가 바쁘다고 하면: 잠시 뒤 다시 누르거나 「받아쓰는 곳」을 이 브라우저로 바꾸세요.',
               '10분이 넘는 영상: 서버 대신 이 브라우저로 받아 적으세요.',
               '내보내기가 안 되면: 컴퓨터의 최신 크롬이나 엣지로 해 보세요.',
+              '내보내기가 막히면: 창에 나온 까닭(로그인·영상 길이·한 달 횟수)을 보고 {account}에서 요금제를 확인하세요.',
             ],
           },
           '그래도 안 되면 {contact} 로 알려 주세요.',
@@ -148,6 +156,13 @@ export const HELP: LegalDocs = {
         blocks: ['Your work is saved in this browser as you go. Reopen or delete it from “My projects”. Log in with Google and it is kept in your account too, so it opens on your other devices (choose the video again there). Clearing browser data removes this browser’s copy, so export the videos you finish. See the {privacy} for details.'],
       },
       {
+        title: 'Account and plans',
+        blocks: [
+          'Log in with Google and your projects are kept in your account too. In {account} you can see your plan and how many videos you exported this month, log out, or delete your account.',
+          'During the beta, every feature is free and unlimited, with or without logging in. When paid plans open, you will need to log in to export, and each plan sets a maximum video length and a number of exports per month (see {pricing}). Videos exported on the Free plan carry a small ReelMotion mark in the bottom-right corner. Exports you cancel or that fail are not counted.',
+        ],
+      },
+      {
         title: 'If something goes wrong',
         blocks: [
           {
@@ -155,6 +170,7 @@ export const HELP: LegalDocs = {
               'The speech server is busy: try again in a moment, or switch “Transcribe with” to this browser.',
               'Videos over 10 minutes: transcribe in this browser instead of the server.',
               'Export does not work: try a recent Chrome or Edge on a computer.',
+              'Export is blocked: read the reason in the window (login, video length or monthly exports) and check your plan in {account}.',
             ],
           },
           'If it still does not work, write to {contact}.',
@@ -225,6 +241,13 @@ export const HELP: LegalDocs = {
         blocks: ['直すたびにこのブラウザに保存されます。「マイプロジェクト」から開き直したり削除したりできます。Google でログインするとアカウントにも保存され、ほかの端末でも開けます(動画はその端末で選び直します)。ブラウザのデータを消すとこのブラウザの分は消えるため、完成した動画は書き出しておいてください。詳しくは{privacy}をご覧ください。'],
       },
       {
+        title: 'アカウントとプラン',
+        blocks: [
+          'Google でログインすると、プロジェクトがアカウントにも保存されます。{account}で、プランと今月の書き出し回数を確認したり、ログアウトや退会をしたりできます。',
+          'ベータ期間中は、ログインしなくてもすべての機能を上限なしで無料で使えます。有料プランが始まると、書き出しにはログインが必要になり、プランごとに動画1本の長さと月の書き出し回数が決まります(詳しい上限は{pricing})。無料プランで書き出した動画には、右下に小さな ReelMotion の表示が入ります。途中でやめた書き出しや失敗した書き出しは回数に入りません。',
+        ],
+      },
+      {
         title: 'うまくいかないとき',
         blocks: [
           {
@@ -232,6 +255,7 @@ export const HELP: LegalDocs = {
               '書き起こしサーバーが混み合っているとき: 少し待ってからもう一度押すか、「書き起こす場所」をこのブラウザに変えてください。',
               '10分を超える動画: サーバーではなく、このブラウザで書き起こしてください。',
               '書き出しができないとき: パソコンの最新の Chrome か Edge でお試しください。',
+              '書き出しが止められたとき: 画面に出た理由(ログイン・動画の長さ・月の回数)を見て、{account}でプランを確認してください。',
             ],
           },
           'それでも解決しない場合は、{contact} までお知らせください。',
