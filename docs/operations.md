@@ -151,14 +151,18 @@ docker compose start app
 ## 장애 알림
 - 앱 서버가 5분마다 확인한다: 웹사이트, 받아쓰기 서버, 말로 고치기 AI, 저장 공간(2GB 미만이면 문제 — `DISK_MIN_GB`), 자동 백업(오늘이나 어제 것이 없으면 문제). **15분(세 번 잇달아) 넘게 이어지면** 받는 곳(`ALERT_EMAIL`, 기본 `vmelabs@outlook.com` — 2026-11-15 사용자 지시)으로 메일을 보낸다. 풀리면 「다시 정상이에요」, 계속되면 6시간마다 「아직 문제가 있어요」. 메일에는 부분 이름·상태·시각만 들어간다(이용자 정보 없음).
 - **보내는 메일 계정이 있어야 메일이 간다.** Outlook.com 개인 계정은 2024년 9월부터 다른 프로그램이 비밀번호로 메일을 보내는 것을 막았다는 보고가 많다(받는 것은 된다). 그래서 보내는 쪽은 Gmail 앱 비밀번호를 쓴다.
-- **보내는 계정은 사용자의 개인 Gmail 로 정했다(2026-11-15 사용자 지시).** 주소와 앱 비밀번호는 운영 PC 의 `deploy/.env` 에만 적는다(저장소·대화에 적지 않는다). AllMails 에서 가져다 쓸 설정은 없다 — 같은 날 AllMails 저장소를 확인하니, AllMails 는 자기 메일을 보내지 않고(`SYSTEM_MAIL_PROVIDER=none`, 가입 확인 메일 없음) Gmail 은 구글의 허락 화면으로 연결해 앱 비밀번호를 쓰지 않는다. 앱 비밀번호는 만들 때 한 번만 보이므로, 적어 둔 것이 없으면 새로 하나 만든다(여러 개 만들 수 있고 언제든 지울 수 있다):
-  1. 보낼 Gmail 계정에서 2단계 인증을 켠다.
-  2. Google 계정 → 보안 → 「앱 비밀번호」에서 하나 만든다(16자리).
-  3. `deploy/.env`(git 에 넣지 않는다)에 적는다: `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=그 Gmail 주소`, `SMTP_PASS=앱 비밀번호`(빈칸 없이 16자리). 받는 곳은 그대로 vmelabs@outlook.com 이다.
-  4. `docker compose up -d` 로 다시 띄운 뒤 시험 메일을 보낸다. vmelabs@outlook.com 받은편지함(처음에는 스팸함도)을 본다:
+- **보내는 계정은 outreach 의 관리자 계정에 연결된 Gmail 을 그대로 쓴다(2026-11-15 사용자 지시 「앱 비밀번호는 outreach의 관리자 계정에서 찾아」).** 그 앱 비밀번호는 outreach 운영 데이터베이스에 잠겨(암호화되어) 들어 있고, outreach 설정 화면도 값을 보여 주지 않는다(연결 여부만). 그래서 배포하는 날 **운영 PC 에서** 아래 도구로 옮긴다 — outreach 가 자기 서비스 메일을 보낼 때 쓰는 계정(주소·앱 비밀번호·서버)을 outreach 앱 컨테이너에서 읽어 `deploy/.env` 에 바로 적고, 값은 화면에 보이지 않는다. 주소와 비밀번호는 저장소·대화에 적지 않는다.
+  1. 운영 PC 의 PowerShell 에서(ReelMotion 을 받은 폴더의 `deploy`):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\smtp-from-outreach.ps1
+```
+  2. 「Wrote SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS …」가 나오면 끝. outreach 가 `%USERPROFILE%\outreach\deploy` 가 아닌 곳에 있으면 `-OutreachDeploy <그 폴더>` 를 붙인다.
+  3. `docker compose up -d` 로 다시 띄운 뒤 시험 메일을 보낸다. vmelabs@outlook.com 받은편지함(처음에는 스팸함도)을 본다:
 ```bash
 docker compose exec app node main.js admin test-alert
 ```
+- 도구가 「outreach has no sending mail account」라고 하면 outreach 관리자 계정에 메일이 연결돼 있지 않은 것이다. 그때는 보낼 Gmail 계정에서 앱 비밀번호를 새로 만들어(2단계 인증을 켠 뒤 Google 계정 → 보안 → 「앱 비밀번호」, 16자리) `deploy/.env` 에 `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=그 주소`, `SMTP_PASS=앱 비밀번호` 를 손으로 적는다.
+- 이 도구는 두 조각이다: outreach 컨테이너 안에서 도는 `deploy/smtp_from_outreach.py`(2026-11-15 outreach 의 실제 코드에 임시 저장소와 가짜 비밀번호로 확인 — 관리자 Gmail·회사 메일 서버·outreach 설정 파일의 시스템 메일·계정 없음 네 경우, 그리고 적힌 줄을 ReelMotion 앱 컨테이너가 그대로 읽는 것)와, 그것을 넣고 받아 적는 `deploy/smtp-from-outreach.ps1`(**윈도우 쪽은 운영 PC 에서 아직 돌려 보지 못했다**).
 - 보내는 계정을 넣기 전에는 알림이 앱 기록에만 남는다: `docker compose logs app` 에서 `ALERT` 로 시작하는 줄. 앱 시작 줄 끝에 `alerts → vmelabs@outlook.com (mail)` 이면 메일, `(log only)` 면 기록만.
 - PC 나 인터넷이 통째로 멈추면 이 서버도 알릴 수 없다. 도메인이 생기면 바깥 감시 서비스(예: UptimeRobot 무료)에 `https://도메인/api/status` 를 5분마다 보게 하고, 알림을 vmelabs@outlook.com 으로 받게 한다. 모두 정상이면 200, 하나라도 문제면 503 을 돌려준다(부분 이름과 정상 여부만 — 자세한 내용은 관리자 화면).
 - 메일을 받으면:

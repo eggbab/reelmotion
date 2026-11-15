@@ -69,7 +69,7 @@
 
 ## 아직 안 되는 것 (다음 할 일, 이 순서 — 전체 목록은 `docs/service-scope.md`)
 1. 운영 배포 — 도메인(사용자 결정, 「일단 냅둬」)이 정해지면 `docs/operations.md` 순서대로. 실제 GTX 1070 Ti 에서 받아쓰기 서버 확인.
-2. ~~요금제 한도·사용량·워터마크·결제 연결 자리·관리 명령·백업·자동 백업·되살리기~~(2026-11-15). ~~장애 알림~~(2026-11-15, 받는 곳 vmelabs@outlook.com — 사용자 지시. 보내는 계정은 사용자의 개인 Gmail 로 정함 — 주소·앱 비밀번호는 배포하는 날 `deploy/.env` 에만, AllMails 에는 가져올 설정이 없다). ~~관리자 화면 `/ko/admin`~~(ADMIN_EMAILS, 기본 vmelabs@outlook.com). ~~공지~~(관리자 화면에서 쓰고 사이트·편집기 위에, 닫은 판은 localStorage). 남은 것: 결제사 연결(사용자가 카드로).
+2. ~~요금제 한도·사용량·워터마크·결제 연결 자리·관리 명령·백업·자동 백업·되살리기~~(2026-11-15). ~~장애 알림~~(2026-11-15, 받는 곳 vmelabs@outlook.com — 사용자 지시. 보내는 계정은 outreach 관리자 계정에 연결된 Gmail(사용자 지시 「outreach의 관리자 계정에서 찾아」) — 값은 outreach 운영 DB 에 암호화돼 있어 여기서는 볼 수 없고, 배포하는 날 운영 PC 에서 `deploy/smtp-from-outreach.ps1` 로 `deploy/.env` 에 옮긴다. 주소·비밀번호를 저장소·대화에 적지 않는다). ~~관리자 화면 `/ko/admin`~~(ADMIN_EMAILS, 기본 vmelabs@outlook.com). ~~공지~~(관리자 화면에서 쓰고 사이트·편집기 위에, 닫은 판은 localStorage). 남은 것: 결제사 연결(사용자가 카드로).
 3. ~~앱으로 설치·오프라인~~(2026-11-15, 브라우저가 설치하는 웹 앱 — `src/pwa/`, `docs/operations.md` 「앱으로 설치·오프라인」). 앱 장터에 올리는 앱은 만들지 않았다.
 4. ~~Claude·ChatGPT 커넥터~~(2026-11-15). 남은 것: 도메인이 생기면 실제 Claude·ChatGPT 에 더해 확인(`docs/operations.md` 「Claude·ChatGPT 커넥터」의 「공개하는 날 할 일」), 두 회사의 메뉴 이름이 바뀌면 도움말(`help.ts` 의 `connect`) 고치기.
 
