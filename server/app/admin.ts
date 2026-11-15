@@ -3,9 +3,9 @@ import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { monthKey } from '../../src/site/entitlements'
 import { PLANS } from '../../src/site/plans'
+import { setPlan } from './admin-data'
 import type { Db, UserRow } from './db'
 
-const DAY = 24 * 60 * 60 * 1000
 const date = (ms: number | null) => (ms === null ? '-' : new Date(ms).toISOString().slice(0, 10))
 
 /**
@@ -27,14 +27,11 @@ export function runAdmin(db: Db, args: string[], now: number): string {
     }
     case 'set-plan': {
       const [email, plan, days] = rest
-      const user = userByEmail(email)
-      if (!user) return `no user: ${email ?? ''}`
-      if (!PLANS.some((item) => item.id === plan)) return `plan must be one of: ${PLANS.map((item) => item.id).join(', ')}`
-      const length = days === undefined ? 30 : Number(days)
-      if (plan !== 'free' && (!Number.isInteger(length) || length <= 0)) return 'days must be a positive whole number'
-      const until = plan === 'free' ? null : now + length * DAY
-      db.prepare('update users set plan = ?, plan_until = ? where id = ?').run(plan, until, user.id)
-      return `${user.email}: ${plan} until ${date(until)}`
+      const result = setPlan(db, email, plan, days === undefined ? undefined : Number(days), now)
+      if (!result.ok && result.error === 'no_user') return `no user: ${email ?? ''}`
+      if (!result.ok && result.error === 'bad_plan') return `plan must be one of: ${PLANS.map((item) => item.id).join(', ')}`
+      if (!result.ok) return 'days must be a positive whole number'
+      return `${result.user.email}: ${result.user.plan} until ${date(result.user.plan_until)}`
     }
     case 'usage': {
       const user = userByEmail(rest[0])

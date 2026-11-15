@@ -65,6 +65,7 @@ describe('로그인', () => {
       login: { google: true, dev: false },
       billing: { enforced: false, connected: false, provider: null },
       usage: null,
+      admin: false,
     })
     const off = setup({ google: false })
     expect((await off.request('/api/auth/google')).status).toBe(503)

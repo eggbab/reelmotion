@@ -74,9 +74,24 @@ const check = () => void watch.tick().catch((error: unknown) => console.error('w
 check()
 setInterval(check, config.watchMs).unref()
 
-const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config, assist, watch })
+const app = createApp({
+  db,
+  google: config.google ? createGoogleClient(config.google) : null,
+  config,
+  assist,
+  watch,
+  admin: {
+    emails: config.adminEmails,
+    backupDir: config.backupDays > 0 ? join(config.dataDir, 'backups') : null,
+    alerts: {
+      email: config.alertEmail,
+      mail: mailer !== null,
+      test: mailer ? () => mailer.send('[ReelMotion] 시험 메일', '관리자 화면에서 보낸 시험 메일입니다. ReelMotion 장애 알림이 이 주소로 옵니다.') : null,
+    },
+  },
+})
 serve({ fetch: app.fetch, hostname: config.host, port: config.port }, ({ port }) => {
-  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'} · alerts → ${config.alertEmail ?? '(nobody)'} (${mailer ? 'mail' : 'log only'})${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
+  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'} · alerts → ${config.alertEmail ?? '(nobody)'} (${mailer ? 'mail' : 'log only'}) · admin ${config.adminEmails.join(', ') || '(nobody)'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
 })
 
 const stop = () => {

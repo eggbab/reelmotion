@@ -1853,6 +1853,258 @@
   font-size: 12px;
 }
 
+/* 관리자 화면 */
+.admin .legal__inner {
+  width: min(960px, calc(100% - 32px));
+}
+
+.legal .admin-checks,
+.legal .admin-people,
+.legal .admin-backups,
+.legal .admin-settings {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal .admin-checks li,
+.legal .admin-people li,
+.legal .admin-backups li,
+.legal .admin-settings li {
+  margin: 0;
+  padding: 0;
+}
+
+.legal .admin-checks li::before,
+.legal .admin-people li::before,
+.legal .admin-backups li::before,
+.legal .admin-settings li::before {
+  display: none;
+}
+
+.legal .admin-checks li {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 180px) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-pill {
+  justify-self: start;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font: 600 12px/1.4 var(--font);
+}
+
+.admin-pill.is-ok {
+  background: rgb(0 255 221 / 14%);
+  color: var(--mint);
+}
+
+.admin-pill.is-bad {
+  background: rgb(255 107 107 / 16%);
+  color: #ffb4b4;
+}
+
+.admin-checks strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.legal .admin-detail {
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 8px 0 0;
+}
+
+.admin-stats > div {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.admin-stats dt {
+  color: var(--muted);
+  font: 500 13px/1.4 var(--font);
+}
+
+.legal .admin-stats dd {
+  margin: 0;
+  color: var(--text);
+  font: 600 28px/1.2 var(--font);
+}
+
+.legal .admin-stats dd.admin-stats__plans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.admin-stats__plans b {
+  color: var(--mint);
+}
+
+.admin-stats small {
+  color: var(--muted);
+}
+
+.legal .admin-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legal .admin-settings li {
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.legal .admin-settings li.is-on {
+  border-color: rgb(0 255 221 / 45%);
+  color: var(--mint);
+}
+
+.admin-search {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.admin-search input,
+.admin-plan select,
+.admin-plan input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #0b0b0f;
+  color: var(--text);
+  font: 400 14px var(--font);
+}
+
+.admin-search input {
+  flex: 1;
+  min-width: 0;
+}
+
+.legal .admin-people li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-person {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-person strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.legal .admin-person span,
+.legal .admin-person small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.admin-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-plan label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.admin-plan input {
+  width: 84px;
+}
+
+.account .admin-plan .btn-mint,
+.account .admin-people .btn-ghost,
+.account .admin-search .btn-ghost,
+.account .admin-plan .btn-ghost {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.account .admin-people .btn-ghost,
+.account .admin-search .btn-ghost,
+.account .admin-plan .btn-ghost {
+  border: 1px solid var(--line-strong);
+}
+
+.legal .admin-backups li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal .admin-backups span {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-backups small {
+  color: var(--muted);
+}
+
+.account .admin-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mint);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .legal .admin-checks li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-checks .admin-detail {
+    grid-column: 1 / -1;
+  }
+}
+
 /* 말로 고치기 구역의 단추 */
 .chat__cta {
   margin-top: 28px;

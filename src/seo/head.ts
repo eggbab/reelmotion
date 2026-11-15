@@ -36,7 +36,7 @@ export function headTags(target: HeadTarget, origin: string | null): string {
   const lines = [`<title>${escapeHtml(meta.title)}</title>`, tag('meta', { name: 'description', content: meta.description })]
 
   // 없는 쪽과 내 계정(사람마다 다름)은 검색에 넣지 않는다.
-  if (target.kind === '404' || target.page === 'account') lines.push(tag('meta', { name: 'robots', content: 'noindex' }))
+  if (target.kind === '404' || target.page === 'account' || target.page === 'admin') lines.push(tag('meta', { name: 'robots', content: 'noindex' }))
 
   if (origin && target.kind === 'page') {
     lines.push(tag('link', { rel: 'canonical', href: absoluteUrl(origin, pagePath(target.page, lang)) }))

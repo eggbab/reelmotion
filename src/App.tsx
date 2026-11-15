@@ -10,6 +10,8 @@ import { langOfPath, matchPage } from './site/routes'
 
 // 편집기는 내보내기·받아쓰기 도구를 담고 있어 무겁다. 소개 페이지를 여는 사람은 내려받지 않게 따로 나눈다.
 const EditorPage = lazy(() => import('./editor/EditorPage').then((module) => ({ default: module.EditorPage })))
+// 관리자 화면도 운영자만 쓰므로 따로 나눈다.
+const AdminPage = lazy(() => import('./admin/AdminPage').then((module) => ({ default: module.AdminPage })))
 
 /** 쪽을 옮기면 맨 위에서 시작한다(# 이 붙은 주소는 그 구역으로). 처음 열 때는 브라우저가 되살린 위치를 그대로 둔다. */
 function useScrollToTop(pathname: string, hash: string) {
@@ -51,6 +53,10 @@ export function AppRoutes() {
         <LicensesPage />
       ) : page === 'account' ? (
         <AccountPage />
+      ) : page === 'admin' ? (
+        <Suspense fallback={<div className="site" />}>
+          <AdminPage />
+        </Suspense>
       ) : (
         <LegalPage page={page} />
       )}

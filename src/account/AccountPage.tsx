@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { ADMIN_COPY } from '../admin/copy'
 import { useLang } from '../lang'
 import { fill } from '../langs'
 import type { Lang } from '../langs'
@@ -160,7 +161,9 @@ function PlanCard({ me, user, copy, lang, chosen, checkoutDone }: { me: Me; user
   )
 }
 
-function Profile({ user, copy, lang, back, onDeleted, children }: { user: Account; copy: AccountCopy; lang: Lang; back: string | null; onDeleted: () => void; children: ReactNode }) {
+type ProfileProps = { user: Account; copy: AccountCopy; lang: Lang; back: string | null; admin: boolean; onDeleted: () => void; children: ReactNode }
+
+function Profile({ user, copy, lang, back, admin, onDeleted, children }: ProfileProps) {
   const [confirming, setConfirming] = useState(false)
   const remove = async () => {
     if (!confirming) {
@@ -206,6 +209,11 @@ function Profile({ user, copy, lang, back, onDeleted, children }: { user: Accoun
           >
             {copy.logout}
           </button>
+          {admin && (
+            <Link to={pagePath('admin', lang)} className="btn-ghost">
+              {ADMIN_COPY[lang].account}
+            </Link>
+          )}
         </div>
       </section>
       {children}
@@ -254,7 +262,7 @@ export function AccountPage() {
           {session.status === 'off' && <p className="account-note">{copy.off}</p>}
           {session.status === 'ready' &&
             (user ? (
-              <Profile user={user} copy={copy} lang={lang} back={back === here ? null : back} onDeleted={() => setDeleted(true)}>
+              <Profile user={user} copy={copy} lang={lang} back={back === here ? null : back} admin={session.me.admin === true} onDeleted={() => setDeleted(true)}>
                 <PlanCard me={session.me} user={user} copy={copy} lang={lang} chosen={chosen} checkoutDone={params.get('checkout') === 'done'} />
               </Profile>
             ) : (

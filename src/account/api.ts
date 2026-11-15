@@ -7,7 +7,7 @@ import type { ProjectSource, SavedProject } from '../editor/projects'
  */
 export type Account = { id: string; email: string; name: string; plan: string; planUntil: number | null; createdAt: number }
 export type Billing = { enforced: boolean; connected: boolean; provider: string | null }
-export type Me = { user: Account | null; login: { google: boolean; dev: boolean }; billing: Billing; usage: { month: string; exports: number } | null }
+export type Me = { user: Account | null; login: { google: boolean; dev: boolean }; billing: Billing; usage: { month: string; exports: number } | null; admin?: boolean }
 export type RemoteSummary = { id: string; name: string; updatedAt: number; createdAt: number; duration: number; portrait: boolean; thumbnail: string | null; source: ProjectSource }
 
 const json = { 'content-type': 'application/json' }

@@ -1,4 +1,5 @@
 import { ACCOUNT_COPY } from '../account/copy'
+import { ADMIN_COPY } from '../admin/copy'
 import type { Lang } from '../langs'
 import { LICENSES_UI } from './legal/credits'
 import { LEGAL_DOCS } from './legal/docs'
@@ -70,6 +71,7 @@ export function pageMeta(page: PageId, lang: Lang): PageMeta {
   if (page === 'app') return APP[lang]
   if (page === 'licenses') return { title: `${LICENSES_UI[lang].title} — ReelMotion`, description: LICENSES_UI[lang].description }
   if (page === 'account') return { title: `${ACCOUNT_COPY[lang].title} — ReelMotion`, description: ACCOUNT_COPY[lang].loginBody }
+  if (page === 'admin') return { title: `${ADMIN_COPY[lang].title} — ReelMotion`, description: ADMIN_COPY[lang].description }
   const doc = page === 'help' ? HELP[lang] : LEGAL_DOCS[page][lang]
   return { title: `${doc.title} — ReelMotion`, description: doc.description }
 }

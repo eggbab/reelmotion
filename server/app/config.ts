@@ -19,6 +19,7 @@ import type { GoogleConfig } from './google'
  * | WEB_URL / ASR_URL | (없음) | 장애 확인에서 볼 웹·받아쓰기 서버 주소(compose.yml 이 넣는다) |
  * | DISK_MIN_GB | 2 | 저장 공간이 이보다 적으면 알린다 |
  * | WATCH_SECONDS | 300 | 장애 확인 간격(초, 10 이상). 세 번 잇달아 문제면 알린다 |
+ * | ADMIN_EMAILS | 문의 메일(business.ts) | 관리자 화면(/admin)을 쓸 수 있는 로그인 메일, 쉼표로 여럿 |
  */
 export type SmtpConfig = { host: string; port: number; user: string | null; pass: string | null; from: string }
 export type ServerConfig = AppConfig & {
@@ -34,6 +35,7 @@ export type ServerConfig = AppConfig & {
   asrUrl: string | null
   diskMinBytes: number
   watchMs: number
+  adminEmails: string[]
 }
 
 export const MAX_BACKUP_DAYS = 30
@@ -75,5 +77,10 @@ export function readConfig(env: Record<string, string | undefined>): ServerConfi
     asrUrl: text(env.ASR_URL),
     diskMinBytes: Number.isFinite(diskMinGb) && diskMinGb >= 0 ? diskMinGb * 1e9 : 2e9,
     watchMs: Number.isFinite(watchSeconds) ? Math.max(10, watchSeconds) * 1000 : 300_000,
+    adminEmails: text(env.ADMIN_EMAILS)
+      ? env.ADMIN_EMAILS!.split(',').map((email) => email.trim().toLowerCase()).filter(Boolean)
+      : BUSINESS.contactEmail
+        ? [BUSINESS.contactEmail.toLowerCase()]
+        : [],
   }
 }

@@ -47,7 +47,7 @@ export const PRIVACY: LegalDocs = {
             list: [
               '말소리: 받아 적은 글과 낱말별 시간을 이용자에게 돌려주는 데만 씁니다. 학습이나 다른 목적에 쓰지 않습니다.',
               '접속 정보: 페이지와 받아쓰기 결과를 이용자에게 보내는 데만 씁니다.',
-              '계정 정보: 로그인을 유지하고, 계정에 저장한 작업을 보여 주고, 문의에 답하는 데 씁니다.',
+              '계정 정보: 로그인을 유지하고, 계정에 저장한 작업을 보여 주고, 요금제를 관리하고, 문의에 답하는 데 씁니다.',
               '계정에 저장한 작업: 이용자가 여러 기기에서 작업을 열 수 있게 하는 데만 씁니다.',
               '말로 고치기에 적은 말: 회사 서버의 AI 가 그 말대로 그래픽 고치기를 만드는 데만 씁니다. 학습에 쓰지 않습니다.',
               '내보내기 횟수: 요금제의 영상 길이·한 달 횟수 한도를 지키고 「내 계정」에 보여 주는 데만 씁니다.',
@@ -160,7 +160,7 @@ export const PRIVACY: LegalDocs = {
             list: [
               'Speech audio: only to send you back the transcript and the timing of each word. It is not used for training or anything else.',
               'Connection information: only to deliver pages and transcripts to you.',
-              'Account information: to keep you logged in, show you the projects kept in your account and answer your questions.',
+              'Account information: to keep you logged in, show you the projects kept in your account, manage your plan and answer your questions.',
               'Projects kept in your account: only to let you open your projects on any of your devices.',
               'What you type in chat editing: only for the AI on our server to turn it into graphic edits. It is not used for training.',
               'Export count: only to apply your plan’s limits on video length and exports per month, and to show them in My account.',
@@ -273,7 +273,7 @@ export const PRIVACY: LegalDocs = {
             list: [
               '音声: 文字起こしの結果と単語ごとの時間をお返しするためだけに使います。学習やほかの目的には使いません。',
               '接続情報: ページと文字起こしの結果をお届けするためだけに使います。',
-              'アカウント情報: ログインを保ち、アカウントに保存したプロジェクトを表示し、お問い合わせに答えるために使います。',
+              'アカウント情報: ログインを保ち、アカウントに保存したプロジェクトを表示し、プランを管理し、お問い合わせに答えるために使います。',
               'アカウントに保存したプロジェクト: 複数の端末でプロジェクトを開けるようにするためだけに使います。',
               '話して直すに書いた言葉: 当社サーバーの AI がその言葉どおりのグラフィックスの変更を作るためだけに使います。学習には使いません。',
               '書き出し回数: プランの動画の長さ・月の回数の上限を守り、「マイアカウント」に表示するためだけに使います。',

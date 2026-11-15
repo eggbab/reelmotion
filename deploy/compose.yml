@@ -54,6 +54,8 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      # 관리자 화면(/ko/admin)을 쓸 수 있는 로그인 메일(쉼표로 여럿). 비우면 문의 메일(vmelabs@outlook.com).
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     volumes:
       - app-data:/data
     restart: unless-stopped

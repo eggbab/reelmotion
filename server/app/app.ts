@@ -1,4 +1,7 @@
 import { randomUUID } from 'node:crypto'
+import { createReadStream } from 'node:fs'
+import { join } from 'node:path'
+import { Readable } from 'node:stream'
 import { Hono } from 'hono'
 import type { Context, MiddlewareHandler } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
@@ -12,6 +15,7 @@ import type { PlanId } from '../../src/site/plans'
 import { langOfPath, pagePath, safeNext } from '../../src/site/routes'
 import { buildMessages, createRateLimiter, parseReply, RESPONSE_SCHEMA } from './assist'
 import type { AssistModel } from './assist'
+import { BACKUP_FILE, effectivePlan, listBackups, overview, searchUsers, setPlan } from './admin-data'
 import type { BillingProvider } from './billing'
 import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
@@ -45,6 +49,16 @@ export type AppDeps = {
   billing?: BillingProvider | null
   /** 장애 확인 결과(watch.ts) — /api/status 와 관리자 화면이 쓴다 */
   watch?: { status(): WatchStatus } | null
+  /** 관리자 화면(/admin) */
+  admin?: AdminDeps | null
+}
+
+/** 관리자: ADMIN_EMAILS 의 메일로 로그인한 사람(구글은 확인된 메일만 받는다 — google.ts). */
+export type AdminDeps = {
+  emails: string[]
+  /** 자동 백업 폴더(backup.ts) — 목록과 내려받기 */
+  backupDir: string | null
+  alerts: { email: string | null; mail: boolean; test: (() => Promise<void>) | null }
 }
 
 /** 말로 고치기: 계정(로그인) 또는 IP 마다 10분에 20번, 동시에 기다리는 요청은 3개까지. */
@@ -56,10 +70,7 @@ export const MAX_PROJECT_BYTES = 1_000_000
 export const MAX_PROJECTS = 500
 const LOGIN_WINDOW = 10 * 60 * 1000
 
-/** 요금제 기간이 끝났으면 무료로 본다. */
-export function effectivePlan(user: UserRow, now: number): string {
-  return user.plan !== 'free' && user.plan_until !== null && user.plan_until <= now ? 'free' : user.plan
-}
+export { effectivePlan }
 
 export function publicUser(user: UserRow, now: number) {
   return { id: user.id, email: user.email, name: user.name, plan: effectivePlan(user, now), planUntil: user.plan_until, createdAt: user.created_at }
@@ -86,7 +97,7 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null, admin = null }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
   const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
   let assistWaiting = 0
@@ -113,6 +124,14 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     c.header('Cache-Control', 'no-store')
   })
 
+  const adminEmails = new Set((admin?.emails ?? []).map((email) => email.trim().toLowerCase()))
+  const isAdmin = (user: UserRow | null) => user !== null && adminEmails.has(user.email.toLowerCase())
+  const requireAdmin: MiddlewareHandler<Env> = async (c, next) => {
+    const user = c.get('user')
+    if (!user) return c.json({ error: 'login_required' }, 401)
+    if (!isAdmin(user)) return c.json({ error: 'forbidden' }, 403)
+    await next()
+  }
   const requireUser: MiddlewareHandler<Env> = async (c, next) => {
     if (!c.get('user')) return c.json({ error: 'login_required' }, 401)
     await next()
@@ -139,6 +158,7 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
       login: { google: google !== null, dev: config.devLogin },
       billing: billingStatus(),
       usage: user ? { month: monthKey(now()), exports: exportsThisMonth(user.id) } : null,
+      admin: isAdmin(user),
     })
   })
 
@@ -301,6 +321,54 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
       return c.json({ error: 'assist_failed' }, 502)
     } finally {
       assistWaiting -= 1
+    }
+  })
+
+  // ── 관리자 화면(/admin) — 관리자만 ──
+  app.use('/admin/*', requireAdmin)
+
+  app.get('/admin/overview', (c) =>
+    c.json({
+      status: watch?.status() ?? { checkedAt: null, checks: [] },
+      ...overview(db, now()),
+      backups: listBackups(admin?.backupDir ?? null),
+      alerts: { email: admin?.alerts.email ?? null, mail: admin?.alerts.mail ?? false },
+      settings: { enforced: config.enforcePlans === true, billing: billing !== null, googleLogin: google !== null },
+    }),
+  )
+
+  app.get('/admin/users', (c) => c.json({ users: searchUsers(db, c.req.query('q') ?? '', now()) }))
+
+  app.post('/admin/plan', async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { email?: unknown; plan?: unknown; days?: unknown } | null
+    const days = typeof body?.days === 'number' ? body.days : undefined
+    const result = setPlan(db, typeof body?.email === 'string' ? body.email : undefined, typeof body?.plan === 'string' ? body.plan : undefined, days, now())
+    if (!result.ok) return c.json({ error: result.error }, result.error === 'no_user' ? 404 : 400)
+    return c.json({ user: publicUser(result.user, now()) })
+  })
+
+  /** 백업 내려받기(다른 곳에 보관할 때). 백업 이름 꼴만 — 다른 파일이나 위 폴더로는 갈 수 없다. */
+  app.get('/admin/backups/:name', (c) => {
+    const name = c.req.param('name')
+    const backup = listBackups(admin?.backupDir ?? null).find((item) => item.name === name)
+    if (!backup || !BACKUP_FILE.test(name) || !admin?.backupDir) return c.json({ error: 'not_found' }, 404)
+    const stream = Readable.toWeb(createReadStream(join(admin.backupDir, name))) as ReadableStream
+    return c.body(stream, 200, {
+      'content-type': 'application/octet-stream',
+      'content-length': String(backup.bytes),
+      'content-disposition': `attachment; filename="${name}"`,
+      'cache-control': 'no-store',
+    })
+  })
+
+  app.post('/admin/test-alert', async (c) => {
+    const test = admin?.alerts.test
+    if (!test) return c.json({ error: 'mail_not_set_up' }, 503)
+    try {
+      await test()
+      return c.json({ ok: true, to: admin?.alerts.email ?? null })
+    } catch (error) {
+      return c.json({ error: 'send_failed', message: error instanceof Error ? error.message : String(error) }, 502)
     }
   })
 

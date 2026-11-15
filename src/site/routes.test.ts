@@ -75,8 +75,9 @@ describe('safeNext (로그인 뒤 돌아갈 곳)', () => {
 })
 
 describe('SITE_PAGES', () => {
-  it('쪽 여덟 × 언어 셋, 주소가 겹치지 않는다', () => {
-    expect(SITE_PAGES).toHaveLength(24)
-    expect(new Set(SITE_PAGES.map((item) => item.path)).size).toBe(24)
+  it('쪽 아홉 × 언어 셋, 주소가 겹치지 않는다', () => {
+    expect(SITE_PAGES).toHaveLength(27)
+    expect(new Set(SITE_PAGES.map((item) => item.path)).size).toBe(27)
+    expect(matchPage('/ko/admin')).toEqual({ page: 'admin', lang: 'ko' })
   })
 })

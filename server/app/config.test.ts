@@ -55,6 +55,11 @@ describe('앱 서버 설정', () => {
     expect(readConfig({ WATCH_SECONDS: '1' }).watchMs).toBe(10_000)
   })
 
+  it('관리자는 기본으로 문의 메일(vmelabs@outlook.com), 쉼표로 여럿, 소문자로', () => {
+    expect(readConfig({}).adminEmails).toEqual(['vmelabs@outlook.com'])
+    expect(readConfig({ ADMIN_EMAILS: ' Boss@Example.com , ops@example.com,' }).adminEmails).toEqual(['boss@example.com', 'ops@example.com'])
+  })
+
   it('사이트 주소 꼴이 틀리면 멈춘다', () => {
     expect(() => readConfig({ SITE_ORIGIN: 'x.test/path' })).toThrow()
   })

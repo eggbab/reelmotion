@@ -31,6 +31,11 @@ describe('headTags', () => {
     expect(head).not.toContain('application/ld+json')
   })
 
+  it('관리자 화면과 내 계정은 검색에 넣지 않는다', () => {
+    expect(headTags({ kind: 'page', page: 'admin', lang: 'ko' }, ORIGIN)).toContain('<meta name="robots" content="noindex" />')
+    expect(headTags({ kind: 'page', page: 'account', lang: 'en' }, ORIGIN)).toContain('<meta name="robots" content="noindex" />')
+  })
+
   it('없는 쪽은 검색에 넣지 않는다', () => {
     const head = headTags({ kind: '404', lang: 'ja' }, ORIGIN)
     expect(head).toContain('<meta name="robots" content="noindex" />')
@@ -92,10 +97,11 @@ describe('fillTemplate / prerenderPlan', () => {
     expect(() => fillTemplate('<html>', { lang: 'en', head: '', html: '', key: '/' })).toThrow()
   })
 
-  it('파일 목록: 쪽 24개 + 404 셋', () => {
+  it('파일 목록: 쪽 27개 + 404 셋', () => {
     const plan = prerenderPlan()
-    expect(plan).toHaveLength(27)
+    expect(plan).toHaveLength(30)
     expect(plan.find((item) => item.file === 'ko/account/index.html')?.key).toBeNull()
+    expect(plan.find((item) => item.file === 'ko/admin/index.html')?.key).toBeNull()
     const files = plan.map((item) => item.file)
     expect(files).toContain('index.html')
     expect(files).toContain('ko/terms/index.html')
