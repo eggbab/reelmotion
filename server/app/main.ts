@@ -9,11 +9,28 @@ import { readConfig } from './config'
 import { openDb } from './db'
 import { createGoogleClient } from './google'
 import { sweep } from './sessions'
+import { createChecks, createSmtpMailer, createWatchdog, smtpTransport } from './watch'
 
 // 앱 서버 시작: 설정 읽기 → 저장소 열기(판 올리기) → 듣기. 접속 기록은 남기지 않는다(개인정보처리방침).
 // 관리 명령: node main.js admin <명령> (admin.ts)
 const config = readConfig(process.env)
 mkdirSync(config.dataDir, { recursive: true })
+// 장애 알림 메일(watch.ts): 보내는 계정(SMTP)과 받는 곳(기본 vmelabs@outlook.com)이 다 있을 때만. 없으면 앱 기록에만.
+const mailer = config.smtp && config.alertEmail ? createSmtpMailer(smtpTransport(config.smtp), config.smtp.from, config.alertEmail) : null
+if (process.argv[2] === 'admin' && process.argv[3] === 'test-alert') {
+  if (!mailer) {
+    console.log(`mail is not set up: alerts for ${config.alertEmail ?? '(nobody)'} only go to the app log. Set SMTP_HOST, SMTP_USER and SMTP_PASS in deploy/.env`)
+    process.exit(1)
+  }
+  try {
+    await mailer.send('[ReelMotion] 시험 메일', 'ReelMotion 장애 알림이 이 주소로 옵니다. 이 메일에는 답하지 않아도 됩니다.')
+    console.log(`sent a test mail to ${config.alertEmail}`)
+    process.exit(0)
+  } catch (error) {
+    console.log(`could not send: ${error instanceof Error ? error.message : String(error)}`)
+    process.exit(1)
+  }
+}
 // 되돌리기(admin restore)는 저장소를 열기 전에, 앱 서버가 꺼져 있을 때만 — 켜진 서버는 옮겨 둔 옛 파일에 계속 쓰기 때문.
 if (process.argv[2] === 'admin' && process.argv[3] === 'restore') {
   const running = await fetch(`http://127.0.0.1:${config.port}/api/health`, { signal: AbortSignal.timeout(2000) }).then(
@@ -44,9 +61,22 @@ const backup = () => {
 backup()
 setInterval(backup, 60 * 60 * 1000).unref()
 
-const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config, assist: config.assistUrl ? createLlamaModel(config.assistUrl) : null })
+const assist = config.assistUrl ? createLlamaModel(config.assistUrl) : null
+// 장애 확인: 5분마다(WATCH_SECONDS). 세 번 잇달아(15분) 문제면 메일, 풀리면 다시 메일.
+const watch = createWatchdog({
+  run: createChecks({ webUrl: config.webUrl, asrUrl: config.asrUrl, assist, dataDir: config.dataDir, backupDays: config.backupDays, diskMinBytes: config.diskMinBytes, now: Date.now }),
+  mailer,
+  now: Date.now,
+  log: (line) => console.log(line),
+  siteOrigin: config.siteOrigin,
+})
+const check = () => void watch.tick().catch((error: unknown) => console.error('watch failed:', error instanceof Error ? error.message : error))
+check()
+setInterval(check, config.watchMs).unref()
+
+const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config, assist, watch })
 serve({ fetch: app.fetch, hostname: config.host, port: config.port }, ({ port }) => {
-  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
+  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'} · alerts → ${config.alertEmail ?? '(nobody)'} (${mailer ? 'mail' : 'log only'})${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
 })
 
 const stop = () => {

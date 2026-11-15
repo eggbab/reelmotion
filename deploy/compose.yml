@@ -44,6 +44,16 @@ services:
       ENFORCE_PLANS: ${ENFORCE_PLANS:-0}
       # 자동 백업(/data/backups, 하루 하나)을 며칠 남길지. 0 이면 끔, 30 이하(개인정보처리방침 「백업은 30일까지」).
       BACKUP_DAYS: ${BACKUP_DAYS:-7}
+      # 장애 알림(server/app/watch.ts): 5분마다 아래 주소·저장 공간·백업을 보고, 15분 넘게 문제면 ALERT_EMAIL 로 메일.
+      # 받는 곳 기본은 문의 메일(vmelabs@outlook.com). 보내는 메일 계정(SMTP_*)은 deploy/.env 에(비밀번호는 git 에 넣지 않는다).
+      WEB_URL: http://web
+      ASR_URL: http://asr:8008
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - app-data:/data
     restart: unless-stopped

@@ -17,6 +17,7 @@ import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
 import type { GoogleClaims, GoogleClient } from './google'
 import { SESSION_COOKIE, SESSION_DAYS, createSession, deleteSession, newToken, sessionUser } from './sessions'
+import type { WatchStatus } from './watch'
 
 /**
  * ReelMotion 앱 서버(/api): 로그인·계정·작업 저장. 받아쓰기(/api/asr)는 따로(server/asr).
@@ -35,7 +36,16 @@ export type AppConfig = {
 
 type Env = { Variables: { user: UserRow | null; token: string | null } }
 
-export type AppDeps = { db: Db; google: GoogleClient | null; config: AppConfig; now?: () => number; assist?: AssistModel | null; billing?: BillingProvider | null }
+export type AppDeps = {
+  db: Db
+  google: GoogleClient | null
+  config: AppConfig
+  now?: () => number
+  assist?: AssistModel | null
+  billing?: BillingProvider | null
+  /** 장애 확인 결과(watch.ts) — /api/status 와 관리자 화면이 쓴다 */
+  watch?: { status(): WatchStatus } | null
+}
 
 /** 말로 고치기: 계정(로그인) 또는 IP 마다 10분에 20번, 동시에 기다리는 요청은 3개까지. */
 export const ASSIST_LIMIT = 20
@@ -76,7 +86,7 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now, assist = null, billing = null }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
   const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
   let assistWaiting = 0
@@ -110,6 +120,13 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
   const userOf = (c: Context<Env>) => c.get('user') as UserRow
 
   app.get('/health', (c) => c.json({ ok: true }))
+
+  /** 바깥 감시 서비스용: 모두 정상이면 200, 아니면 503. 부분 이름과 정상 여부만(자세한 내용은 관리자 화면). */
+  app.get('/status', (c) => {
+    const status = watch?.status() ?? { checkedAt: null, checks: [] }
+    const ok = status.checkedAt !== null && status.checks.every((check) => check.ok)
+    return c.json({ ok, checkedAt: status.checkedAt, checks: status.checks.map((check) => ({ id: check.id, ok: check.ok })) }, ok ? 200 : 503)
+  })
 
   const exportsThisMonth = (userId: string) =>
     ((db.prepare('select exports from usage where user_id = ? and month = ?').get(userId, monthKey(now())) as { exports: number } | undefined)?.exports ?? 0)

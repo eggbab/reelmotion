@@ -202,3 +202,27 @@ describe('요금제 기간', () => {
     expect(effectivePlan({ plan: 'pro', plan_until: null } as UserRow, 1e15)).toBe('pro')
   })
 })
+
+describe('상태 주소(/api/status — 바깥 감시용)', () => {
+  it('모두 정상이면 200, 하나라도 문제면 503. 자세한 내용(디스크 크기·오류)은 내보내지 않는다', async () => {
+    let checks = [
+      { id: 'web' as const, ok: true, detail: 'HTTP 200', since: 1 },
+      { id: 'disk' as const, ok: true, detail: '50.0 GB free', since: 1 },
+    ]
+    const app = createApp({ db: openDb(':memory:'), google: null, config, watch: { status: () => ({ checkedAt: 5, checks }) } })
+    const first = await app.request('/api/status')
+    expect(first.status).toBe(200)
+    expect(await first.json()).toEqual({ ok: true, checkedAt: 5, checks: [{ id: 'web', ok: true }, { id: 'disk', ok: true }] })
+    checks = [{ ...checks[0], ok: false, detail: 'no answer (ECONNREFUSED)' }, checks[1]]
+    const second = await app.request('/api/status')
+    expect(second.status).toBe(503)
+    expect(JSON.stringify(await second.json())).not.toMatch(/ECONNREFUSED|GB free/)
+  })
+
+  it('아직 한 번도 확인하지 않았으면 503', async () => {
+    const app = createApp({ db: openDb(':memory:'), google: null, config })
+    const response = await app.request('/api/status')
+    expect(response.status).toBe(503)
+    expect(await response.json()).toEqual({ ok: false, checkedAt: null, checks: [] })
+  })
+})

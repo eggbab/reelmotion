@@ -7,7 +7,7 @@
 |---|---|---|
 | `web` | 소개 페이지·편집기 파일을 내보내고, `/api/asr/*` 를 받아쓰기 서버로 넘긴다(Caddy) | 저장소 맨 위 `Dockerfile`, 설정 `deploy/Caddyfile` |
 | `asr` | 소리(WAV)만 받아 Qwen3-ASR 로 받아 적고 낱말마다 시간을 돌려준다. 받은 소리는 저장하지 않고 접속 기록도 남기지 않는다 | `server/asr/` |
-| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장, 말로 고치기 요청 검사·횟수 세기, 요금제 한도·달마다 내보내기 수, 결제 연결 자리. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
+| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장, 말로 고치기 요청 검사·횟수 세기, 요금제 한도·달마다 내보내기 수, 결제 연결 자리, 자동 백업, 장애 확인·알림. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
 | `assist` | 말로 고치기 AI: llama.cpp 서버 + Qwen3-4B-Instruct-2507(Apache-2.0, Q4_K_M 약 2.5GB). 글만 받고 저장하지 않는다 | 공식 이미지(판 고정, `compose.yml`) |
 
 - 영상은 서버로 오지 않는다(편집기가 브라우저에서 소리만 꺼내 보낸다). 내보내기도 브라우저에서 한다.
@@ -117,6 +117,25 @@ docker compose run --rm --no-deps app node main.js admin restore /data/restore.d
 docker compose start app
 ```
 - 2026-11-15 이 작업 공간에서 이 순서 그대로 해 봤다(아래 「이 작업 공간에서 확인한 것」). 남긴 파일(`restore.db`, `before-restore-…`, 백업 파일)은 볼륨에 그대로 있다 — 자리가 모자랄 때만 정리한다.
+
+## 장애 알림
+- 앱 서버가 5분마다 확인한다: 웹사이트, 받아쓰기 서버, 말로 고치기 AI, 저장 공간(2GB 미만이면 문제 — `DISK_MIN_GB`), 자동 백업(오늘이나 어제 것이 없으면 문제). **15분(세 번 잇달아) 넘게 이어지면** 받는 곳(`ALERT_EMAIL`, 기본 `vmelabs@outlook.com` — 2026-11-15 사용자 지시)으로 메일을 보낸다. 풀리면 「다시 정상이에요」, 계속되면 6시간마다 「아직 문제가 있어요」. 메일에는 부분 이름·상태·시각만 들어간다(이용자 정보 없음).
+- **보내는 메일 계정이 있어야 메일이 간다.** Outlook.com 개인 계정은 2024년 9월부터 다른 프로그램이 비밀번호로 메일을 보내는 것을 막았다는 보고가 많다(받는 것은 된다). 그래서 보내는 쪽은 Gmail 앱 비밀번호를 권한다:
+  1. 보낼 Gmail 계정에서 2단계 인증을 켠다.
+  2. Google 계정 → 보안 → 「앱 비밀번호」에서 하나 만든다(16자리).
+  3. `deploy/.env`(git 에 넣지 않는다)에 적는다: `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=보낼주소@gmail.com`, `SMTP_PASS=앱 비밀번호`.
+  4. `docker compose up -d` 로 다시 띄운 뒤 시험 메일을 보낸다. vmelabs@outlook.com 받은편지함(처음에는 스팸함도)을 본다:
+```bash
+docker compose exec app node main.js admin test-alert
+```
+- 보내는 계정을 넣기 전에는 알림이 앱 기록에만 남는다: `docker compose logs app` 에서 `ALERT` 로 시작하는 줄. 앱 시작 줄 끝에 `alerts → vmelabs@outlook.com (mail)` 이면 메일, `(log only)` 면 기록만.
+- PC 나 인터넷이 통째로 멈추면 이 서버도 알릴 수 없다. 도메인이 생기면 바깥 감시 서비스(예: UptimeRobot 무료)에 `https://도메인/api/status` 를 5분마다 보게 하고, 알림을 vmelabs@outlook.com 으로 받게 한다. 모두 정상이면 200, 하나라도 문제면 503 을 돌려준다(부분 이름과 정상 여부만 — 자세한 내용은 관리자 화면).
+- 메일을 받으면:
+  - 웹사이트: `docker compose ps` 로 `web` 이 떠 있는지 보고 `docker compose up -d`.
+  - 받아쓰기 서버: 처음 켤 때는 모델을 내려받느라 15분 넘게 걸릴 수 있다(`docker compose logs asr`). 그동안 편집기는 브라우저 받아쓰기로 계속 된다.
+  - 말로 고치기 AI: `docker compose logs assist`. 메모리가 모자라면 다른 프로그램을 끈다.
+  - 저장 공간: `docker system df` 로 큰 것을 찾아 정리한다(Docker Desktop 의 정리 기능).
+  - 자동 백업: `docker compose logs app` 에서 `backup failed` 줄을 본다.
 
 ## 기록(로그)
 - 웹(Caddy)은 접속 기록을 쓰지 않는다. 오류 기록에는 요청 정보가 붙는데, 그중 IP 주소·포트·머리글을 지우게 했다(`deploy/Caddyfile` 맨 위). 2026-11-15 확인: 일부러 오류를 낸 요청(`X-Forwarded-For` 포함)의 기록에 IP 가 0번 나왔다.

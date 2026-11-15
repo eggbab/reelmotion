@@ -32,6 +32,29 @@ describe('앱 서버 설정', () => {
     expect(() => readConfig({ BACKUP_DAYS: '31' })).toThrow()
   })
 
+  it('장애 알림은 기본으로 문의 메일(vmelabs@outlook.com)로, 보내는 메일 계정은 있을 때만', () => {
+    const base = readConfig({})
+    expect(base.alertEmail).toBe('vmelabs@outlook.com')
+    expect(base.smtp).toBeNull()
+    expect(base.diskMinBytes).toBe(2e9)
+    expect(readConfig({ ALERT_EMAIL: 'ops@example.com' }).alertEmail).toBe('ops@example.com')
+    expect(readConfig({ SMTP_HOST: 'smtp.gmail.com', SMTP_USER: 'me@gmail.com', SMTP_PASS: 'app-password' }).smtp).toEqual({
+      host: 'smtp.gmail.com',
+      port: 587,
+      user: 'me@gmail.com',
+      pass: 'app-password',
+      from: 'me@gmail.com',
+    })
+    expect(readConfig({ SMTP_HOST: 'smtp.example.com', SMTP_PORT: '465', SMTP_FROM: 'ReelMotion <alerts@example.com>' }).smtp).toMatchObject({ port: 465, user: null, from: 'ReelMotion <alerts@example.com>' })
+    // 보내는 주소를 알 수 없으면 멈춘다
+    expect(() => readConfig({ SMTP_HOST: 'smtp.example.com' })).toThrow()
+    expect(readConfig({ WEB_URL: 'http://web', ASR_URL: 'http://asr:8008', DISK_MIN_GB: '5' })).toMatchObject({ webUrl: 'http://web', asrUrl: 'http://asr:8008', diskMinBytes: 5e9 })
+    // 확인 간격: 기본 5분, 10초보다 짧게는 못 한다
+    expect(readConfig({}).watchMs).toBe(300_000)
+    expect(readConfig({ WATCH_SECONDS: '20' }).watchMs).toBe(20_000)
+    expect(readConfig({ WATCH_SECONDS: '1' }).watchMs).toBe(10_000)
+  })
+
   it('사이트 주소 꼴이 틀리면 멈춘다', () => {
     expect(() => readConfig({ SITE_ORIGIN: 'x.test/path' })).toThrow()
   })
