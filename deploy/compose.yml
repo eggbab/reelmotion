@@ -1,0 +1,36 @@
+# ReelMotion 을 한 번에 띄운다: 웹(Caddy) + 받아쓰기 서버(Qwen3-ASR).
+#   cd deploy && docker compose up -d --build                         # 그래픽 카드 없이
+#   cd deploy && docker compose -f compose.yml -f compose.gpu.yml up -d --build   # GTX 1070 Ti 등 NVIDIA 카드로
+name: reelmotion
+
+services:
+  web:
+    build:
+      context: ..
+    image: reelmotion-web
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:80"
+    environment:
+      ASR_UPSTREAM: asr:8008
+    depends_on:
+      - asr
+    restart: unless-stopped
+
+  asr:
+    build:
+      context: ../server/asr
+      args:
+        TORCH_VARIANT: ${TORCH_VARIANT:-cpu}
+    image: reelmotion-asr
+    environment:
+      ASR_DEVICE: auto
+      ASR_MAX_SECONDS: "600"
+      ASR_MAX_WAITING: "4"
+    volumes:
+      - asr-models:/models
+    # CPU 에서는 bfloat16 이 기본이라 약 1GB 를 쓴다(float32 로 바꾸면 약 7.3GB — engine.py 의 pick_dtype).
+    mem_limit: 4g
+    restart: unless-stopped
+
+volumes:
+  asr-models:

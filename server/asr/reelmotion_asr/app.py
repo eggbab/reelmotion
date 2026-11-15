@@ -128,7 +128,9 @@ def app_from_env(make_engine: Callable[[], Engine] | None = None) -> Starlette:
         model=os.environ.get("ASR_MODEL", "Qwen/Qwen3-ASR-0.6B"),
         aligner=os.environ.get("ASR_ALIGNER", "Qwen/Qwen3-ForcedAligner-0.6B"),
         device=os.environ.get("ASR_DEVICE", "auto"),
-        dtype=os.environ.get("ASR_DTYPE", "float32"),
+        dtype=os.environ.get("ASR_DTYPE", "auto"),
+        aligner_device=os.environ.get("ASR_ALIGNER_DEVICE", "same"),
+        aligner_dtype=os.environ.get("ASR_ALIGNER_DTYPE", "auto"),
     )))()
     settings = Settings(max_seconds=float(os.environ.get("ASR_MAX_SECONDS", "600")), max_waiting=int(os.environ.get("ASR_MAX_WAITING", "4")))
     return create_app(engine, settings)

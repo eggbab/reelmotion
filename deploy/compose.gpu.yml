@@ -1,0 +1,17 @@
+# NVIDIA 그래픽 카드로 받아쓰기. GTX 10 시리즈(Pascal)도 되도록 PyTorch 2.14.1 + CUDA 12.6 판을 쓴다.
+# GTX 1070 Ti(메모리 8GB, bfloat16 미지원): 받아쓰기 모델은 그래픽 카드에 float32 로, 정렬 모델은 CPU 에 bfloat16 으로.
+services:
+  asr:
+    build:
+      args:
+        TORCH_VARIANT: cu126
+    environment:
+      ASR_DEVICE: cuda:0
+      ASR_ALIGNER_DEVICE: cpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

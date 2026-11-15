@@ -8,4 +8,11 @@ import uvicorn
 from .app import app_from_env
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-uvicorn.run(app_from_env(), host=os.environ.get("ASR_HOST", "127.0.0.1"), port=int(os.environ.get("ASR_PORT", "8008")), log_level="info")
+# 접속 기록(누가 언제 보냈는지, IP 포함)은 남기지 않는다 — 필요 없는 개인정보다. 오류만 남긴다.
+uvicorn.run(
+    app_from_env(),
+    host=os.environ.get("ASR_HOST", "127.0.0.1"),
+    port=int(os.environ.get("ASR_PORT", "8008")),
+    log_level="info",
+    access_log=False,
+)

@@ -112,3 +112,12 @@ def test_language_code_reads_qwen_language_names():
     assert language_code("Korean") == "ko"
     assert language_code("Japanese,English") == "ja"
     assert language_code("French") == ""
+
+
+def test_pick_dtype_uses_bfloat16_on_cpu_and_respects_explicit_choice():
+    import torch
+
+    from reelmotion_asr.engine import pick_dtype
+
+    assert pick_dtype("auto", "cpu") is torch.bfloat16
+    assert pick_dtype("float32", "cpu") is torch.float32

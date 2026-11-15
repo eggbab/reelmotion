@@ -64,14 +64,44 @@ def pick_device(requested: str) -> str:
         return "cpu"
 
 
-class QwenEngine:
-    """Qwen3-ASR(받아쓰기) + Qwen3-ForcedAligner(낱말 시간). 모두 Apache-2.0."""
+def pick_dtype(name: str, device: str):
+    """'auto' 이면: CPU 는 bfloat16, 그래픽 카드는 bfloat16 을 지원하면 bfloat16, 아니면(GTX 10 시리즈 등) float32.
 
-    def __init__(self, model: str, aligner: str, device: str = "auto", dtype: str = "float32") -> None:
+    2026-11-15 이 작업 공간의 CPU 에서 잰 값(0.6B 받아쓰기 + 0.6B 정렬, 24초 한국어):
+    float32 는 메모리 약 7.3GB · 10.9초, bfloat16 은 약 0.8GB · 7.9초였고 받아쓴 글은 같았다
+    (bfloat16 은 모델 파일 그대로라 메모리에 따로 펼치지 않는다).
+    """
+    import torch
+
+    if name != "auto":
+        return getattr(torch, name)
+    if device == "cpu":
+        return torch.bfloat16
+    return torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float32
+
+
+class QwenEngine:
+    """Qwen3-ASR(받아쓰기) + Qwen3-ForcedAligner(낱말 시간). 모두 Apache-2.0.
+
+    정렬 모델은 따로 CPU 에 둘 수 있다(aligner_device="cpu"). 그래픽 카드 메모리가 8GB 인 GTX 1070 Ti 에서는
+    두 모델을 float32 로 함께 올리면 빠듯해서, 받아쓰기는 그래픽 카드·정렬은 CPU 로 나눈다(deploy/compose.gpu.yml).
+    """
+
+    def __init__(
+        self,
+        model: str,
+        aligner: str,
+        device: str = "auto",
+        dtype: str = "auto",
+        aligner_device: str = "same",
+        aligner_dtype: str = "auto",
+    ) -> None:
         self.model_name = model
         self.aligner_name = aligner
         self.requested_device = device
         self.dtype_name = dtype
+        self.requested_aligner_device = aligner_device
+        self.aligner_dtype_name = aligner_dtype
         self.device = "unloaded"
         self.name = model
         self._model = None
@@ -81,9 +111,10 @@ class QwenEngine:
         from qwen_asr import Qwen3ASRModel
 
         self.device = pick_device(self.requested_device)
-        # GTX 1070 Ti 같은 Pascal 카드는 반정밀도 계산이 매우 느려 float32 가 기본이다.
-        dtype = getattr(torch, self.dtype_name)
-        if self.device == "cpu":
+        aligner_device = self.device if self.requested_aligner_device == "same" else pick_device(self.requested_aligner_device)
+        dtype = pick_dtype(self.dtype_name, self.device)
+        aligner_dtype = pick_dtype(self.aligner_dtype_name, aligner_device)
+        if "cpu" in (self.device, aligner_device):
             torch.set_num_threads(int(os.environ.get("ASR_THREADS", os.cpu_count() or 4)))
         self._model = Qwen3ASRModel.from_pretrained(
             self.model_name,
@@ -92,9 +123,11 @@ class QwenEngine:
             max_inference_batch_size=1,
             max_new_tokens=int(os.environ.get("ASR_MAX_NEW_TOKENS", "1024")),
             forced_aligner=self.aligner_name,
-            forced_aligner_kwargs=dict(dtype=dtype, device_map=self.device),
+            forced_aligner_kwargs=dict(dtype=aligner_dtype, device_map=aligner_device),
         )
-        log.info("loaded %s + %s on %s (%s)", self.model_name, self.aligner_name, self.device, self.dtype_name)
+        if aligner_device != self.device:
+            self.device = f"{self.device} + aligner {aligner_device}"
+        log.info("loaded %s (%s) + %s (%s) on %s", self.model_name, dtype, self.aligner_name, aligner_dtype, self.device)
 
     def transcribe(self, samples: np.ndarray, language: Optional[str]) -> Transcript:
         if self._model is None:
