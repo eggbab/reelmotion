@@ -35,6 +35,11 @@ export type SavedProject = {
   portrait: boolean
   /** 목록에 보이는 작은 그림(JPEG data URL) */
   thumbnail: string | null
+  /**
+   * 이 작업을 계정에 올린 사람(계정 id). null 이면 아직 어느 계정에도 올리지 않았다.
+   * 한 브라우저를 여러 사람이 쓸 때 다른 사람의 작업이 내 계정으로 올라가지 않게 한다(src/account/sync.ts).
+   */
+  owner: string | null
 }
 
 /** 영상 파일을 함께 저장하는 크기 한도. 넘으면 작업만 저장하고 다시 열 때 파일을 다시 고른다. */
@@ -89,6 +94,7 @@ export function parseProject(value: unknown): SavedProject | null {
     duration: isNumber(value.duration) ? value.duration : 0,
     portrait: value.portrait === true,
     thumbnail: typeof value.thumbnail === 'string' && value.thumbnail.startsWith('data:image/') ? value.thumbnail : null,
+    owner: typeof value.owner === 'string' && value.owner !== '' ? value.owner : null,
   }
 }
 

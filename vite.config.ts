@@ -78,10 +78,14 @@ const isolationHeaders = {
 export default defineConfig({
   plugins: [react(), thirdPartyNotices(true)],
   // 받아쓰기 서버(server/asr, Qwen3-ASR)를 같은 주소로 부른다. 서버가 꺼져 있으면 편집기는 브라우저 받아쓰기를 쓴다.
-  server: { headers: isolationHeaders, proxy: { '/api/asr': { target: 'http://127.0.0.1:8008', changeOrigin: true } } },
+  // 앱 서버(server/app, 로그인·작업 저장)는 /api 의 나머지. 둘 다 꺼져 있어도 편집기는 돈다(계정 기능만 숨는다).
+  server: {
+    headers: isolationHeaders,
+    proxy: { '/api/asr': { target: 'http://127.0.0.1:8008', changeOrigin: true }, '/api': { target: 'http://127.0.0.1:8787' } },
+  },
   preview: { headers: isolationHeaders },
   worker: { format: 'es', plugins: () => [thirdPartyNotices(false)] },
   // 글꼴 조각을 CSS 안에 넣지 않는다(넣으면 첫 화면 CSS 가 1MB 를 넘는다).
   build: { assetsInlineLimit: 0 },
-  test: { include: ['src/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts', 'server/app/**/*.test.ts'] },
 })

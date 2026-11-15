@@ -9,14 +9,15 @@ import type { LegalDocs } from './types'
  * - 접속 기록: 웹(deploy/Caddyfile)은 접속 기록을 쓰지 않고 오류 기록에서 IP·머리글을 지운다. 앞단(운영 PC 의 공개 주소)도
  *   접속 기록을 남기지 않게 둔다(docs/operations.md).
  * - 기기에 저장: 「내 작업」(IndexedDB `reelmotion` — 작업과 넣은 영상, src/editor/store.ts), 언어 선택(localStorage `reelmotion.lang`),
- *   브라우저 안 받아쓰기 모델 파일(브라우저 캐시). 쿠키 없음.
+ *   브라우저 안 받아쓰기 모델 파일(브라우저 캐시). 쿠키는 로그인했을 때 로그인 유지 하나(rm_session, 30일 — server/app/sessions.ts).
+ * - 계정(server/app, 2026-11-15): 구글 로그인(고유번호·메일·이름), 로그인한 사람의 작업(영상 제외)을 서버 SQLite 에. 탈퇴하면 바로 지운다.
  * - 바깥 회사: 브라우저 안 받아쓰기의 모델 파일만 Hugging Face 에서 직접 받는다. 실행 파일(onnxruntime)은 우리 서버에서 준다.
  */
 export const PRIVACY: LegalDocs = {
   ko: {
     title: '개인정보처리방침',
     description: 'ReelMotion 개인정보처리방침 — 영상은 올리지 않고, 받아 적은 소리는 저장하지 않으며, 접속 기록을 남기지 않습니다. 처리하는 정보와 보유 기간, 이용자의 권리를 안내합니다.',
-    intro: '브이미랩스(이하 「회사」)는 ReelMotion(이하 「서비스」)을 운영하면서 개인정보 보호법에 따라 이용자의 개인정보를 보호합니다. 서비스는 계정이 없고, 영상을 회사 서버로 올리지 않으며, 받아 적은 소리를 저장하지 않습니다.',
+    intro: '브이미랩스(이하 「회사」)는 ReelMotion(이하 「서비스」)을 운영하면서 개인정보 보호법에 따라 이용자의 개인정보를 보호합니다. 서비스는 로그인하지 않아도 쓸 수 있고, 영상을 회사 서버로 올리지 않으며, 받아 적은 소리를 저장하지 않습니다.',
     sections: [
       {
         title: '처리하는 정보',
@@ -25,9 +26,11 @@ export const PRIVACY: LegalDocs = {
             facts: [
               ['말소리', '회사 서버로 받아 적기를 쓰면 영상에서 뽑은 소리를 받습니다. 소리에는 목소리와 말한 내용이 들어 있습니다.'],
               ['접속 정보', '페이지와 받아쓰기 서버에 접속하면 통신을 위해 IP 주소와 브라우저 정보가 회사 서버에 전달됩니다.'],
+              ['계정 정보', '구글로 로그인하면(선택) 구글 계정의 고유번호, 메일 주소, 이름을 받습니다.'],
+              ['계정에 저장한 작업', '로그인하면 만든 작업(대본, 받아 적은 글, 그래픽, 스타일, 작은 미리보기 그림)을 계정에 저장합니다.'],
             ],
           },
-          '영상 파일, 내보낸 결과물, 이름·이메일 같은 정보는 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다.',
+          '영상 파일과 내보낸 결과물은 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다. 로그인하지 않으면 이름·메일 같은 정보도 받지 않습니다.',
         ],
       },
       {
@@ -37,6 +40,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               '말소리: 받아 적은 글과 낱말별 시간을 이용자에게 돌려주는 데만 씁니다. 학습이나 다른 목적에 쓰지 않습니다.',
               '접속 정보: 페이지와 받아쓰기 결과를 이용자에게 보내는 데만 씁니다.',
+              '계정 정보: 로그인을 유지하고, 계정에 저장한 작업을 보여 주고, 문의에 답하는 데 씁니다.',
+              '계정에 저장한 작업: 이용자가 여러 기기에서 작업을 열 수 있게 하는 데만 씁니다.',
             ],
           },
         ],
@@ -48,6 +53,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               '말소리: 받아 적는 동안 서버의 메모리에만 두고, 결과를 돌려주면 바로 지웁니다. 디스크에 저장하지 않습니다.',
               '접속 정보: 접속 기록을 남기지 않습니다. 서버 오류를 고치기 위한 기록에도 IP 주소와 말소리를 남기지 않습니다.',
+              '계정 정보와 계정에 저장한 작업: 탈퇴할 때까지 보관하고, 탈퇴하면 바로 지웁니다. 작업 하나는 「내 작업」에서 지우면 바로 지웁니다.',
+              '로그인 기록: 로그인 유지 기간(30일, 쓸 때마다 다시 30일)이 끝나거나 로그아웃하면 지웁니다.',
             ],
           },
         ],
@@ -55,7 +62,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '이용자 기기에 저장하는 것',
         blocks: [
-          '쿠키를 쓰지 않습니다.',
+          '로그인하면 로그인 유지 쿠키 하나(30일)를 씁니다. 광고·분석 쿠키나 추적 코드는 없습니다.',
           {
             list: [
               '만든 작업: 대본, 받아 적은 글, 그래픽, 스타일, 작은 미리보기 그림과 넣은 영상 파일을 브라우저 저장소(IndexedDB)에 저장해 「내 작업」에서 다시 열 수 있게 합니다. 회사로 보내지 않으며, 「내 작업」에서 지우면 함께 지워집니다.',
@@ -68,7 +75,10 @@ export const PRIVACY: LegalDocs = {
       },
       {
         title: '제3자 제공과 처리 위탁',
-        blocks: ['개인정보를 제3자에게 제공하지 않고, 처리를 다른 회사에 맡기지 않습니다. 서버는 회사가 직접 운영합니다.'],
+        blocks: [
+          '개인정보를 제3자에게 제공하지 않고, 처리를 다른 회사에 맡기지 않습니다. 서버는 회사가 직접 운영합니다.',
+          '구글 로그인은 이용자가 Google LLC(미국)의 로그인 화면에서 직접 하며, 회사는 구글에서 고유번호·메일·이름만 받습니다.',
+        ],
       },
       {
         title: '국외 이전',
@@ -89,10 +99,10 @@ export const PRIVACY: LegalDocs = {
       {
         title: '이용자의 권리',
         blocks: [
-          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 회사는 영상, 말소리, 접속 기록을 보관하지 않아 보관 중인 정보가 없지만, {contact} 로 문의하시면 지체 없이 답합니다.',
+          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 계정 정보는 「내 계정」에서 볼 수 있고, 탈퇴하면 바로 지울 수 있습니다. 그 밖의 요청은 {contact} 로 하시면 지체 없이 답합니다.',
         ],
       },
-      { title: '만 14세 미만 아동', blocks: ['서비스는 계정을 받지 않으며 만 14세 미만 아동의 개인정보를 따로 수집하지 않습니다.'] },
+      { title: '만 14세 미만 아동', blocks: ['만 14세 미만 아동은 로그인(계정 만들기)을 할 수 없습니다. 로그인 없이 쓸 때는 이름·메일 같은 정보를 받지 않습니다.'] },
       {
         title: '안전성 확보 조치',
         blocks: [
@@ -101,6 +111,7 @@ export const PRIVACY: LegalDocs = {
               '통신 암호화: 회사와 이용자 사이의 통신을 HTTPS 로 암호화합니다.',
               '저장하지 않기: 말소리를 디스크에 쓰지 않고 메모리에서만 처리합니다.',
               '접근 제한: 서버에 접근할 수 있는 사람을 운영자로 한정합니다.',
+              '로그인 보호: 로그인 쿠키는 다른 사이트에서 쓸 수 없게 하고(HttpOnly·SameSite), 서버에는 그 값을 해시로만 둡니다.',
             ],
           },
         ],
@@ -113,7 +124,7 @@ export const PRIVACY: LegalDocs = {
   en: {
     title: 'Privacy Policy',
     description: 'ReelMotion Privacy Policy — videos are never uploaded, the sound we transcribe is not kept, and we keep no access logs. What we process, for how long, and your rights.',
-    intro: '브이미랩스 (the “Company”) runs ReelMotion (the “Service”) and protects your personal information under Korea’s Personal Information Protection Act. The Service has no accounts, never uploads your videos to our servers and does not keep the sound it transcribes.',
+    intro: '브이미랩스 (the “Company”) runs ReelMotion (the “Service”) and protects your personal information under Korea’s Personal Information Protection Act. You can use the Service without logging in. It never uploads your videos to our servers and does not keep the sound it transcribes.',
     sections: [
       {
         title: 'What we process',
@@ -122,9 +133,11 @@ export const PRIVACY: LegalDocs = {
             facts: [
               ['Speech audio', 'When you transcribe on our server, we receive the sound taken from your video. It contains voices and what is said.'],
               ['Connection information', 'When you open our pages or use the speech server, your IP address and browser information reach our servers as part of the connection.'],
+              ['Account information', 'If you log in with Google (optional), we receive your Google account ID, email address and name.'],
+              ['Projects kept in your account', 'When you are logged in, the projects you make (script, transcript, graphics, style and a small preview image) are kept in your account.'],
             ],
           },
-          'We do not receive video files, what you export, or information such as names or email addresses. Videos are processed only on your device.',
+          'We do not receive video files or what you export. Videos are processed only on your device. If you do not log in, we do not receive information such as your name or email address either.',
         ],
       },
       {
@@ -134,6 +147,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               'Speech audio: only to send you back the transcript and the timing of each word. It is not used for training or anything else.',
               'Connection information: only to deliver pages and transcripts to you.',
+              'Account information: to keep you logged in, show you the projects kept in your account and answer your questions.',
+              'Projects kept in your account: only to let you open your projects on any of your devices.',
             ],
           },
         ],
@@ -145,6 +160,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               'Speech audio: held only in the server’s memory while it is transcribed, and deleted as soon as the result is returned. It is never written to disk.',
               'Connection information: we keep no access logs. Records we keep to fix server errors contain no IP addresses or audio either.',
+              'Account information and projects kept in your account: kept until you delete your account, then deleted right away. Deleting a project in My projects deletes it right away.',
+              'Login records: deleted when the login period ends (30 days, renewed as you use the Service) or when you log out.',
             ],
           },
         ],
@@ -152,7 +169,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: 'What is stored on your device',
         blocks: [
-          'We do not use cookies.',
+          'If you log in, we use a single login cookie (30 days). There are no advertising or analytics cookies or tracking code.',
           {
             list: [
               'Your projects: the script, transcript, graphics, style, a small preview image and the video you added are saved in your browser’s storage (IndexedDB) so you can reopen them from My projects. They are not sent to us, and deleting a project in My projects removes them.',
@@ -165,7 +182,10 @@ export const PRIVACY: LegalDocs = {
       },
       {
         title: 'Sharing and outsourcing',
-        blocks: ['We do not provide personal information to third parties or outsource its processing to other companies. We run our servers ourselves.'],
+        blocks: [
+          'We do not provide personal information to third parties or outsource its processing to other companies. We run our servers ourselves.',
+          'Google login happens on the login screen of Google LLC (United States), directly between you and Google; we only receive your Google account ID, email address and name from Google.',
+        ],
       },
       {
         title: 'Transfers outside Korea',
@@ -186,10 +206,10 @@ export const PRIVACY: LegalDocs = {
       {
         title: 'Your rights',
         blocks: [
-          'You can ask to see, correct, delete or stop the processing of your personal information. We keep no videos, audio or access logs, so we hold nothing about you, but we will answer any request sent to {contact} without delay.',
+          'You can ask to see, correct, delete or stop the processing of your personal information. You can see your account information in My account and delete it at once by deleting your account. For anything else, we will answer any request sent to {contact} without delay.',
         ],
       },
-      { title: 'Children under 14', blocks: ['The Service takes no accounts and does not separately collect personal information from children under 14.'] },
+      { title: 'Children under 14', blocks: ['Children under 14 cannot log in or create an account. When the Service is used without logging in, we do not receive information such as names or email addresses.'] },
       {
         title: 'How we protect it',
         blocks: [
@@ -198,6 +218,7 @@ export const PRIVACY: LegalDocs = {
               'Encryption: connections between you and us are encrypted with HTTPS.',
               'No storage: audio is processed in memory and never written to disk.',
               'Limited access: only the operator can access the servers.',
+              'Login protection: the login cookie cannot be used by other websites (HttpOnly, SameSite), and our server keeps only a hash of it.',
             ],
           },
         ],
@@ -210,7 +231,7 @@ export const PRIVACY: LegalDocs = {
   ja: {
     title: 'プライバシーポリシー',
     description: 'ReelMotion プライバシーポリシー — 動画はアップロードせず、文字起こしした音声は保存せず、アクセス記録も残しません。扱う情報、保存期間、利用者の権利をご案内します。',
-    intro: '브이미랩스(以下「当社」)は、ReelMotion(以下「本サービス」)の運営にあたり、韓国の個人情報保護法に従って利用者の個人情報を保護します。本サービスにはアカウントがなく、動画を当社のサーバーにアップロードせず、文字起こしした音声を保存しません。',
+    intro: '브이미랩스(以下「当社」)は、ReelMotion(以下「本サービス」)の運営にあたり、韓国の個人情報保護法に従って利用者の個人情報を保護します。本サービスはログインしなくても使え、動画を当社のサーバーにアップロードせず、文字起こしした音声を保存しません。',
     sections: [
       {
         title: '扱う情報',
@@ -219,9 +240,11 @@ export const PRIVACY: LegalDocs = {
             facts: [
               ['音声', '当社サーバーで文字起こしをすると、動画から取り出した音声を受け取ります。音声には声と話の内容が含まれます。'],
               ['接続情報', 'ページや文字起こしサーバーに接続すると、通信のために IP アドレスとブラウザ情報が当社サーバーに届きます。'],
+              ['アカウント情報', 'Google でログインする場合(任意)、Google アカウントの固有番号、メールアドレス、名前を受け取ります。'],
+              ['アカウントに保存したプロジェクト', 'ログインすると、作ったプロジェクト(台本、文字起こし、グラフィックス、スタイル、小さなプレビュー画像)をアカウントに保存します。'],
             ],
           },
-          '動画ファイル、書き出した作成物、氏名やメールアドレスなどの情報は受け取りません。動画はお使いの端末の中だけで処理します。',
+          '動画ファイルと書き出した作成物は受け取りません。動画はお使いの端末の中だけで処理します。ログインしなければ、氏名やメールアドレスなどの情報も受け取りません。',
         ],
       },
       {
@@ -231,6 +254,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               '音声: 文字起こしの結果と単語ごとの時間をお返しするためだけに使います。学習やほかの目的には使いません。',
               '接続情報: ページと文字起こしの結果をお届けするためだけに使います。',
+              'アカウント情報: ログインを保ち、アカウントに保存したプロジェクトを表示し、お問い合わせに答えるために使います。',
+              'アカウントに保存したプロジェクト: 複数の端末でプロジェクトを開けるようにするためだけに使います。',
             ],
           },
         ],
@@ -242,6 +267,8 @@ export const PRIVACY: LegalDocs = {
             list: [
               '音声: 文字起こしの間だけサーバーのメモリに置き、結果をお返ししたらすぐに消します。ディスクには保存しません。',
               '接続情報: アクセス記録を残しません。サーバーの障害を直すための記録にも、IP アドレスと音声は残しません。',
+              'アカウント情報とアカウントに保存したプロジェクト: 退会するまで保管し、退会するとすぐに消します。プロジェクトは「マイプロジェクト」で削除するとすぐに消します。',
+              'ログインの記録: ログインの保持期間(30日、使うたびに延長)が終わるか、ログアウトすると消します。',
             ],
           },
         ],
@@ -249,7 +276,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '端末に保存するもの',
         blocks: [
-          'Cookie は使いません。',
+          'ログインすると、ログインを保つ Cookie を1つ(30日)使います。広告・分析の Cookie や追跡コードはありません。',
           {
             list: [
               '作ったプロジェクト: 台本、文字起こし、グラフィックス、スタイル、小さなプレビュー画像と入れた動画ファイルを、ブラウザのストレージ(IndexedDB)に保存し、「マイプロジェクト」から開き直せるようにします。当社には送らず、「マイプロジェクト」で削除するとあわせて消えます。',
@@ -262,7 +289,10 @@ export const PRIVACY: LegalDocs = {
       },
       {
         title: '第三者提供と委託',
-        blocks: ['個人情報を第三者に提供せず、処理をほかの会社に委託しません。サーバーは当社が自ら運営しています。'],
+        blocks: [
+          '個人情報を第三者に提供せず、処理をほかの会社に委託しません。サーバーは当社が自ら運営しています。',
+          'Google ログインは、利用者が Google LLC(米国)のログイン画面で直接行い、当社は Google から固有番号・メールアドレス・名前だけを受け取ります。',
+        ],
       },
       {
         title: '国外移転',
@@ -283,10 +313,10 @@ export const PRIVACY: LegalDocs = {
       {
         title: '利用者の権利',
         blocks: [
-          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。当社は動画・音声・アクセス記録を保管していないため、保管中の情報はありませんが、{contact} までご連絡いただければすぐにお答えします。',
+          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。アカウント情報は「マイアカウント」で確認でき、退会するとすぐに消せます。そのほかのご依頼は、{contact} までご連絡いただければすぐにお答えします。',
         ],
       },
-      { title: '14歳未満の子ども', blocks: ['本サービスはアカウントを受け付けず、14歳未満の子どもの個人情報を別途収集しません。'] },
+      { title: '14歳未満の子ども', blocks: ['14歳未満の子どもはログイン(アカウント作成)できません。ログインせずに使う場合は、氏名やメールアドレスなどの情報を受け取りません。'] },
       {
         title: '安全管理措置',
         blocks: [
@@ -295,6 +325,7 @@ export const PRIVACY: LegalDocs = {
               '通信の暗号化: 当社と利用者の間の通信を HTTPS で暗号化します。',
               '保存しない: 音声をディスクに書き込まず、メモリの中だけで処理します。',
               'アクセス制限: サーバーにアクセスできるのは運営者に限ります。',
+              'ログインの保護: ログイン用 Cookie はほかのサイトから使えないようにし(HttpOnly・SameSite)、サーバーにはその値をハッシュでのみ保存します。',
             ],
           },
         ],

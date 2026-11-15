@@ -2,6 +2,7 @@ import { Globe, Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { AccountLink } from '../account/AccountLink'
 import { useLang } from '../lang'
 import { LANGS } from '../langs'
 import type { Lang } from '../langs'
@@ -77,6 +78,7 @@ export function Header({ copy }: { copy: SiteCopy }) {
         <div className="nav__links">{links}</div>
         <div className="nav__side">
           <LangPicker label={copy.nav.language} />
+          <AccountLink />
           <EditorLink className="btn-ghost">{copy.nav.start} →</EditorLink>
           <details className="nav__menu">
             <summary aria-label={copy.nav.menu}>

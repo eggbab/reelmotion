@@ -2,6 +2,11 @@ import { Download, FolderOpen, Pause, Play, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { AccountLink } from '../account/AccountLink'
+import { deleteRemote, getRemote, putRemote } from '../account/api'
+import { ACCOUNT_COPY } from '../account/copy'
+import { currentUser, sessionReady, useSession } from '../account/session'
+import { pushLocalProjects } from '../account/sync'
 import { joinWords, scriptToWords } from '../captions/segment'
 import type { Word } from '../captions/types'
 import { ExportUnsupportedError, exportVideo } from '../export/exportVideo'
@@ -105,10 +110,12 @@ type Initial = {
   /** 이미 저장된 작업(다시 연 것) — 고치지 않아도 저장 대상이다 */
   saved: boolean
   hasMedia: boolean
+  /** 이 작업을 올린 계정(projects.ts 의 owner) */
+  owner: string | null
 }
 
 function blankInitial(lang: Lang, theme: ThemeId = 'neon'): Initial {
-  return { id: null, name: '', createdAt: Date.now(), source: null, script: '', recognized: null, graphics: [], theme, speechLanguage: lang, duration: 0, portrait: false, thumbnail: null, saved: false, hasMedia: false }
+  return { id: null, name: '', createdAt: Date.now(), source: null, script: '', recognized: null, graphics: [], theme, speechLanguage: lang, duration: 0, portrait: false, thumbnail: null, saved: false, hasMedia: false, owner: null }
 }
 
 /** 첫 화면의 떠 있는 입력 칸(?script=)과 스타일 카드(?theme=)에서 넘어온 값 */
@@ -141,20 +148,29 @@ function projectInitial(project: SavedProject, media: Blob | null): Initial {
     thumbnail: project.thumbnail,
     saved: true,
     hasMedia: media !== null,
+    owner: project.owner,
   }
 }
 
 type Opened = { kind: 'ok'; initial: Initial } | { kind: 'notFound' } | { kind: 'unavailable' }
 
+/**
+ * 저장된 작업 열기: 이 브라우저에서 찾고, 로그인했으면 계정에서도 찾는다. 계정 쪽이 더 새것(다른 기기에서 고침)이면
+ * 그 판을 열고 이 브라우저에도 둔다(영상은 이 브라우저에 있던 것을 그대로 쓴다 — 없으면 다시 고른다).
+ */
 async function openStored(id: string): Promise<Opened> {
-  try {
-    const project = await getProject(id)
-    if (!project) return { kind: 'notFound' }
-    const media = project.source.kind === 'file' && project.hasMedia ? await getMedia(id).catch(() => null) : null
-    return { kind: 'ok', initial: projectInitial(project, media) }
-  } catch {
-    return { kind: 'unavailable' }
+  const local = await getProject(id).catch((error: unknown) => (error instanceof StorageUnavailableError ? undefined : null))
+  const user = currentUser(await sessionReady())
+  const mine = user && (!local || local.owner === null || local.owner === user.id)
+  const remote = mine ? await getRemote(id).catch(() => null) : null
+  let project = local ?? null
+  if (user && remote && (!project || remote.updatedAt > project.updatedAt)) {
+    project = { ...remote, hasMedia: project?.hasMedia ?? false, owner: user.id }
+    await putProject(project).catch(() => undefined)
   }
+  if (!project) return local === undefined ? { kind: 'unavailable' } : { kind: 'notFound' }
+  const media = project.source.kind === 'file' && project.hasMedia ? await getMedia(id).catch(() => null) : null
+  return { kind: 'ok', initial: projectInitial(project, media) }
 }
 
 type Notice = 'notFound' | 'unavailable' | null
@@ -190,6 +206,12 @@ export function EditorPage() {
   }, [wanted, session.id, lang, setParams])
 
   usePageMeta(pageMeta('app', lang))
+
+  // 로그인한 사람이면 이 브라우저의 작업을 계정에도 올린다(한 번, 내 것·주인 없는 것만 — src/account/sync.ts).
+  const userId = currentUser(useSession())?.id ?? null
+  useEffect(() => {
+    if (userId) void pushLocalProjects(userId).catch(() => undefined)
+  }, [userId])
 
   // 처음 저장한 작업: 주소에 id 를 적어 새로고침해도 다시 열리게 한다(주소를 먼저 바꾸면 「여는 중」으로 깜빡이므로 id 를 먼저 둔다).
   const onSaved = useCallback(
@@ -462,6 +484,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const pending = useRef<(() => void) | null>(null)
   const mounted = useRef(true)
   const discarded = useRef(false)
+  const ownerRef = useRef(initial.owner)
+  const [syncState, setSyncState] = useState<'off' | 'synced' | 'failed' | 'stale'>('off')
   const onSavedRef = useRef(onSaved)
   useEffect(() => {
     onSavedRef.current = onSaved
@@ -474,6 +498,10 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       const isNew = idRef.current === null
       const id = idRef.current ?? newProjectId()
       idRef.current = id
+      // 로그인했으면 주인 없는 작업은 내 것으로 표시해 계정에도 둔다. 다른 계정의 작업은 이 브라우저에만.
+      const user = currentUser()
+      if (user && ownerRef.current === null) ownerRef.current = user.id
+      record = { ...record, owner: ownerRef.current }
       await putProject({ ...record, id, hasMedia: file !== null && mediaRef.current === 'saved' })
       if (isNew && mounted.current) onSavedRef.current(id)
       if (file && mediaRef.current === 'none') {
@@ -488,6 +516,10 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       }
       const videoKept = record.source.kind === 'sample' || (file !== null && mediaRef.current === 'saved')
       setSaveState(videoKept ? 'saved' : 'savedNoVideo')
+      if (user && record.owner === user.id && !discarded.current) {
+        const result = await putRemote({ ...record, id, hasMedia: false })
+        setSyncState(result === 'ok' ? 'synced' : result)
+      } else setSyncState('off')
     } catch (error) {
       setSaveState(error instanceof StorageUnavailableError ? 'unavailable' : 'failed')
     }
@@ -523,6 +555,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
         duration,
         portrait: size.height > size.width,
         thumbnail: thumbRef.current.data,
+        owner: ownerRef.current,
       }
       const file = source.kind === 'file' ? source.file : null
       setSaveState('saving')
@@ -554,14 +587,18 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   /** 「내 작업」에서 지우기. 지금 작업이면 기다리던 저장을 버리고, 쓰던 저장이 끝난 뒤 지우고 새 작업으로. */
   const deleteStored = async (id: string) => {
-    if (id !== idRef.current) {
+    const removeEverywhere = async () => {
       await deleteProject(id).catch(() => undefined)
+      if (currentUser()) await deleteRemote(id)
+    }
+    if (id !== idRef.current) {
+      await removeEverywhere()
       return
     }
     discarded.current = true
     pending.current = null
     await queue.current.catch(() => undefined)
-    await deleteProject(id).catch(() => undefined)
+    await removeEverywhere()
     onNew()
   }
 
@@ -590,13 +627,15 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const currentSource = source ? projectSourceOf(source) : null
   const displayName = name.trim() || (currentSource ? defaultName(currentSource, copy.untitled) : copy.untitled)
   const isSample = source?.kind === 'sample'
+  const accountCopy = ACCOUNT_COPY[lang]
   const saveLabel: Record<Exclude<SaveState, 'idle'>, string> = {
     saving: copy.projects.saving,
-    saved: copy.projects.saved,
+    saved: syncState === 'synced' ? accountCopy.synced : syncState === 'failed' ? accountCopy.syncFailed : syncState === 'stale' ? accountCopy.syncStale : copy.projects.saved,
     savedNoVideo: copy.projects.savedNoVideo,
     failed: copy.projects.failed,
     unavailable: copy.projects.unavailable,
   }
+  const saveTone = saveState === 'saved' && syncState === 'stale' ? 'savedNoVideo' : saveState
 
   return (
     <div className="editor">
@@ -619,7 +658,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
           />
         )}
         {source && saveState !== 'idle' && (
-          <span className={`ed-save is-${saveState}`} title={saveState === 'savedNoVideo' ? copy.projects.noVideoSaved : undefined}>
+          <span className={`ed-save is-${saveTone}`} title={saveState === 'savedNoVideo' ? copy.projects.noVideoSaved : undefined}>
             {saveLabel[saveState]}
           </span>
         )}
@@ -629,6 +668,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
             <span>{copy.projects.open}</span>
           </button>
           <LangPicker label="Language" />
+          <AccountLink />
           <button
             type="button"
             className="btn-mint ed-export"

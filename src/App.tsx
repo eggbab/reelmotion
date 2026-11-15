@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router'
+import { AccountPage } from './account/AccountPage'
 import { LangProvider } from './lang'
 import { LandingPage } from './site/LandingPage'
 import { LegalPage } from './site/legal/LegalPage'
@@ -48,6 +49,8 @@ export function AppRoutes() {
         <LandingPage />
       ) : page === 'licenses' ? (
         <LicensesPage />
+      ) : page === 'account' ? (
+        <AccountPage />
       ) : (
         <LegalPage page={page} />
       )}

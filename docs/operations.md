@@ -7,10 +7,11 @@
 |---|---|---|
 | `web` | 소개 페이지·편집기 파일을 내보내고, `/api/asr/*` 를 받아쓰기 서버로 넘긴다(Caddy) | 저장소 맨 위 `Dockerfile`, 설정 `deploy/Caddyfile` |
 | `asr` | 소리(WAV)만 받아 Qwen3-ASR 로 받아 적고 낱말마다 시간을 돌려준다. 받은 소리는 저장하지 않고 접속 기록도 남기지 않는다 | `server/asr/` |
+| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
 
 - 영상은 서버로 오지 않는다(편집기가 브라우저에서 소리만 꺼내 보낸다). 내보내기도 브라우저에서 한다.
 - 받아쓰기 서버가 없거나 꺼져 있으면 편집기는 저절로 「이 브라우저」 받아쓰기(Whisper)를 쓴다.
-- 서버에 남는 고객 정보가 없다. 「내 작업」은 방문자의 브라우저(IndexedDB)에만 저장된다. 그래서 지금은 서버에서 백업할 것이 없다 — 계정을 만들면 백업을 함께 만든다.
+- 로그인하지 않은 사람의 「내 작업」은 그 사람의 브라우저(IndexedDB)에만 있다. 로그인한 사람의 계정·작업(영상 제외)은 `app` 의 SQLite 파일에 있다 — **백업 대상은 이 파일 하나**(아래 「백업」).
 
 ## 띄우기 (운영 PC: 윈도우 + Docker Desktop)
 그래픽 카드(GTX 1070 Ti) 없이:
@@ -31,6 +32,14 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
 2. 문의 메일은 지금 임시로 `vmelabs@outlook.com`(2026-11-15 사용자 지시)이다. 도메인 메일로 바꾸려면 `src/site/business.ts` 의 `contactEmail`. 약관·개인정보처리방침·환불 규정의 문의 자리와 바닥글에 나온다.
 3. `docker compose up -d --build`(그래픽 카드면 위 두 번째 명령)로 다시 빌드한다.
 4. 앞단(운영 PC 의 home-edge Caddy)에 이 주소 블록을 더할 때 마트마트 블록처럼 **`log { output discard }`** 를 넣는다 — 개인정보처리방침에 「접속 기록을 남기지 않는다」고 적었다. 요청 크기 25MB 이상, 기다리는 시간 15분 이상. 앞단에 CDN·터널 같은 바깥 회사를 끼우면 개인정보처리방침의 「처리 위탁·국외 이전」을 먼저 고친다.
+
+## 구글 로그인 켜기 (도메인이 정해진 뒤)
+1. [Google Cloud 콘솔](https://console.cloud.google.com/) → 「API 및 서비스」 → 「OAuth 동의 화면」: 앱 이름 ReelMotion, 지원 메일, 범위는 `openid`·`email`·`profile` 만(민감하지 않은 범위라 심사가 가볍다), 게시 상태 「프로덕션」.
+2. 「사용자 인증 정보」 → 「OAuth 클라이언트 ID 만들기」 → 「웹 애플리케이션」 → 승인된 리디렉션 URI: `https://도메인/api/auth/google/callback`.
+3. `deploy/.env`(git 에 넣지 않는다)에 적는다: `SITE_ORIGIN=https://도메인`, `GOOGLE_CLIENT_ID=…`, `GOOGLE_CLIENT_SECRET=…`.
+4. `docker compose up -d --build`. `/api/me` 의 `login.google` 이 `true` 면 켜진 것이다. 비밀값은 로그에 찍지 않는다(`server/app/config.ts`).
+- 셋 중 하나라도 없으면 로그인 단추가 「로그인 준비 중」으로 바뀌고, 편집기는 로그인 없이 그대로 쓴다.
+- 시험용 가짜 로그인(`AUTH_DEV=1`)은 이 작업 공간의 시험에서만 켰다. 운영 `.env` 에 넣지 않는다(켜면 서버 시작 줄에 크게 경고가 찍힌다).
 
 ## 기록(로그)
 - 웹(Caddy)은 접속 기록을 쓰지 않는다. 오류 기록에는 요청 정보가 붙는데, 그중 IP 주소·포트·머리글을 지우게 했다(`deploy/Caddyfile` 맨 위). 2026-11-15 확인: 일부러 오류를 낸 요청(`X-Forwarded-For` 포함)의 기록에 IP 가 0번 나왔다.

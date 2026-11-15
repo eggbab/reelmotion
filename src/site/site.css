@@ -1506,7 +1506,8 @@
   font-weight: 600;
 }
 
-.legal a {
+/* 글 속 링크만(단추 모양 링크는 제 모양대로) */
+.legal a:not([class]) {
   color: var(--mint-soft);
   text-decoration: underline;
   text-decoration-color: rgb(154 255 235 / 40%);
@@ -1514,7 +1515,7 @@
   transition: text-decoration-color 0.2s var(--ease);
 }
 
-.legal a:hover {
+.legal a:not([class]):hover {
   text-decoration-color: currentColor;
 }
 
@@ -1601,6 +1602,150 @@
 .legal .credits a {
   justify-self: start;
   font-size: 14px;
+}
+
+/* 내 계정 */
+.account .legal__inner > h1 {
+  margin-bottom: 32px;
+}
+
+.account-card {
+  margin: 0 0 20px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 22.4px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 3%), transparent);
+}
+
+.site .account-card h2 {
+  margin: 0 0 12px;
+  font: 600 21px/1.4 var(--font);
+  letter-spacing: -0.01em;
+}
+
+.account-card.is-danger {
+  border-color: rgb(255 107 107 / 30%);
+}
+
+.account-note {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12.8px;
+  color: var(--text-2);
+}
+
+.account-note.is-error {
+  border-color: rgb(255 107 107 / 45%);
+  color: #ffb4b4;
+}
+
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: #1f1f1f;
+  font: 600 15px/1 var(--font);
+  text-decoration: none;
+  transition: transform 0.2s var(--ease);
+}
+
+.legal .btn-google {
+  color: #1f1f1f;
+  text-decoration: none;
+}
+
+.btn-google:hover {
+  transform: translateY(-1px);
+}
+
+.account-facts {
+  margin: 0;
+}
+
+.account-facts > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.account-facts dt {
+  color: var(--muted);
+  font: 500 14px/1.6 var(--font);
+}
+
+.account-facts dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.account-plan {
+  font-size: 18px;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.account button.btn-ghost {
+  min-height: 52px;
+  padding: 0 22px;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.account .btn-danger {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #1a0505;
+  font: 600 14px/1 var(--font);
+  cursor: pointer;
+}
+
+.account-dev {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--line-strong);
+}
+
+.account-dev label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.account-dev input {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #0b0b0f;
+  color: var(--text);
+  font: 400 14px var(--font);
+}
+
+.account-dev .label {
+  margin: 0;
+  color: var(--dim);
+  font-size: 12px;
 }
 
 /* 없는 주소 */

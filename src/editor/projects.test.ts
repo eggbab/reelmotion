@@ -19,6 +19,7 @@ const valid: SavedProject = {
   duration: 12.5,
   portrait: false,
   thumbnail: null,
+  owner: null,
 }
 
 describe('parseProject (저장된 작업 읽기)', () => {

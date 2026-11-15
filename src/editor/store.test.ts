@@ -19,6 +19,7 @@ const project = (id: string, updatedAt: number): SavedProject => ({
   duration: 3,
   portrait: false,
   thumbnail: null,
+  owner: null,
 })
 
 describe('「내 작업」 저장소(IndexedDB)', () => {

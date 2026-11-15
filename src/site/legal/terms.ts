@@ -21,8 +21,15 @@ export const TERMS: LegalDocs = {
       {
         title: '이용 방법',
         blocks: [
-          '계정 없이 웹 브라우저에서 바로 씁니다. 만든 작업은 그 브라우저에 저장되어 「내 작업」에서 다시 열 수 있습니다.',
+          '웹 브라우저에서 바로 씁니다. 만든 작업은 그 브라우저에 저장되어 「내 작업」에서 다시 열 수 있고, 구글로 로그인하면(선택) 계정에도 저장되어 다른 기기에서 열 수 있습니다.',
           '영상 파일은 이용자의 기기 안에서만 처리하며 회사 서버로 올리지 않습니다. 말을 받아 적을 때는 영상의 소리만 회사의 받아쓰기 서버로 보내고, 원하면 브라우저 안에서만 받아 적을 수도 있습니다. 자세한 내용은 {privacy}에 있습니다.',
+        ],
+      },
+      {
+        title: '계정',
+        blocks: [
+          '구글 계정으로 로그인하면 계정이 만들어집니다. 만 14세 미만은 계정을 만들 수 없습니다. 계정은 본인만 쓰세요.',
+          '「내 계정」에서 언제든 탈퇴할 수 있습니다. 탈퇴하면 계정과 계정에 저장한 작업이 바로 지워지며 되돌릴 수 없습니다. 금지 행위를 어기면 회사는 계정을 멈출 수 있습니다.',
         ],
       },
       {
@@ -69,7 +76,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           '받아쓰기와 자동 배치는 틀릴 수 있습니다. 결과물을 공개하기 전에 내용을 확인해 주세요.',
           '무료로 제공하는 서비스, 이용자의 기기·브라우저 문제, 이용자가 넣은 영상으로 생긴 손해는 회사의 고의나 중대한 과실이 없는 한 책임지지 않습니다.',
-          '작업은 이용자의 브라우저에만 저장됩니다. 브라우저 데이터가 지워져 잃은 작업은 회사가 되살릴 수 없으니, 다 만든 영상은 내보내 보관해 주세요.',
+          '로그인하지 않고 만든 작업은 이용자의 브라우저에만 저장됩니다. 브라우저 데이터가 지워져 잃은 작업과, 회사가 받지 않는 영상 파일은 되살릴 수 없으니 다 만든 영상은 내보내 보관해 주세요.',
         ],
       },
       { title: '준거법', blocks: ['이 약관은 대한민국 법을 따릅니다.'] },
@@ -92,8 +99,15 @@ export const TERMS: LegalDocs = {
       {
         title: 'How you use it',
         blocks: [
-          'You use it in a web browser, with no account. What you make is saved in that browser and can be reopened from My projects.',
+          'You use it in a web browser. What you make is saved in that browser and can be reopened from My projects; if you log in with Google (optional), it is also kept in your account so you can open it on other devices.',
           'Video files are processed only on your device and are never uploaded to our servers. To transcribe, only the sound of the video is sent to our speech server, or, if you prefer, transcription runs entirely in your browser. See the {privacy} for details.',
+        ],
+      },
+      {
+        title: 'Accounts',
+        blocks: [
+          'Logging in with Google creates an account. Children under 14 cannot create an account. Please keep your account to yourself.',
+          'You can delete your account at any time from My account. Deleting it removes the account and the projects kept in it right away, and this cannot be undone. If you break the rules in “What is not allowed”, we may suspend the account.',
         ],
       },
       {
@@ -140,7 +154,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           'Transcription and automatic placement can be wrong. Please check what you made before you publish it.',
           'Unless caused by our intent or gross negligence, we are not liable for damage arising from the free Service, from problems with your device or browser, or from the videos you add.',
-          'Projects are saved only in your browser. We cannot recover projects lost when browser data is cleared, so please export and keep your finished videos.',
+          'Projects you make without logging in are saved only in your browser. We cannot recover projects lost when browser data is cleared, or video files, which we never receive, so please export and keep your finished videos.',
         ],
       },
       { title: 'Governing law', blocks: ['These terms are governed by the laws of the Republic of Korea.'] },
@@ -163,8 +177,15 @@ export const TERMS: LegalDocs = {
       {
         title: '利用方法',
         blocks: [
-          'アカウントは不要で、ウェブブラウザからすぐに使えます。作ったプロジェクトはそのブラウザに保存され、「マイプロジェクト」から開き直せます。',
+          'ウェブブラウザからすぐに使えます。作ったプロジェクトはそのブラウザに保存されて「マイプロジェクト」から開き直せ、Google でログインすると(任意)アカウントにも保存されてほかの端末でも開けます。',
           '動画ファイルはお使いの端末の中だけで処理し、当社のサーバーにはアップロードしません。文字起こしでは動画の音声だけを当社の文字起こしサーバーに送ります。ご希望なら、ブラウザの中だけで文字起こしすることもできます。詳しくは{privacy}をご覧ください。',
+        ],
+      },
+      {
+        title: 'アカウント',
+        blocks: [
+          'Google アカウントでログインすると、アカウントが作られます。14歳未満の方はアカウントを作れません。アカウントはご本人だけでお使いください。',
+          '「マイアカウント」からいつでも退会できます。退会すると、アカウントとアカウントに保存したプロジェクトがすぐに削除され、元に戻せません。禁止事項に違反した場合、当社はアカウントを停止することがあります。',
         ],
       },
       {
@@ -211,7 +232,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           '文字起こしと自動配置は間違うことがあります。作成物を公開する前に内容をご確認ください。',
           '無料で提供する本サービス、利用者の端末・ブラウザの問題、利用者が入れた動画によって生じた損害について、当社の故意または重大な過失による場合を除き、当社は責任を負いません。',
-          'プロジェクトは利用者のブラウザにだけ保存されます。ブラウザのデータが消えて失われたプロジェクトは当社では復元できないため、完成した動画は書き出して保管してください。',
+          'ログインせずに作ったプロジェクトは、利用者のブラウザにだけ保存されます。ブラウザのデータが消えて失われたプロジェクトや、当社が受け取らない動画ファイルは復元できないため、完成した動画は書き出して保管してください。',
         ],
       },
       { title: '準拠法', blocks: ['この規約は大韓民国の法律に従います。'] },

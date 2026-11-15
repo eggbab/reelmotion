@@ -4,11 +4,11 @@ import type { Lang } from '../langs'
 import { posterUrl } from '../media/clips'
 import type { EditorCopy } from './copy'
 import { formatAgo, formatClock } from './projects'
-import type { SavedProject } from './projects'
+import type { ProjectListItem } from '../account/sync'
 import { useProjectList } from './useProjectList'
 
 type CardProps = {
-  item: SavedProject
+  item: ProjectListItem
   copy: EditorCopy
   lang: Lang
   now: number
@@ -52,7 +52,7 @@ function ProjectCard({ item, copy, lang, now, current, onOpen, onDelete }: CardP
   )
 }
 
-type GridProps = { items: SavedProject[]; copy: EditorCopy; lang: Lang; currentId: string | null; onOpen: (id: string) => void; onDelete?: (id: string) => void }
+type GridProps = { items: ProjectListItem[]; copy: EditorCopy; lang: Lang; currentId: string | null; onOpen: (id: string) => void; onDelete?: (id: string) => void }
 
 /** 작업 카드 줄(「내 작업」 창과 시작 화면이 함께 쓴다). */
 export function ProjectGrid({ items, copy, lang, currentId, onOpen, onDelete }: GridProps) {

@@ -1,7 +1,9 @@
 node_modules
 dist
 .git
-server
+server/asr
 docs
 *.log
 dist-ssr
+dist-app
+data

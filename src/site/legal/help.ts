@@ -62,7 +62,7 @@ export const HELP: LegalDocs = {
       },
       {
         title: '내 작업',
-        blocks: ['고칠 때마다 이 브라우저에 저장돼요. 「내 작업」에서 다시 열거나 지울 수 있어요. 다른 브라우저나 기기에서는 열리지 않고, 브라우저 데이터를 지우면 함께 지워지니 다 만든 영상은 내보내 두세요. 자세한 내용은 {privacy}에 있어요.'],
+        blocks: ['고칠 때마다 이 브라우저에 저장돼요. 「내 작업」에서 다시 열거나 지울 수 있어요. 구글로 로그인하면 계정에도 저장돼 다른 기기에서도 열려요(영상은 그 기기에서 다시 골라요). 브라우저 데이터를 지우면 이 브라우저의 작업은 지워지니 다 만든 영상은 내보내 두세요. 자세한 내용은 {privacy}에 있어요.'],
       },
       {
         title: '잘 안 될 때',
@@ -133,7 +133,7 @@ export const HELP: LegalDocs = {
       },
       {
         title: 'My projects',
-        blocks: ['Your work is saved in this browser as you go. Reopen or delete it from “My projects”. Projects do not open in other browsers or devices and are removed when browser data is cleared, so export the videos you finish. See the {privacy} for details.'],
+        blocks: ['Your work is saved in this browser as you go. Reopen or delete it from “My projects”. Log in with Google and it is kept in your account too, so it opens on your other devices (choose the video again there). Clearing browser data removes this browser’s copy, so export the videos you finish. See the {privacy} for details.'],
       },
       {
         title: 'If something goes wrong',
@@ -204,7 +204,7 @@ export const HELP: LegalDocs = {
       },
       {
         title: 'マイプロジェクト',
-        blocks: ['直すたびにこのブラウザに保存されます。「マイプロジェクト」から開き直したり削除したりできます。ほかのブラウザや端末では開けず、ブラウザのデータを消すと一緒に消えるため、完成した動画は書き出しておいてください。詳しくは{privacy}をご覧ください。'],
+        blocks: ['直すたびにこのブラウザに保存されます。「マイプロジェクト」から開き直したり削除したりできます。Google でログインするとアカウントにも保存され、ほかの端末でも開けます(動画はその端末で選び直します)。ブラウザのデータを消すとこのブラウザの分は消えるため、完成した動画は書き出しておいてください。詳しくは{privacy}をご覧ください。'],
       },
       {
         title: 'うまくいかないとき',

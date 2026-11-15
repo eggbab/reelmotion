@@ -92,9 +92,10 @@ describe('fillTemplate / prerenderPlan', () => {
     expect(() => fillTemplate('<html>', { lang: 'en', head: '', html: '', key: '/' })).toThrow()
   })
 
-  it('파일 목록: 쪽 21개 + 404 셋', () => {
+  it('파일 목록: 쪽 24개 + 404 셋', () => {
     const plan = prerenderPlan()
-    expect(plan).toHaveLength(24)
+    expect(plan).toHaveLength(27)
+    expect(plan.find((item) => item.file === 'ko/account/index.html')?.key).toBeNull()
     const files = plan.map((item) => item.file)
     expect(files).toContain('index.html')
     expect(files).toContain('ko/terms/index.html')

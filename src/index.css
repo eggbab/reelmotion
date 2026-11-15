@@ -47,3 +47,35 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* 머리줄의 로그인 단추와 계정 동그라미(소개 페이지·편집기가 함께 쓴다) */
+.account-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 37px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  color: var(--nav-text);
+  font: 500 13px/1 var(--font);
+  letter-spacing: 0.025em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s var(--ease);
+}
+
+.account-link:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.account-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--mint-ink);
+  font: 700 14px/1 var(--font);
+  text-decoration: none;
+}

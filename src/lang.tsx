@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { saveLang } from './langs'
+import { saveLang } from './langStorage'
 import type { Lang } from './langs'
 import { pagePath } from './site/routes'
 import type { PageId } from './site/routes'

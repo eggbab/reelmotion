@@ -183,7 +183,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: 'Frequently asked questions',
       items: [
         { q: 'What does ReelMotion do?', a: 'You add a video of someone talking. ReelMotion writes down what is said, word by word, and places motion graphics — titles, name tags, counters, charts, checklists, quotes and captions — at the moment each thing is said. You can fix any word or number, change the style and export an MP4.' },
-        { q: 'Does my video get uploaded?', a: 'No. The video never leaves your computer, and exporting happens in your browser. To write down the speech, only the sound is sent to the ReelMotion speech server, transcribed, and not kept. If you prefer, you can transcribe entirely inside your browser instead. Your projects are saved only in this browser.' },
+        { q: 'Does my video get uploaded?', a: 'No. The video never leaves your computer, and exporting happens in your browser. To write down the speech, only the sound is sent to the ReelMotion speech server, transcribed, and not kept. If you prefer, you can transcribe entirely inside your browser instead. Your projects are saved in this browser, and in your account if you log in — never your video file.' },
         { q: 'Which languages does it understand?', a: 'English, Korean and Japanese — for speech, for the graphics it picks and for this site. The Seoul and Tokyo style packs are made for Korean and Japanese text.' },
         { q: 'Can I use what I make commercially?', a: 'Yes. What you export is yours, and every font in the style packs is licensed for commercial video.' },
         { q: 'What do I need to run it?', a: 'A recent desktop browser such as Chrome, Edge or Safari. If you choose to transcribe inside your browser, the first time downloads about 250 MB once.' },
@@ -322,7 +322,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: '자주 묻는 질문',
       items: [
         { q: 'ReelMotion은 무엇을 하나요?', a: '말하는 영상을 넣으면 말을 낱말 단위로 받아 적고, 그 말을 하는 순간에 맞춰 제목·이름표·숫자·차트·목록·인용·자막 같은 모션그래픽을 놓아요. 낱말이나 숫자를 고치고 스타일을 바꾼 뒤 MP4로 내보낼 수 있어요.' },
-        { q: '제 영상이 어딘가로 올라가나요?', a: '아니요. 영상은 내 컴퓨터를 떠나지 않고, 내보내기도 브라우저 안에서 해요. 말을 받아 적을 때만 소리를 ReelMotion 받아쓰기 서버로 보내고, 받아 적은 뒤 남기지 않아요. 원하면 브라우저 안에서만 받아 적을 수도 있어요. 작업도 이 브라우저에만 저장돼요.' },
+        { q: '제 영상이 어딘가로 올라가나요?', a: '아니요. 영상은 내 컴퓨터를 떠나지 않고, 내보내기도 브라우저 안에서 해요. 말을 받아 적을 때만 소리를 ReelMotion 받아쓰기 서버로 보내고, 받아 적은 뒤 남기지 않아요. 원하면 브라우저 안에서만 받아 적을 수도 있어요. 작업은 이 브라우저에, 로그인하면 계정에도 저장돼요. 영상 파일은 올리지 않아요.' },
         { q: '어떤 언어를 알아듣나요?', a: '영어·한국어·일본어예요. 받아쓰기, 그래픽 고르기, 이 사이트 모두요. 서울 예능과 도쿄 텔롭 스타일은 한국어와 일본어 글자에 맞춰 만들었어요.' },
         { q: '만든 영상을 상업적으로 써도 되나요?', a: '네. 내보낸 영상은 내 것이고, 스타일에 쓰인 글꼴은 모두 상업 영상에 쓸 수 있는 라이선스예요.' },
         { q: '무엇이 필요한가요?', a: '크롬·엣지·사파리 같은 최신 데스크톱 브라우저면 돼요. 브라우저 안에서 받아 적기를 고르면 처음 한 번 약 250MB를 내려받아요.' },
@@ -461,7 +461,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       title: 'よくある質問',
       items: [
         { q: 'ReelMotion は何をしますか?', a: '話す動画を入れると、言葉ごとに書き起こし、その言葉を話した瞬間にタイトル・名前・数字・グラフ・リスト・引用・字幕などのモーショングラフィックを置きます。言葉や数字を直し、スタイルを変えて MP4 で書き出せます。' },
-        { q: '動画はどこかにアップロードされますか?', a: 'いいえ。動画はパソコンの外に出ず、書き出しもブラウザの中で行います。書き起こしのときだけ音声を ReelMotion の書き起こしサーバーに送り、書き起こした後は残しません。ブラウザの中だけで書き起こすこともできます。プロジェクトもこのブラウザにだけ保存されます。' },
+        { q: '動画はどこかにアップロードされますか?', a: 'いいえ。動画はパソコンの外に出ず、書き出しもブラウザの中で行います。書き起こしのときだけ音声を ReelMotion の書き起こしサーバーに送り、書き起こした後は残しません。ブラウザの中だけで書き起こすこともできます。プロジェクトはこのブラウザに、ログインするとアカウントにも保存されます。動画ファイルはアップロードしません。' },
         { q: 'どの言語に対応していますか?', a: '英語・韓国語・日本語です。書き起こし、グラフィックの選択、このサイトのすべてで。ソウルと東京のスタイルは韓国語と日本語の文字に合わせて作りました。' },
         { q: '作った動画を商用で使えますか?', a: 'はい。書き出した動画はあなたのものです。スタイルに使われているフォントはすべて商用動画に使えるライセンスです。' },
         { q: '何が必要ですか?', a: 'Chrome・Edge・Safari などの最新のデスクトップブラウザ。ブラウザの中で書き起こす場合は、最初に一度だけ約 250MB をダウンロードします。' },
