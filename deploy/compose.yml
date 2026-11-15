@@ -39,8 +39,23 @@ services:
       SITE_ORIGIN: ${SITE_ORIGIN:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      ASSIST_URL: http://assist:8080
     volumes:
       - app-data:/data
+    restart: unless-stopped
+    logging: *logging
+
+  # 말로 고치기 AI(server/app/assist.ts 가 부른다): llama.cpp 서버 + Qwen3-4B-Instruct-2507(Apache-2.0, Q4_K_M 약 2.5GB).
+  # 처음 띄울 때 모델을 assist-models 볼륨에 내려받는다(몇 분). 영상·소리는 받지 않고 글만 받으며 저장하지 않는다.
+  # 판을 고정했다(2026-11-15 이 판으로 시험). 올릴 때는 server/app/assist.live.test.ts 를 다시 돌린다.
+  assist:
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:89fe93c2ef53ea2d09ca9f53db8878a8f57bb6b143eb63c76a9c218fb583b392
+    command: ["--hf-repo", "unsloth/Qwen3-4B-Instruct-2507-GGUF", "--hf-file", "Qwen3-4B-Instruct-2507-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "--ctx-size", "4096", "--jinja", "--parallel", "1"]
+    environment:
+      LLAMA_CACHE: /models
+    volumes:
+      - assist-models:/models
+    mem_limit: 6g
     restart: unless-stopped
     logging: *logging
 
@@ -64,3 +79,4 @@ services:
 volumes:
   asr-models:
   app-data:
+  assist-models:

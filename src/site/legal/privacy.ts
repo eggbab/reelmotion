@@ -11,6 +11,7 @@ import type { LegalDocs } from './types'
  * - 기기에 저장: 「내 작업」(IndexedDB `reelmotion` — 작업과 넣은 영상, src/editor/store.ts), 언어 선택(localStorage `reelmotion.lang`),
  *   브라우저 안 받아쓰기 모델 파일(브라우저 캐시). 쿠키는 로그인했을 때 로그인 유지 하나(rm_session, 30일 — server/app/sessions.ts).
  * - 계정(server/app, 2026-11-15): 구글 로그인(고유번호·메일·이름), 로그인한 사람의 작업(영상 제외)을 서버 SQLite 에. 탈퇴하면 바로 지운다.
+ * - 말로 고치기(server/app/assist.ts): 적은 말과 작업의 글을 우리 서버의 AI 가 읽고 버린다. 로그인하지 않았으면 남용 막기로 IP 를 메모리에 10분까지.
  * - 바깥 회사: 브라우저 안 받아쓰기의 모델 파일만 Hugging Face 에서 직접 받는다. 실행 파일(onnxruntime)은 우리 서버에서 준다.
  */
 export const PRIVACY: LegalDocs = {
@@ -28,6 +29,7 @@ export const PRIVACY: LegalDocs = {
               ['접속 정보', '페이지와 받아쓰기 서버에 접속하면 통신을 위해 IP 주소와 브라우저 정보가 회사 서버에 전달됩니다.'],
               ['계정 정보', '구글로 로그인하면(선택) 구글 계정의 고유번호, 메일 주소, 이름을 받습니다.'],
               ['계정에 저장한 작업', '로그인하면 만든 작업(대본, 받아 적은 글, 그래픽, 스타일, 작은 미리보기 그림)을 계정에 저장합니다.'],
+              ['말로 고치기에 적은 말', '말로 고치기를 쓰면 적은 말과 작업의 글(대본, 그래픽의 글·시간, 스타일)을 받습니다.'],
             ],
           },
           '영상 파일과 내보낸 결과물은 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다. 로그인하지 않으면 이름·메일 같은 정보도 받지 않습니다.',
@@ -42,6 +44,7 @@ export const PRIVACY: LegalDocs = {
               '접속 정보: 페이지와 받아쓰기 결과를 이용자에게 보내는 데만 씁니다.',
               '계정 정보: 로그인을 유지하고, 계정에 저장한 작업을 보여 주고, 문의에 답하는 데 씁니다.',
               '계정에 저장한 작업: 이용자가 여러 기기에서 작업을 열 수 있게 하는 데만 씁니다.',
+              '말로 고치기에 적은 말: 회사 서버의 AI 가 그 말대로 그래픽 고치기를 만드는 데만 씁니다. 학습에 쓰지 않습니다.',
             ],
           },
         ],
@@ -55,6 +58,7 @@ export const PRIVACY: LegalDocs = {
               '접속 정보: 접속 기록을 남기지 않습니다. 서버 오류를 고치기 위한 기록에도 IP 주소와 말소리를 남기지 않습니다.',
               '계정 정보와 계정에 저장한 작업: 탈퇴할 때까지 보관하고, 탈퇴하면 바로 지웁니다. 작업 하나는 「내 작업」에서 지우면 바로 지웁니다.',
               '로그인 기록: 로그인 유지 기간(30일, 쓸 때마다 다시 30일)이 끝나거나 로그아웃하면 지웁니다.',
+              '말로 고치기에 적은 말: 고치기를 돌려주면 바로 지웁니다. 로그인하지 않았으면 남용을 막으려고 요청 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
             ],
           },
         ],
@@ -135,6 +139,7 @@ export const PRIVACY: LegalDocs = {
               ['Connection information', 'When you open our pages or use the speech server, your IP address and browser information reach our servers as part of the connection.'],
               ['Account information', 'If you log in with Google (optional), we receive your Google account ID, email address and name.'],
               ['Projects kept in your account', 'When you are logged in, the projects you make (script, transcript, graphics, style and a small preview image) are kept in your account.'],
+              ['What you type in chat editing', 'When you use chat editing, we receive what you type and your project text (script, graphic text and timing, style).'],
             ],
           },
           'We do not receive video files or what you export. Videos are processed only on your device. If you do not log in, we do not receive information such as your name or email address either.',
@@ -149,6 +154,7 @@ export const PRIVACY: LegalDocs = {
               'Connection information: only to deliver pages and transcripts to you.',
               'Account information: to keep you logged in, show you the projects kept in your account and answer your questions.',
               'Projects kept in your account: only to let you open your projects on any of your devices.',
+              'What you type in chat editing: only for the AI on our server to turn it into graphic edits. It is not used for training.',
             ],
           },
         ],
@@ -162,6 +168,7 @@ export const PRIVACY: LegalDocs = {
               'Connection information: we keep no access logs. Records we keep to fix server errors contain no IP addresses or audio either.',
               'Account information and projects kept in your account: kept until you delete your account, then deleted right away. Deleting a project in My projects deletes it right away.',
               'Login records: deleted when the login period ends (30 days, renewed as you use the Service) or when you log out.',
+              'What you type in chat editing: deleted as soon as the edits are returned. If you are not logged in, your IP address is held in server memory for up to 10 minutes to count requests and prevent abuse.',
             ],
           },
         ],
@@ -242,6 +249,7 @@ export const PRIVACY: LegalDocs = {
               ['接続情報', 'ページや文字起こしサーバーに接続すると、通信のために IP アドレスとブラウザ情報が当社サーバーに届きます。'],
               ['アカウント情報', 'Google でログインする場合(任意)、Google アカウントの固有番号、メールアドレス、名前を受け取ります。'],
               ['アカウントに保存したプロジェクト', 'ログインすると、作ったプロジェクト(台本、文字起こし、グラフィックス、スタイル、小さなプレビュー画像)をアカウントに保存します。'],
+              ['話して直すに書いた言葉', '話して直すを使うと、書いた言葉とプロジェクトの文字(台本、グラフィックスの文字・時間、スタイル)を受け取ります。'],
             ],
           },
           '動画ファイルと書き出した作成物は受け取りません。動画はお使いの端末の中だけで処理します。ログインしなければ、氏名やメールアドレスなどの情報も受け取りません。',
@@ -256,6 +264,7 @@ export const PRIVACY: LegalDocs = {
               '接続情報: ページと文字起こしの結果をお届けするためだけに使います。',
               'アカウント情報: ログインを保ち、アカウントに保存したプロジェクトを表示し、お問い合わせに答えるために使います。',
               'アカウントに保存したプロジェクト: 複数の端末でプロジェクトを開けるようにするためだけに使います。',
+              '話して直すに書いた言葉: 当社サーバーの AI がその言葉どおりのグラフィックスの変更を作るためだけに使います。学習には使いません。',
             ],
           },
         ],
@@ -269,6 +278,7 @@ export const PRIVACY: LegalDocs = {
               '接続情報: アクセス記録を残しません。サーバーの障害を直すための記録にも、IP アドレスと音声は残しません。',
               'アカウント情報とアカウントに保存したプロジェクト: 退会するまで保管し、退会するとすぐに消します。プロジェクトは「マイプロジェクト」で削除するとすぐに消します。',
               'ログインの記録: ログインの保持期間(30日、使うたびに延長)が終わるか、ログアウトすると消します。',
+              '話して直すに書いた言葉: 変更をお返ししたらすぐに消します。ログインしていない場合は、不正利用を防ぐため、回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
             ],
           },
         ],

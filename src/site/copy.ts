@@ -28,7 +28,7 @@ export type SiteCopy = {
   formats: { eyebrow: string; title: string; body: string; cta: string; shapes: string[] }
   lanes: { eyebrow: string; title: string; body: string; cta: string; lanes: string[] }
   statement: { eyebrow: string; text: string }
-  chat: { badge: string; title: string; body: string; you: string; bot: string; input: string }
+  chat: { badge: string; title: string; body: string; you: string; bot: string; input: string; cta: string }
   anywhere: { title: string; rows: { name: string; state: string; open: boolean }[] }
   features: { title: string; body: string; items: { title: string; body: string }[] }
   pricing: {
@@ -135,12 +135,13 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       text: 'We built this for people who explain things on camera — so the numbers you say, the names you mention and the points you make show up on screen the moment you say them, without a week in an editing app.',
     },
     chat: {
-      badge: 'Coming soon',
+      badge: 'New',
       title: 'Edit by chatting',
-      body: 'Ask for a change in plain words — “make the number bigger”, “turn this into a chart” — and watch it happen.',
-      you: 'Make the 37% bigger and give it more time on screen',
-      bot: 'Done. The counter is larger and now stays for five seconds.',
+      body: 'Ask for a change in plain words — “change the title”, “show the name tag two seconds later”, “switch to the Tokyo style” — and watch it happen. An open AI model on our own server does the edits.',
+      you: 'Make the number 50% and keep it on screen longer',
+      bot: 'Done! The number is now 50% and stays on screen longer.',
       input: 'Ask for a change…',
+      cta: 'Try it in the editor',
     },
     anywhere: {
       title: 'Available wherever you create.',
@@ -274,12 +275,13 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       text: '카메라 앞에서 설명하는 사람들을 위해 만들었어요. 말한 숫자, 언급한 이름, 짚은 요점이 편집 프로그램에서 일주일을 보내지 않아도 말하는 바로 그 순간 화면에 나타나도록.',
     },
     chat: {
-      badge: '곧 나와요',
+      badge: '새 기능',
       title: '말로 고치는 편집',
-      body: '“숫자 더 크게”, “이걸 차트로” 처럼 평소 말로 부탁하면 바로 바뀌어요.',
-      you: '37%를 더 크게 하고 화면에 더 오래 보여 줘',
-      bot: '바꿨어요. 숫자를 키우고 5초 동안 보이게 했어요.',
+      body: '“제목 바꿔 줘”, “이름표를 2초 늦게”, “도쿄 스타일로” 처럼 평소 말로 부탁하면 바로 바뀌어요. 우리 서버의 오픈 AI 모델이 고쳐요.',
+      you: '숫자를 50%로 바꾸고 화면에 더 오래 보여 줘',
+      bot: '바꿨어요! 숫자를 50%로 바꾸고 더 오래 보이게 했어요.',
       input: '바꾸고 싶은 걸 말해 보세요…',
+      cta: '편집기에서 해 보기',
     },
     anywhere: {
       title: '어디서 만들든 쓸 수 있어요.',
@@ -413,12 +415,13 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       text: 'カメラの前で説明する人のためにつくりました。話した数字、触れた名前、伝えたい要点が、編集アプリで一週間かけなくても、話したその瞬間に画面に現れるように。',
     },
     chat: {
-      badge: '近日公開',
+      badge: '新機能',
       title: '話しかけて編集',
-      body: '「数字をもっと大きく」「これをグラフに」と普段の言葉で頼めば、すぐに変わります。',
-      you: '37% をもっと大きくして、もう少し長く表示して',
-      bot: '変更しました。数字を大きくし、5秒間表示します。',
+      body: '「タイトルを変えて」「名前テロップを2秒遅く」「東京スタイルに」と普段の言葉で頼めば、すぐに変わります。編集するのは当社サーバーのオープンな AI モデルです。',
+      you: '数字を50%にして、もう少し長く表示して',
+      bot: '変更しました!数字を50%にして、長めに表示します。',
       input: '変えたいことを伝えてください…',
+      cta: 'エディターで試す',
     },
     anywhere: {
       title: 'どこで作っても使えます。',

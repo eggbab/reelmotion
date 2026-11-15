@@ -53,6 +53,12 @@ export const HELP: LegalDocs = {
         ],
       },
       {
+        title: '말로 고치기',
+        blocks: [
+          '「말로 고치기」 탭에 고치고 싶은 것을 적으면 ReelMotion 서버의 AI 가 그래픽을 고쳐요. 예: 「제목을 \'아침 루틴\'으로 바꿔 줘」, 「숫자를 50%로」, 「이름표를 2초 늦게」, 「도쿄 스타일로」. 마지막에 고친 것은 「되돌리기」로 되돌릴 수 있어요. 10분에 20번까지 쓸 수 있어요.',
+        ],
+      },
+      {
         title: '스타일',
         blocks: ['스타일 여섯 가지(클린·네온·볼드·에디토리얼·서울·도쿄) 중 하나를 고르면 모든 그래픽이 한 번에 바뀌어요. 서울과 도쿄는 한국어·일본어 글자에 맞춘 예능 자막·텔롭 느낌이에요.'],
       },
@@ -124,6 +130,12 @@ export const HELP: LegalDocs = {
         ],
       },
       {
+        title: 'Chat editing',
+        blocks: [
+          'On the Chat tab, type what you want to change and the AI on the ReelMotion server edits the graphics — for example “Change the title to \'Morning routine\'”, “Make the number 50%”, “Show the name tag 2 seconds later” or “Switch to the Tokyo style”. You can undo the latest change with “Undo”. Up to 20 requests every 10 minutes.',
+        ],
+      },
+      {
         title: 'Style',
         blocks: ['Pick one of six styles — Clean, Neon, Bold, Editorial, Seoul and Tokyo — and every graphic changes at once. Seoul and Tokyo are made for Korean variety captions and Japanese telop.'],
       },
@@ -192,6 +204,12 @@ export const HELP: LegalDocs = {
         title: '直す',
         blocks: [
           '下のタイムラインでグラフィックをドラッグして動かしたり、両端をドラッグして長さを変えたりできます(選んだグラフィックは矢印キーでも動きます)。右の「グラフィック」タブで文字・数字・時間を直し、「追加」でグラフィックを増やしたり削除したりできます。',
+        ],
+      },
+      {
+        title: '話して直す',
+        blocks: [
+          '「話して直す」タブに直したいことを書くと、ReelMotion サーバーの AI がグラフィックスを直します。例: 「タイトルを『朝のルーティン』にして」「数字を50%にして」「名前テロップを2秒遅く出して」「東京スタイルにして」。最後の変更は「元に戻す」で戻せます。10分に20回まで使えます。',
         ],
       },
       {

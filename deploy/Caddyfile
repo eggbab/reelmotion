@@ -2,6 +2,11 @@
 {
 	admin off
 	auto_https off
+	# 앞단(운영 PC 의 home-edge, 사설 주소)이 알려 준 방문자 주소(X-Forwarded-For)를 믿는다.
+	# 앱 서버가 로그인하지 않은 「말로 고치기」 요청을 방문자마다 세는 데 쓴다(메모리에서 10분, 저장 안 함).
+	servers {
+		trusted_proxies static private_ranges
+	}
 	# 접속 기록은 남기지 않는다(Caddy 는 log 지시어가 없으면 접속 기록을 쓰지 않는다).
 	# 오류 기록에는 요청 정보가 함께 적히므로, 방문자를 알아볼 수 있는 값(IP 주소·포트·머리글)을 지운다.
 	# 개인정보처리방침의 「접속 기록을 남기지 않는다」와 맞춘다(src/site/legal/privacy.ts).

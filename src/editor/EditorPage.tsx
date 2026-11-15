@@ -34,6 +34,9 @@ import { EDITOR_COPY, SAMPLE_SCRIPTS } from './copy'
 import type { EditorCopy } from './copy'
 import { clampToDuration, createGraphic, syncCaptions } from './graphics'
 import { Inspector } from './Inspector'
+import { applyOps } from './assist'
+import { ChatPanel } from './ChatPanel'
+import type { ChatDoc, ChatEntry } from './ChatPanel'
 import { ProjectGrid, ProjectsDialog } from './ProjectsDialog'
 import { PROJECT_VERSION, canStoreMedia, defaultName, formatMegabytes, newProjectId, nextSerial, safeFileName } from './projects'
 import type { ProjectSource, SavedProject } from './projects'
@@ -268,7 +271,9 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const [graphics, setGraphics] = useState<Graphic[]>(initial.graphics)
   const [themeId, setThemeId] = useState<ThemeId>(initial.theme)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'graphics' | 'transcript'>(initial.graphics.length > 0 ? 'graphics' : 'transcript')
+  const [tab, setTab] = useState<'graphics' | 'transcript' | 'chat'>(initial.graphics.length > 0 ? 'graphics' : 'transcript')
+  const [chat, setChat] = useState<ChatEntry[]>([])
+  const [assistReady, setAssistReady] = useState<boolean | null>(null)
   const [duration, setDuration] = useState(initial.duration)
   const [size, setSize] = useState(initial.portrait ? { width: 720, height: 1280 } : { width: 1280, height: 720 })
   const [time, setTime] = useState(0)
@@ -293,6 +298,16 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const run = useRef(0)
   const exportAbort = useRef<AbortController | null>(null)
   const touch = () => setTouched(true)
+
+  // 말로 고치기를 쓸 수 있는지(우리 서버의 AI 가 떠 있는지) 한 번 묻는다.
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/assist/health', { signal: controller.signal, cache: 'no-store' })
+      .then((response) => (response.ok ? (response.json() as Promise<{ ready?: boolean }>) : { ready: false }))
+      .then((body) => setAssistReady(body.ready === true))
+      .catch(() => controller.signal.aborted || setAssistReady(false))
+    return () => controller.abort()
+  }, [])
 
   // 영상 요소에 주소를 붙인다. 넣은 파일은 임시 주소를 만들고, 영상이 바뀌거나 작업을 닫으면 돌려준다.
   useEffect(() => {
@@ -624,6 +639,25 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     setExportState({ stage: 'idle' })
   }
 
+  // 말로 고치기: 답이 온 때의 최신 작업에 적용한다(기다리는 동안 손으로 고친 것을 덮지 않게).
+  const chatDoc: ChatDoc = { graphics, theme: themeId, script, duration }
+  const latestDoc = useRef(chatDoc)
+  useEffect(() => {
+    latestDoc.current = chatDoc
+  })
+  const applyChat = (ops: Parameters<typeof applyOps>[1]) => {
+    const before = latestDoc.current
+    const result = applyOps(before, ops, () => `u${++serial.current}`)
+    const after: ChatDoc = { ...result, duration: before.duration }
+    setGraphics(after.graphics)
+    setThemeId(after.theme)
+    setScript(after.script)
+    setSelectedId(null)
+    touch()
+    latestDoc.current = after
+    return { before, after }
+  }
+
   const currentSource = source ? projectSourceOf(source) : null
   const displayName = name.trim() || (currentSource ? defaultName(currentSource, copy.untitled) : copy.untitled)
   const isSample = source?.kind === 'sample'
@@ -745,6 +779,9 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
               <button type="button" role="tab" aria-selected={tab === 'graphics'} onClick={() => setTab('graphics')}>
                 {copy.tabs.graphics} {graphics.length > 0 && <em>{graphics.length}</em>}
               </button>
+              <button type="button" role="tab" aria-selected={tab === 'chat'} onClick={() => setTab('chat')}>
+                {copy.tabs.chat}
+              </button>
             </div>
             {tab === 'transcript' ? (
               <TranscriptPanel
@@ -770,6 +807,22 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                 hasGraphics={graphics.length > 0}
                 canMake={words.length > 0}
                 onMake={makeGraphics}
+              />
+            ) : tab === 'chat' ? (
+              <ChatPanel
+                copy={copy}
+                lang={lang}
+                doc={chatDoc}
+                ready={assistReady}
+                entries={chat}
+                onEntries={setChat}
+                onApply={applyChat}
+                onRestore={(before) => {
+                  setGraphics(before.graphics)
+                  setThemeId(before.theme)
+                  setScript(before.script)
+                  touch()
+                }}
               />
             ) : (
               <Inspector copy={copy} graphics={shown} selected={selected} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />

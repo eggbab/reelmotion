@@ -23,7 +23,7 @@ describe('오픈소스 라이선스 목록', () => {
   it('받아쓰기 모델이 실제로 쓰는 모델과 같다', () => {
     const browser = MODEL_CREDITS.filter((model) => model.where === 'browser').map((model) => model.id)
     expect(browser.sort()).toEqual(Object.values(SPEECH_MODELS).map((model) => model.id).sort())
-    const app = read('server/asr/reelmotion_asr/app.py')
-    for (const model of MODEL_CREDITS.filter((item) => item.where === 'server')) expect(app).toContain(`"${model.id}"`)
+    const servers = read('server/asr/reelmotion_asr/app.py') + read('deploy/compose.yml')
+    for (const model of MODEL_CREDITS.filter((item) => item.where === 'server')) expect(servers).toContain(`"${model.id}"`)
   })
 })

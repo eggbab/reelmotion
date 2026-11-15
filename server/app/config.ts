@@ -10,8 +10,9 @@ import type { GoogleConfig } from './google'
  * | GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET | (없음) | 둘 다 있고 SITE_ORIGIN 이 있으면 구글 로그인을 켠다 |
  * | COOKIE_SECURE | SITE_ORIGIN 이 https 면 1 | 로그인 쿠키에 Secure |
  * | AUTH_DEV | 0 | 1 이면 개발·시험용 가짜 로그인(운영에서 켜지 않는다) |
+ * | ASSIST_URL | (없음) | 말로 고치기 AI(llama.cpp 서버) 주소, 예: http://assist:8080. 없으면 대화창이 「지금은 쓸 수 없어요」 |
  */
-export type ServerConfig = AppConfig & { host: string; port: number; dataDir: string; google: GoogleConfig | null }
+export type ServerConfig = AppConfig & { host: string; port: number; dataDir: string; google: GoogleConfig | null; assistUrl: string | null }
 
 export function readConfig(env: Record<string, string | undefined>): ServerConfig {
   const siteOrigin = env.SITE_ORIGIN?.trim().replace(/\/+$/, '') || null
@@ -28,5 +29,6 @@ export function readConfig(env: Record<string, string | undefined>): ServerConfi
     google,
     secureCookies: flag(env.COOKIE_SECURE, siteOrigin?.startsWith('https://') ?? false),
     devLogin: flag(env.AUTH_DEV, false),
+    assistUrl: env.ASSIST_URL?.trim() || null,
   }
 }

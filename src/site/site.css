@@ -1748,6 +1748,11 @@
   font-size: 12px;
 }
 
+/* 말로 고치기 구역의 단추 */
+.chat__cta {
+  margin-top: 28px;
+}
+
 /* 없는 주소 */
 .notfound {
   position: relative;

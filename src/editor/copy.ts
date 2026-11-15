@@ -13,7 +13,7 @@ export type EditorCopy = {
   cancel: string
   close: string
   start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string }
-  tabs: { graphics: string; transcript: string }
+  tabs: { graphics: string; transcript: string; chat: string }
   style: string
   themes: Record<ThemeId, string>
   play: string
@@ -78,6 +78,22 @@ export type EditorCopy = {
   }
   lanes: string[]
   sampleNote: string
+  /** 말로 고치기(assist.ts · server/app/assist.ts) */
+  chat: {
+    intro: string
+    examples: string[]
+    placeholder: string
+    send: string
+    thinking: string
+    unavailable: string
+    busy: string
+    limited: string
+    failed: string
+    partial: string
+    undo: string
+    undone: string
+    note: string
+  }
   /** 「내 작업」: 이 브라우저에 저장하고 다시 열기(projects.ts) */
   projects: {
     open: string
@@ -129,7 +145,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       privacy: 'Your video stays in this browser.',
       help: 'How it works',
     },
-    tabs: { graphics: 'Graphics', transcript: 'Transcript' },
+    tabs: { graphics: 'Graphics', transcript: 'Transcript', chat: 'Chat' },
     style: 'Style',
     themes: { clean: 'Clean', neon: 'Neon', bold: 'Bold', editorial: 'Editorial', seoul: 'Seoul', tokyo: 'Tokyo' },
     play: 'Play',
@@ -194,6 +210,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['Titles', 'Names', 'Data', 'Captions'],
     sampleNote: 'Sample clips have no speech, so their script is typed.',
+    chat: {
+      intro: 'Say what you want to change.',
+      examples: ["Change the title to 'Morning routine'", 'Make the number 50%', 'Switch to the Tokyo style'],
+      placeholder: 'e.g. Show the name tag 2 seconds later',
+      send: 'Send',
+      thinking: 'Editing…',
+      unavailable: 'Chat editing is unavailable right now. You can still edit on the Graphics tab.',
+      busy: 'Lots of requests right now. Please try again in a moment.',
+      limited: 'You can send 20 requests every 10 minutes. Please try again soon.',
+      failed: 'I did not get that. Try saying it another way.',
+      partial: 'Some changes could not be made.',
+      undo: 'Undo',
+      undone: 'Undone.',
+      note: 'What you type and your project text are read by the AI on the ReelMotion server and not kept.',
+    },
     projects: {
       open: 'My projects',
       title: 'My projects',
@@ -242,7 +273,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       privacy: '영상은 이 브라우저 밖으로 나가지 않아요.',
       help: '쓰는 법 보기',
     },
-    tabs: { graphics: '그래픽', transcript: '받아쓴 말' },
+    tabs: { graphics: '그래픽', transcript: '받아쓴 말', chat: '말로 고치기' },
     style: '스타일',
     themes: { clean: '클린', neon: '네온', bold: '볼드', editorial: '에디토리얼', seoul: '서울', tokyo: '도쿄' },
     play: '재생',
@@ -307,6 +338,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['제목', '이름표', '데이터', '자막'],
     sampleNote: '예시 영상에는 말소리가 없어서 대본을 적어 두었어요.',
+    chat: {
+      intro: '고치고 싶은 것을 말로 적으세요.',
+      examples: ["제목을 '아침 루틴'으로 바꿔 줘", '숫자를 50%로 바꿔 줘', '도쿄 스타일로 바꿔 줘'],
+      placeholder: '예: 이름표를 2초 늦게 나오게 해 줘',
+      send: '보내기',
+      thinking: '고치는 중…',
+      unavailable: '말로 고치기는 지금 쓸 수 없어요. 「그래픽」 탭에서 직접 고칠 수 있어요.',
+      busy: '지금 요청이 많아요. 잠시 뒤 다시 보내 주세요.',
+      limited: '10분에 20번까지 보낼 수 있어요. 잠시 뒤 다시 보내 주세요.',
+      failed: '알아듣지 못했어요. 다르게 말해 주세요.',
+      partial: '일부는 바꾸지 못했어요.',
+      undo: '되돌리기',
+      undone: '되돌렸어요.',
+      note: '적은 말과 작업의 글은 ReelMotion 서버의 AI 가 읽고 남기지 않아요.',
+    },
     projects: {
       open: '내 작업',
       title: '내 작업',
@@ -355,7 +401,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       privacy: '動画はこのブラウザの外に出ません。',
       help: '使い方を見る',
     },
-    tabs: { graphics: 'グラフィック', transcript: '書き起こし' },
+    tabs: { graphics: 'グラフィック', transcript: '書き起こし', chat: '話して直す' },
     style: 'スタイル',
     themes: { clean: 'クリーン', neon: 'ネオン', bold: 'ボールド', editorial: 'エディトリアル', seoul: 'ソウル', tokyo: '東京' },
     play: '再生',
@@ -420,6 +466,21 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['タイトル', '名前', 'データ', '字幕'],
     sampleNote: 'サンプル動画には声がないため、台本を入力してあります。',
+    chat: {
+      intro: '直したいことを言葉で書いてください。',
+      examples: ['タイトルを「朝のルーティン」にして', '数字を50%にして', '東京スタイルにして'],
+      placeholder: '例: 名前テロップを2秒遅く出して',
+      send: '送る',
+      thinking: '直しています…',
+      unavailable: '話して直す機能は今使えません。「グラフィック」タブで直接直せます。',
+      busy: '今リクエストが混み合っています。少し待ってからもう一度送ってください。',
+      limited: '10分に20回まで送れます。少し待ってからもう一度送ってください。',
+      failed: 'わかりませんでした。別の言い方で書いてください。',
+      partial: '一部は変更できませんでした。',
+      undo: '元に戻す',
+      undone: '元に戻しました。',
+      note: '書いた言葉とプロジェクトの文字は ReelMotion サーバーの AI が読み、保存しません。',
+    },
     projects: {
       open: 'マイプロジェクト',
       title: 'マイプロジェクト',

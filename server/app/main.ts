@@ -2,6 +2,7 @@ import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { serve } from '@hono/node-server'
 import { createApp } from './app'
+import { createLlamaModel } from './assist'
 import { readConfig } from './config'
 import { openDb } from './db'
 import { createGoogleClient } from './google'
@@ -14,9 +15,9 @@ const db = openDb(join(config.dataDir, 'reelmotion.db'))
 sweep(db, Date.now())
 setInterval(() => sweep(db, Date.now()), 60 * 60 * 1000).unref()
 
-const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config })
+const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config, assist: config.assistUrl ? createLlamaModel(config.assistUrl) : null })
 serve({ fetch: app.fetch, hostname: config.host, port: config.port }, ({ port }) => {
-  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
+  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
 })
 
 const stop = () => {

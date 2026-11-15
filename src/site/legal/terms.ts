@@ -14,7 +14,7 @@ export const TERMS: LegalDocs = {
       {
         title: '서비스 내용',
         blocks: [
-          '서비스는 말하는 영상의 말을 받아 적고, 말하는 순간에 맞춰 제목·숫자·차트·이름표·자막 같은 모션그래픽을 영상 위에 얹어 새 영상 파일로 내보내는 웹 서비스입니다.',
+          '서비스는 말하는 영상의 말을 받아 적고, 말하는 순간에 맞춰 제목·숫자·차트·이름표·자막 같은 모션그래픽을 영상 위에 얹어 새 영상 파일로 내보내는 웹 서비스입니다. 그래픽은 직접 고치거나, 적은 말로 AI 에게 고치게 할 수 있습니다(말로 고치기).',
           '지금은 공개 베타라 모든 기능을 무료로 제공합니다. 유료 요금제를 열 때는 값과 내용을 요금 안내에 먼저 알립니다.',
         ],
       },
@@ -57,7 +57,7 @@ export const TERMS: LegalDocs = {
       {
         title: '이용 한도',
         blocks: [
-          '받아쓰기 서버는 한 번에 10분까지의 소리를 받으며, 여러 사람이 함께 쓰면 잠시 기다리거나 다시 시도해야 할 수 있습니다. 한도는 서비스를 안정적으로 제공하기 위해 바뀔 수 있고, 바뀌면 서비스 화면에 알립니다.',
+          '받아쓰기 서버는 한 번에 10분까지의 소리를 받고, 말로 고치기는 10분에 20번까지 쓸 수 있습니다. 여러 사람이 함께 쓰면 잠시 기다리거나 다시 시도해야 할 수 있습니다. 한도는 서비스를 안정적으로 제공하기 위해 바뀔 수 있고, 바뀌면 서비스 화면에 알립니다.',
         ],
       },
       {
@@ -74,7 +74,7 @@ export const TERMS: LegalDocs = {
       {
         title: '책임의 한계',
         blocks: [
-          '받아쓰기와 자동 배치는 틀릴 수 있습니다. 결과물을 공개하기 전에 내용을 확인해 주세요.',
+          '받아쓰기, 자동 배치, 말로 고치기는 틀릴 수 있습니다. 결과물을 공개하기 전에 내용을 확인해 주세요.',
           '무료로 제공하는 서비스, 이용자의 기기·브라우저 문제, 이용자가 넣은 영상으로 생긴 손해는 회사의 고의나 중대한 과실이 없는 한 책임지지 않습니다.',
           '로그인하지 않고 만든 작업은 이용자의 브라우저에만 저장됩니다. 브라우저 데이터가 지워져 잃은 작업과, 회사가 받지 않는 영상 파일은 되살릴 수 없으니 다 만든 영상은 내보내 보관해 주세요.',
         ],
@@ -92,7 +92,7 @@ export const TERMS: LegalDocs = {
       {
         title: 'What the Service does',
         blocks: [
-          'The Service is a web service that writes down what is said in a talking video, places motion graphics — titles, numbers, charts, name tags and captions — at the moment each thing is said, and exports a new video file.',
+          'The Service is a web service that writes down what is said in a talking video, places motion graphics — titles, numbers, charts, name tags and captions — at the moment each thing is said, and exports a new video file. You can edit the graphics yourself or ask an AI to edit them in plain words (chat editing).',
           'It is in public beta and every feature is free. Before paid plans open, their prices and what they include will be announced in the pricing section.',
         ],
       },
@@ -135,7 +135,7 @@ export const TERMS: LegalDocs = {
       {
         title: 'Usage limits',
         blocks: [
-          'The speech server accepts up to 10 minutes of sound at a time. When many people use it at once, you may need to wait or try again. Limits may change to keep the Service stable, and changes will be shown in the Service.',
+          'The speech server accepts up to 10 minutes of sound at a time, and chat editing can be used up to 20 times every 10 minutes. When many people use them at once, you may need to wait or try again. Limits may change to keep the Service stable, and changes will be shown in the Service.',
         ],
       },
       {
@@ -152,7 +152,7 @@ export const TERMS: LegalDocs = {
       {
         title: 'Limits of liability',
         blocks: [
-          'Transcription and automatic placement can be wrong. Please check what you made before you publish it.',
+          'Transcription, automatic placement and chat editing can be wrong. Please check what you made before you publish it.',
           'Unless caused by our intent or gross negligence, we are not liable for damage arising from the free Service, from problems with your device or browser, or from the videos you add.',
           'Projects you make without logging in are saved only in your browser. We cannot recover projects lost when browser data is cleared, or video files, which we never receive, so please export and keep your finished videos.',
         ],
@@ -170,7 +170,7 @@ export const TERMS: LegalDocs = {
       {
         title: 'サービスの内容',
         blocks: [
-          '本サービスは、話している動画の言葉を文字に起こし、話した瞬間に合わせてタイトル・数字・グラフ・名前テロップ・字幕などのモーショングラフィックスを動画に重ね、新しい動画ファイルとして書き出すウェブサービスです。',
+          '本サービスは、話している動画の言葉を文字に起こし、話した瞬間に合わせてタイトル・数字・グラフ・名前テロップ・字幕などのモーショングラフィックスを動画に重ね、新しい動画ファイルとして書き出すウェブサービスです。グラフィックスは自分で直すことも、言葉で AI に直してもらうこともできます(話して直す)。',
           '現在は公開ベータのため、すべての機能を無料で提供しています。有料プランを始める前に、料金と内容を料金案内でお知らせします。',
         ],
       },
@@ -213,7 +213,7 @@ export const TERMS: LegalDocs = {
       {
         title: '利用上限',
         blocks: [
-          '文字起こしサーバーは、一度に10分までの音声を受け付けます。多くの人が同時に使うと、しばらく待つか、やり直す必要があることがあります。上限は本サービスを安定して提供するために変わることがあり、変わる場合は本サービスの画面でお知らせします。',
+          '文字起こしサーバーは一度に10分までの音声を受け付け、話して直すは10分に20回まで使えます。多くの人が同時に使うと、しばらく待つか、やり直す必要があることがあります。上限は本サービスを安定して提供するために変わることがあり、変わる場合は本サービスの画面でお知らせします。',
         ],
       },
       {
@@ -230,7 +230,7 @@ export const TERMS: LegalDocs = {
       {
         title: '責任の範囲',
         blocks: [
-          '文字起こしと自動配置は間違うことがあります。作成物を公開する前に内容をご確認ください。',
+          '文字起こし、自動配置、話して直すは間違うことがあります。作成物を公開する前に内容をご確認ください。',
           '無料で提供する本サービス、利用者の端末・ブラウザの問題、利用者が入れた動画によって生じた損害について、当社の故意または重大な過失による場合を除き、当社は責任を負いません。',
           'ログインせずに作ったプロジェクトは、利用者のブラウザにだけ保存されます。ブラウザのデータが消えて失われたプロジェクトや、当社が受け取らない動画ファイルは復元できないため、完成した動画は書き出して保管してください。',
         ],

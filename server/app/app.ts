@@ -3,8 +3,12 @@ import { Hono } from 'hono'
 import type { Context, MiddlewareHandler } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { MAX_INSTRUCTION, parseAssistState } from '../../src/editor/assist'
 import { parseProject } from '../../src/editor/projects'
+import type { Lang } from '../../src/langs'
 import { langOfPath, pagePath } from '../../src/site/routes'
+import { buildMessages, createRateLimiter, parseReply, RESPONSE_SCHEMA } from './assist'
+import type { AssistModel } from './assist'
 import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
 import type { GoogleClaims, GoogleClient } from './google'
@@ -25,7 +29,12 @@ export type AppConfig = {
 
 type Env = { Variables: { user: UserRow | null; token: string | null } }
 
-export type AppDeps = { db: Db; google: GoogleClient | null; config: AppConfig; now?: () => number }
+export type AppDeps = { db: Db; google: GoogleClient | null; config: AppConfig; now?: () => number; assist?: AssistModel | null }
+
+/** 말로 고치기: 계정(로그인) 또는 IP 마다 10분에 20번, 동시에 기다리는 요청은 3개까지. */
+export const ASSIST_LIMIT = 20
+export const ASSIST_WINDOW = 10 * 60 * 1000
+export const ASSIST_WAITING = 3
 
 export const MAX_PROJECT_BYTES = 1_000_000
 export const MAX_PROJECTS = 500
@@ -67,8 +76,10 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
+  const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
+  let assistWaiting = 0
 
   const startSession = (c: Context, userId: string) => {
     setCookie(c, SESSION_COOKIE, createSession(db, userId, now()), { httpOnly: true, secure: config.secureCookies, sameSite: 'Lax', path: '/', maxAge: SESSION_DAYS * 24 * 60 * 60 })
@@ -198,6 +209,34 @@ export function createApp({ db, google, config, now = Date.now }: AppDeps) {
   app.delete('/projects/:id', requireUser, (c) => {
     db.prepare('delete from projects where user_id = ? and id = ?').run(userOf(c).id, c.req.param('id'))
     return c.json({ ok: true })
+  })
+
+  // ── 말로 고치기 ──
+  app.get('/assist/health', async (c) => c.json({ ready: assist ? await assist.ready() : false }))
+
+  app.post('/assist/edit', bodyLimit({ maxSize: 300_000, onError: (c) => c.json({ error: 'too_large' }, 413) }), async (c) => {
+    if (!assist) return c.json({ error: 'assist_off' }, 503)
+    const body = (await c.req.json().catch(() => null)) as { instruction?: unknown; lang?: unknown; state?: unknown } | null
+    const instruction = typeof body?.instruction === 'string' ? body.instruction.trim() : ''
+    const lang: Lang = body?.lang === 'ko' || body?.lang === 'ja' ? body.lang : 'en'
+    const state = parseAssistState(body?.state)
+    if (!instruction || instruction.length > MAX_INSTRUCTION || !state) return c.json({ error: 'bad_request' }, 400)
+    // 로그인했으면 계정, 아니면 IP 로 센다(IP 는 메모리에서 10분 안에 사라진다).
+    const user = c.get('user')
+    const key = user ? `u:${user.id}` : `ip:${c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'}`
+    if (!assistLimiter.hit(key)) return c.json({ error: 'rate_limited' }, 429)
+    if (assistWaiting >= ASSIST_WAITING) return c.json({ error: 'busy' }, 503)
+    assistWaiting += 1
+    try {
+      const result = parseReply(await assist.complete(buildMessages(state, instruction, lang), RESPONSE_SCHEMA), state)
+      if (!result || (!result.reply && result.ops.length === 0)) return c.json({ error: 'bad_reply' }, 502)
+      return c.json(result)
+    } catch (error) {
+      console.error('assist failed:', error instanceof Error ? error.message : error)
+      return c.json({ error: 'assist_failed' }, 502)
+    } finally {
+      assistWaiting -= 1
+    }
   })
 
   app.notFound((c) => c.json({ error: 'not_found' }, 404))

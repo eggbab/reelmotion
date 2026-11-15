@@ -7,7 +7,8 @@
 |---|---|---|
 | `web` | 소개 페이지·편집기 파일을 내보내고, `/api/asr/*` 를 받아쓰기 서버로 넘긴다(Caddy) | 저장소 맨 위 `Dockerfile`, 설정 `deploy/Caddyfile` |
 | `asr` | 소리(WAV)만 받아 Qwen3-ASR 로 받아 적고 낱말마다 시간을 돌려준다. 받은 소리는 저장하지 않고 접속 기록도 남기지 않는다 | `server/asr/` |
-| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
+| `app` | 로그인(구글)·내 계정·탈퇴, 로그인한 사람의 작업(영상 제외) 저장, 말로 고치기 요청 검사·횟수 세기. SQLite 파일 하나(`app-data` 볼륨의 `reelmotion.db`) | `server/app/`, 저장소 맨 위 `Dockerfile` 의 `app` 단계 |
+| `assist` | 말로 고치기 AI: llama.cpp 서버 + Qwen3-4B-Instruct-2507(Apache-2.0, Q4_K_M 약 2.5GB). 글만 받고 저장하지 않는다 | 공식 이미지(판 고정, `compose.yml`) |
 
 - 영상은 서버로 오지 않는다(편집기가 브라우저에서 소리만 꺼내 보낸다). 내보내기도 브라우저에서 한다.
 - 받아쓰기 서버가 없거나 꺼져 있으면 편집기는 저절로 「이 브라우저」 받아쓰기(Whisper)를 쓴다.
@@ -32,6 +33,14 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
 2. 문의 메일은 지금 임시로 `vmelabs@outlook.com`(2026-11-15 사용자 지시)이다. 도메인 메일로 바꾸려면 `src/site/business.ts` 의 `contactEmail`. 약관·개인정보처리방침·환불 규정의 문의 자리와 바닥글에 나온다.
 3. `docker compose up -d --build`(그래픽 카드면 위 두 번째 명령)로 다시 빌드한다.
 4. 앞단(운영 PC 의 home-edge Caddy)에 이 주소 블록을 더할 때 마트마트 블록처럼 **`log { output discard }`** 를 넣는다 — 개인정보처리방침에 「접속 기록을 남기지 않는다」고 적었다. 요청 크기 25MB 이상, 기다리는 시간 15분 이상. 앞단에 CDN·터널 같은 바깥 회사를 끼우면 개인정보처리방침의 「처리 위탁·국외 이전」을 먼저 고친다.
+
+## 말로 고치기 AI (`assist`)
+- 처음 띄울 때 모델(약 2.5GB)을 `assist-models` 볼륨에 내려받는다. 그동안 편집기의 「말로 고치기」 탭은 「지금은 쓸 수 없어요」를 보인다(`/api/assist/health`).
+- 그래픽 카드 없이(이 작업 공간, CPU 4개, 2026-11-15): 한 번에 9~22초(처음 것이 가장 느리다 — 앞부분을 기억해 두 번째부터 빨라진다). 메모리 약 3GB.
+- 그래픽 카드로: `compose.gpu.yml` 이 `server-cuda` 판을 쓰고 모든 층을 카드에 올린다. 받아쓰기 모델(float32 약 2.4GB)과 합쳐 8GB 안에 들 것으로 보지만 실제 1070 Ti 에서는 아직 안 재 봤다. 모자라면 `--n-gpu-layers` 를 줄인다(나머지는 CPU).
+- 시험: 실제 모델로 지시 8개(세 언어 — 제목·스타일·이름·숫자·지우기·더하기·낱말 고치기·시간 옮기기)를 돌리는 시험이 있다. 판을 올리면 다시 돌린다:
+  `ASSIST_URL=http://<assist 주소>:8080 npx vitest run server/app/assist.live.test.ts` (2026-11-15: 8/8).
+- 남용 막기: 로그인했으면 계정마다, 아니면 방문자 주소마다 10분에 20번, 동시에 기다리는 요청 3개까지(`server/app/app.ts`). 방문자 주소는 앞단이 알려 준 값을 믿는다(Caddyfile 의 `trusted_proxies`).
 
 ## 구글 로그인 켜기 (도메인이 정해진 뒤)
 1. [Google Cloud 콘솔](https://console.cloud.google.com/) → 「API 및 서비스」 → 「OAuth 동의 화면」: 앱 이름 ReelMotion, 지원 메일, 범위는 `openid`·`email`·`profile` 만(민감하지 않은 범위라 심사가 가볍다), 게시 상태 「프로덕션」.

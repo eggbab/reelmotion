@@ -336,6 +336,7 @@ export function Chat({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
           </div>
           <MotionStage clip={d.clip} graphics={bigger} theme="neon" label={copy.chat.title} small />
         </div>
+        <EditorLink className="btn-mint chat__cta">{copy.chat.cta}</EditorLink>
       </div>
     </section>
   )

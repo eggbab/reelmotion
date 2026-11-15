@@ -28,7 +28,7 @@ export const FONT_CREDITS: (Credit & { copyright: string })[] = [
   },
 ]
 
-/** 받아쓰기 모델. where: 회사 서버(server/asr) 또는 이용자의 브라우저(src/speech/transcribe.ts). */
+/** AI 모델: 받아쓰기와 말로 고치기. where: 회사 서버(server/asr · deploy/compose.yml 의 assist) 또는 이용자의 브라우저(src/speech/transcribe.ts). */
 export const MODEL_CREDITS: (Credit & { by: string; where: 'server' | 'browser'; id: string })[] = [
   { name: 'Qwen3-ASR-0.6B', by: 'Qwen, Alibaba Cloud', license: 'Apache-2.0', where: 'server', id: 'Qwen/Qwen3-ASR-0.6B', url: 'https://huggingface.co/Qwen/Qwen3-ASR-0.6B', packages: [] },
   {
@@ -38,6 +38,15 @@ export const MODEL_CREDITS: (Credit & { by: string; where: 'server' | 'browser';
     where: 'server',
     id: 'Qwen/Qwen3-ForcedAligner-0.6B',
     url: 'https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B',
+    packages: [],
+  },
+  {
+    name: 'Qwen3-4B-Instruct-2507',
+    by: 'Qwen, Alibaba Cloud · llama.cpp',
+    license: 'Apache-2.0',
+    where: 'server',
+    id: 'unsloth/Qwen3-4B-Instruct-2507-GGUF',
+    url: 'https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507',
     packages: [],
   },
   { name: 'Whisper small', by: 'OpenAI', license: 'Apache-2.0', where: 'browser', id: 'onnx-community/whisper-small_timestamped', url: 'https://huggingface.co/openai/whisper-small', packages: [] },
@@ -74,7 +83,7 @@ export const LICENSES_UI: Record<
     description: 'ReelMotion 이 쓰는 글꼴, 받아쓰기 모델, 예시 영상, 공개 프로그램과 그 사용 허가입니다.',
     intro: 'ReelMotion 은 아래 글꼴·모델·영상·공개 프로그램을 각 사용 허가에 따라 씁니다. 만든 분들께 감사드립니다.',
     fonts: '글꼴',
-    models: '받아쓰기 모델',
+    models: 'AI 모델(받아쓰기·말로 고치기)',
     videos: '예시 영상',
     videosBody: '소개 페이지와 편집기의 예시 영상 8개는 Mixkit 의 영상으로, 상업 이용이 가능하고 출처 표시가 필요 없는 사용 허가입니다. 원본 번호:',
     programs: '공개 프로그램',
@@ -89,7 +98,7 @@ export const LICENSES_UI: Record<
     description: 'The fonts, speech models, sample videos and open-source software ReelMotion uses, and their licenses.',
     intro: 'ReelMotion uses the fonts, models, videos and open-source software below under their licenses. Thank you to everyone who made them.',
     fonts: 'Fonts',
-    models: 'Speech models',
+    models: 'AI models (speech and chat editing)',
     videos: 'Sample videos',
     videosBody: 'The eight sample clips on this site and in the editor come from Mixkit, under a license that allows commercial use without attribution. Original clip numbers:',
     programs: 'Open-source software',
@@ -104,7 +113,7 @@ export const LICENSES_UI: Record<
     description: 'ReelMotion が使うフォント、文字起こしモデル、サンプル動画、オープンソースソフトウェアとそのライセンスです。',
     intro: 'ReelMotion は、下記のフォント・モデル・動画・オープンソースソフトウェアを、それぞれのライセンスに従って使っています。作ってくださった皆さんに感謝します。',
     fonts: 'フォント',
-    models: '文字起こしモデル',
+    models: 'AI モデル(文字起こし・話して直す)',
     videos: 'サンプル動画',
     videosBody: 'このサイトとエディターの8本のサンプル動画は Mixkit のもので、商用利用ができ、クレジット表記が不要なライセンスです。元の番号:',
     programs: 'オープンソースソフトウェア',
