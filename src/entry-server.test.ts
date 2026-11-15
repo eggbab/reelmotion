@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { render } from './entry-server'
+import { BUSINESS, render } from './entry-server'
 import { prerenderPlan } from './seo/template'
 
 describe('빌드 때 미리 그리기', () => {
@@ -35,5 +35,13 @@ describe('빌드 때 미리 그리기', () => {
     expect(render('/ja/terms')).toContain('href="/ko/terms"')
     expect(render('/ja/terms')).toContain('韓国語の原文を読む')
     expect(render('/ko/terms')).not.toContain('Read the Korean original')
+  })
+
+  it('문의 메일이 있으면 약관·정책과 바닥글에 메일 링크, 없으면 「정식 공개 전」 자리 표시', () => {
+    for (const path of ['/ko/terms', '/privacy', '/ja/refund']) {
+      const html = render(path)
+      if (BUSINESS.contactEmail) expect(html).toContain(`href="mailto:${BUSINESS.contactEmail}"`)
+      else expect(html).toContain('legal__pending')
+    }
   })
 })
