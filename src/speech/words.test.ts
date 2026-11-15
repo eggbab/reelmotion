@@ -35,4 +35,28 @@ describe('chunksToWords', () => {
     for (let i = 1; i < words.length; i++) expect(words[i].start).toBeGreaterThanOrEqual(words[i - 1].end)
     for (const word of words) expect(word.end).toBeGreaterThan(word.start)
   })
+
+  it('빈칸 없이 이어진 숫자·기호 조각은 앞 낱말에 붙인다(Whisper 가 1,400 · 8% 를 쪼개서 준다)', () => {
+    const words = chunksToWords([
+      { text: ' Out', timestamp: [0, 0.2] },
+      { text: ' of', timestamp: [0.2, 0.3] },
+      { text: ' 1', timestamp: [0.3, 0.5] },
+      { text: ',400', timestamp: [0.5, 0.9] },
+      { text: ' by', timestamp: [1, 1.1] },
+      { text: ' 8', timestamp: [1.1, 1.3] },
+      { text: '%', timestamp: [1.3, 1.6] },
+      { text: ' since.', timestamp: [1.7, 2] },
+    ])
+    expect(words.map((word) => word.text)).toEqual(['Out', 'of', '1,400', 'by', '8%', 'since.'])
+    expect(words[2]).toMatchObject({ start: 0.3, end: 0.9 })
+  })
+
+  it('일본어처럼 빈칸 없는 말은 글자 조각을 함부로 붙이지 않는다', () => {
+    const words = chunksToWords([
+      { text: '今日', timestamp: [0, 0.4] },
+      { text: 'は', timestamp: [0.4, 0.5] },
+      { text: '。', timestamp: [0.5, 0.6] },
+    ])
+    expect(words.map((word) => word.text)).toEqual(['今日', 'は。'])
+  })
 })

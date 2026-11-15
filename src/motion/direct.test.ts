@@ -43,6 +43,26 @@ describe('direct', () => {
     expect(bars.unit).toBe('%')
   })
 
+  it('단위가 다른 숫자끼리는 차트로 묶지 않고, 가장 눈에 띄는 숫자 하나를 고른다', () => {
+    const graphics = direct(timed('Out of 1,400 people polled before the 2010 election, support grew by 8% since 2008.', 12))
+    expect(byKind(graphics, 'bars')).toHaveLength(0)
+    expect(byKind(graphics, 'stat')[0]).toMatchObject({ value: 8, suffix: '%' })
+  })
+
+  it('숫자 뒤에 이름이 오는 영어 문장은 뒤 낱말을 막대 이름표로 쓴다', () => {
+    const graphics = direct(timed('Intro here.\nHe made 70 runs in just 41 balls by hitting 11 fours and 2 sixes.', 14))
+    const [bars] = byKind(graphics, 'bars')
+    expect(bars.items.map((item) => item.label)).toEqual(['runs', 'balls', 'fours', 'sixes'])
+  })
+
+  it('이름표가 뜻 없는 낱말(때·중 등)뿐이면 차트 대신 숫자 하나로 만든다', () => {
+    const graphics = direct(timed('제목 문장입니다.\n집에 충돌했을 때 3명이 안에 있었지만 그들 중 1명도 다치지 않았다.', 12))
+    expect(byKind(graphics, 'bars')).toHaveLength(0)
+    const [stat] = byKind(graphics, 'stat')
+    expect(stat).toMatchObject({ value: 3, suffix: '명' })
+    expect(stat.label.startsWith('집에 충돌했을 때 안에')).toBe(true)
+  })
+
   it('첫째·둘째처럼 이어지는 말을 목록으로 만든다', () => {
     const graphics = direct(timed('Here is my routine.\nFirst, drink water.\nSecond, stretch for five minutes.\nThird, plan the day.', 24))
     const [list] = byKind(graphics, 'list')

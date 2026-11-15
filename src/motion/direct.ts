@@ -1,5 +1,6 @@
 import type { Word } from '../captions/types'
 import { findNumbers } from './numbers'
+import type { FoundNumber } from './numbers'
 import { clampText } from './paint'
 import type { Graphic } from './types'
 
@@ -66,6 +67,51 @@ function stripMarker(text: string): string | null {
 const QUOTE = /["“「『]([^"”」』]{4,120})["”」』]/
 
 const CENTER: Graphic['kind'][] = ['title', 'stat', 'bars', 'list', 'quote']
+
+/** 숫자 바로 앞에 와도 설명에서 빼는 영어 낱말(by 8% → 8%) */
+const LEADING = new Set('a an the of in on at by to for from with about over under than just only nearly almost around roughly up down per'.split(' '))
+/** 막대 이름표로 쓰지 않을 낱말(전치사·관사·대명사·때·중 같은 말) */
+const STOP = new Set([
+  ...LEADING,
+  ...'and or but some those these that this is are was were be been has have had we i you they he she it its our my your percent more less since'.split(' '),
+  ...'때 중 약 총 모두 그 이 저 또 및 등 단 겨우 무려 거의 약간 그리고 하지만 그래서 또는 더 덜 이미 이제 벌써 매 각 한 두 세 바로 오직 단지 무려 거기 여기'.split(' '),
+  ...'約 計 全 その この あの また 及び 等 わずか ほぼ さらに もう ただ 時 中'.split(' '),
+])
+const isStop = (word: string) => STOP.has(word.toLowerCase())
+
+/** 막대 이름표: 「70 runs」처럼 단위 없는 숫자 뒤에 이름이 오면 뒤 낱말, 아니면 앞 낱말. 마땅한 게 없으면 빈 글 */
+function labelOf(n: FoundNumber): string {
+  if (n.after && !n.suffix && !n.prefix && !isStop(n.after)) return n.after
+  if (n.before && !isStop(n.before) && !/\d/.test(n.before)) return n.before
+  return ''
+}
+
+const PARTICLE_AFTER = /^(이|가|은|는|을|를|의|도|에|에서|만|が|は|の|を|も|に)(?=\s|$)/u
+
+const STRONG_UNITS = new Set(['%', 'x', '배', '倍', 'M', 'B', 'K', '만', '억', '万', '億', '만원', '억원', '원', '円'])
+
+/** 단위가 섞인 문장에서 하나만 고를 때: 퍼센트·배수·돈처럼 뜻이 분명한 숫자를 먼저 */
+function pickNumber(numbers: FoundNumber[]): FoundNumber {
+  return numbers.find((n) => n.prefix || STRONG_UNITS.has(n.suffix)) ?? numbers[0]
+}
+
+/** 숫자가 든 마디(쉼표로 나눈 부분)에서 숫자를 빼고 설명으로 쓴다. 숫자 바로 앞의 by·of 같은 낱말도 뺀다. */
+function statLabel(text: string, n: FoundNumber): string {
+  const clauses = text.split(/[,;:，、]/)
+  const clause = clauses.find((part) => part.includes(n.raw)) ?? text
+  const at = clause.indexOf(n.raw)
+  const before = clause
+    .slice(0, at)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  while (before.length > 0 && LEADING.has(before[before.length - 1].toLowerCase())) before.pop()
+  const after = clause
+    .slice(at + n.raw.length)
+    .replace(PARTICLE_AFTER, '')
+    .replace(/[.!?。！？]+\s*$/, '')
+  return clampText(tidy(`${before.join(' ')} ${after}`), 40)
+}
 
 const tidy = (text: string) =>
   text
@@ -137,21 +183,25 @@ export function direct(words: Word[]): Graphic[] {
       return
     }
     const numbers = findNumbers(sentence.text)
-    if (numbers.length >= 2) {
-      const units = new Set(numbers.map((n) => n.suffix))
-      const firstAt = numbers[0].index
+    if (numbers.length === 0) return
+    // 같은 단위끼리 묶어 가장 큰 묶음이 둘 이상이면 차트, 아니면 숫자 하나
+    const groups = new Map<string, FoundNumber[]>()
+    for (const n of numbers) groups.set(n.suffix, [...(groups.get(n.suffix) ?? []), n])
+    const biggest = [...groups.values()].sort((a, b) => b.length - a.length)[0]
+    const labels = biggest.map(labelOf)
+    // 이름표가 뜻 있는 낱말인 숫자가 둘 이상일 때만 차트로 만든다(「3명이 … 그들 중 1명」은 차트가 아니다).
+    if (biggest.length >= 2 && labels.filter(Boolean).length >= 2) {
       graphics.push({
         id: id(),
         kind: 'bars',
         start: sentence.start,
         end: Math.max(sentence.end + 1, sentence.start + 3.6),
-        title: clampText(tidy(sentence.text.slice(0, firstAt).replace(numbers[0].before, '')), 30),
-        unit: units.size === 1 ? numbers[0].suffix : '',
-        items: numbers.slice(0, 5).map((n, k) => ({ label: clampText(n.before || `#${k + 1}`, 14), value: n.value })),
+        title: '',
+        unit: biggest[0].suffix,
+        items: biggest.slice(0, 5).map((n, k) => ({ label: clampText(labels[k] || `#${k + 1}`, 14), value: n.value })),
       })
-      used.add(i)
-    } else if (numbers.length === 1) {
-      const [n] = numbers
+    } else {
+      const n = pickNumber(numbers)
       graphics.push({
         id: id(),
         kind: 'stat',
@@ -161,10 +211,10 @@ export function direct(words: Word[]): Graphic[] {
         prefix: n.prefix,
         suffix: n.suffix,
         decimals: n.decimals,
-        label: clampText(tidy(sentence.text.replace(n.raw, '').replace(/[.!?。！？]+$/, '')), 40),
+        label: statLabel(sentence.text, n),
       })
-      used.add(i)
     }
+    used.add(i)
   })
 
   // 제목: 앞쪽에서 아직 쓰지 않은 첫 문장

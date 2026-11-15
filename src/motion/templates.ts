@@ -232,7 +232,8 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
   const labelSize = 2.3 * u
   const rowH = 6.6 * u
   const pad = 3 * u
-  const height = pad * 2 + titleSize * 1.6 + rowH * items.length
+  const titleBlock = g.title ? titleSize * 1.6 : 0
+  const height = pad * 2 + titleBlock + rowH * items.length
   const x = portrait ? (w - width) / 2 : w * 0.94 - width
   const y = portrait ? h * 0.3 : (h - height) / 2
 
@@ -243,11 +244,13 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
   fillPanel(f, theme, x, y, width, height)
   const ink = textColor(theme)
   const shadow = needsShadow(theme)
-  ctx.font = fontString(theme.font, titleSize, theme.strongWeight)
-  drawText(f, caseFor(theme, g.title), x + pad, y + pad + titleSize, titleSize, ink, theme.outline, shadow)
+  if (g.title) {
+    ctx.font = fontString(theme.font, titleSize, theme.strongWeight)
+    drawText(f, caseFor(theme, g.title), x + pad, y + pad + titleSize, titleSize, ink, theme.outline, shadow)
+  }
 
   items.forEach((item, i) => {
-    const rowTop = y + pad + titleSize * 1.6 + i * rowH
+    const rowTop = y + pad + titleBlock + i * rowH
     const grow = outCubic((local - 0.3 - i * 0.12) / 0.9)
     ctx.font = fontString(theme.font, labelSize, theme.bodyWeight)
     drawText(f, caseFor(theme, item.label), x + pad, rowTop + labelSize * 1.1, labelSize, theme.panel === 'none' ? theme.onVideo : theme.muted, [], shadow)
@@ -425,7 +428,7 @@ export function drawQuote(f: Frame, g: QuoteGraphic, t: number, theme: Theme) {
 
 /* ───────────── 자막 ───────────── */
 
-const SPACE = 0.28
+const SPACE = 0.3
 const LINE = 1.22
 
 export function drawCaptions(f: Frame, g: CaptionsGraphic, t: number, theme: Theme) {
@@ -476,7 +479,8 @@ export function drawCaptions(f: Frame, g: CaptionsGraphic, t: number, theme: The
   const each = (draw: (text: string, isActive: boolean) => void) => {
     for (const { index, x, y } of placed) {
       const isActive = index === active
-      const scale = isActive && style.pop ? wordPop(t - cue.words[index].start) : 1
+      // 톡 튀는 크기를 절반으로 줄여 옆 낱말을 덮지 않게 한다(실제 말소리 영상에서 겹쳐 보였다).
+      const scale = isActive && style.pop ? 1 + (wordPop(t - cue.words[index].start) - 1) * 0.5 : 1
       ctx.save()
       ctx.translate(x, y)
       ctx.scale(scale, scale)
