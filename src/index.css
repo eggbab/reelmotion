@@ -1,43 +1,31 @@
-/* 값의 주인은 DESIGN.md. 화면에서는 아래 이름만 쓴다. */
+/*
+ * 화면 전체가 쓰는 이름. 값의 주인은 DESIGN.md(레퍼런스 vigloostudio.com 에서 2026-11-15 잰 값).
+ * 화면 코드에는 색·치수를 직접 적지 않고 이 이름만 쓴다.
+ */
 :root {
-  --ink: #0e0f12;
-  --ink-hover: #2a2d35;
-  --text: #1b1d22;
-  --muted: #5b6270;
-  --line: #e4e6eb;
-  --surface: #f6f7f9;
-  --bg: #ffffff;
-  --accent: #ffe600;
-  --focus: #1d4ed8;
-  --success: #0e7a46;
-  --warning: #a14a05;
-  --error: #c2261c;
-
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-  --space-9: 96px;
-
-  --radius-s: 8px;
-  --radius-m: 12px;
-  --radius-l: 20px;
+  --bg: #0e0e13;
+  --surface: #16161b;
+  --text: #f3f2ef;
+  --text-2: #c9c8d1;
+  --muted: #8a8a93;
+  --dim: #6a6a73;
+  --nav-text: #e4e1d6;
+  --line: rgb(255 255 255 / 8%);
+  --line-strong: rgb(255 255 255 / 14%);
+  --mint: #00ffdd;
+  --mint-soft: #9affeb;
+  --mint-ink: #0a0a0a;
+  --danger: #ff6b6b;
   --radius-pill: 999px;
-  --shadow-float: 0 1px 2px rgb(14 15 18 / 6%), 0 12px 32px rgb(14 15 18 / 10%);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 영문은 DM Sans(레퍼런스와 같음). 한·일 글자는 맥에서는 시스템 글꼴, 그 밖에서는 Pretendard JP */
+  --font: 'DM Sans Variable', 'Apple SD Gothic Neo', 'Hiragino Sans', 'Pretendard JP Variable', system-ui, sans-serif;
 
-  --text-h3: 600 20px/1.4 var(--font);
-  --text-body: 400 16px/1.65 var(--font);
-  --text-small: 400 14px/1.5 var(--font);
-  --text-tiny: 500 12px/1.4 var(--font);
-  --font: 'Pretendard JP Variable', 'Pretendard JP', system-ui, sans-serif;
-
-  font: var(--text-body);
+  font-family: var(--font);
   color: var(--text);
   background: var(--bg);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -46,272 +34,16 @@
 
 body {
   margin: 0;
-}
-
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--line);
-}
-
-.brand {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-3);
-}
-
-.wordmark {
-  font: var(--text-h3);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.tagline {
-  font: var(--text-small);
-  color: var(--muted);
-}
-
-.langs {
-  display: flex;
-  gap: var(--space-1);
-}
-
-.langs button {
-  min-height: 36px;
-  padding: 0 var(--space-3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-s);
-  background: none;
-  color: var(--muted);
-  font: var(--text-small);
-  cursor: pointer;
-}
-
-.langs button:hover {
-  background: var(--surface);
-}
-
-.langs button[aria-pressed='true'] {
-  border-color: var(--line);
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.work {
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
-  gap: var(--space-5);
-  padding: var(--space-5);
-  background: var(--surface);
-}
-
-.stage-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-/* 영상이 놓이는 자리만 검정이다. */
-.stage {
-  position: relative;
-  width: min(100%, calc(min(78vh, 760px) * var(--ratio)));
-  aspect-ratio: var(--ratio);
-  border-radius: var(--radius-l);
-  overflow: hidden;
-  background: var(--ink);
-  box-shadow: var(--shadow-float);
-}
-
-.stage video,
-.stage canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.stage canvas {
-  pointer-events: none;
-}
-
-.panel {
   background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  padding: var(--space-5);
-  align-self: start;
 }
 
-.panel h2 {
-  margin: var(--space-6) 0 var(--space-3);
-  font: var(--text-body);
-  font-weight: 700;
-  color: var(--ink);
+html {
+  scroll-behavior: smooth;
 }
 
-.panel h2:first-child {
-  margin-top: 0;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--bg);
-  color: var(--ink);
-  font: var(--text-small);
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.button:hover {
-  background: var(--surface);
-}
-
-.button.primary {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--bg);
-}
-
-.button.primary:hover {
-  border-color: var(--ink-hover);
-  background: var(--ink-hover);
-}
-
-.button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.select {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font: var(--text-small);
-  color: var(--muted);
-}
-
-.select select {
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  background: var(--bg);
-  color: var(--text);
-  font: var(--text-small);
-}
-
-progress {
-  width: 100%;
-  height: 6px;
-  margin-top: var(--space-2);
-  accent-color: var(--ink);
-}
-
+button,
+input,
+select,
 textarea {
-  width: 100%;
-  margin-top: var(--space-3);
-  padding: var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  background: var(--bg);
-  color: var(--text);
-  font: var(--text-body);
-  resize: vertical;
-}
-
-.hint,
-.note,
-.error {
-  margin: var(--space-2) 0 0;
-  font: var(--text-small);
-  color: var(--muted);
-}
-
-.note {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-s);
-  background: var(--surface);
-}
-
-.error {
-  color: var(--error);
-}
-
-.styles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-}
-
-/* 자막 견본은 영상 위에 놓인 모습이라 검정 바탕이다. */
-.style {
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: var(--radius-m);
-  background: var(--ink);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.style[aria-pressed='true'] {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 3px var(--accent);
-}
-
-.style canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-a:focus-visible,
-summary:focus-visible,
-input:focus-visible,
-button:focus-visible,
-select:focus-visible,
-.button:focus-within,
-textarea:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-@media (max-width: 860px) {
-  .work {
-    grid-template-columns: minmax(0, 1fr);
-    padding: var(--space-4);
-  }
-
-  .stage {
-    width: min(100%, calc(60vh * var(--ratio)));
-  }
+  font-family: inherit;
 }

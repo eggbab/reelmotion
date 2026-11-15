@@ -1,262 +1,480 @@
-import type { Lang } from '../i18n'
+import type { Lang } from '../langs'
+import type { ThemeId } from '../motion/types'
 import type { PlanId } from './plans'
 
 /**
- * 소개 페이지 글. 지어낸 후기·숫자·약속을 넣지 않는다.
- * 제품이 달라지면 여기 글도 고친다 — 특히 「내 영상은 어디로」(지금은 브라우저 안에서 처리)와
- * 「파일로 받기」(아직 없음)는 서버·내보내기가 생기면 사실과 달라진다.
+ * 소개 페이지 글. 지어낸 후기·고객·숫자를 넣지 않는다. 아직 없는 기능은 「곧 나와요」로만 적는다.
+ * 제품이 달라지면 여기도 고친다 — 특히 「영상이 브라우저 밖으로 나가지 않는다」는 받아쓰기·내보내기가
+ * 브라우저 안에서 도는 동안만 사실이다(AGENTS.md 「소개 페이지 글이 사실과 어긋나지 않게」).
  */
 export type SiteCopy = {
-  nav: { how: string; styles: string; pricing: string; faq: string; open: string; menu: string }
-  hero: {
-    /** 제목을 말하듯 끊은 조각. 형광펜이 조각을 차례로 짚는다. */
-    title: string[]
-    lead: string
-    tryLabel: string
-    tryPlaceholder: string
-    tryDefault: string
-    cta: string
-    ctaNote: string
-    wall: string[]
+  announce: { badge: string; text: string }
+  nav: { product: string; styles: string; pricing: string; faq: string; start: string; language: string; menu: string; skip: string }
+  hero: { before: string; words: string[]; after: string; body: string; cta: string; reel: string }
+  make: { eyebrow: string; title: string; body: string; cols: { title: string; body: string }[]; tiles: string[] }
+  steps: {
+    eyebrow: string
+    title1: string
+    title2: string
+    body: string
+    steps: { name: string; hint: string }[]
+    transcript: string
+    picked: string
+    exporting: string
+    ready: string
+    upload: string
   }
-  how: {
-    title: string
-    steps: { title: string; body: string }[]
-    upload: { drop: string; file: string }
-    listen: { caption: string; sample: string; seconds: string }
-    fix: { before: string; wrong: string; right: string; after: string; note: string }
-    pick: { caption: string }
-  }
-  statement: string
-  styles: { title: string; body: string; open: string }
+  styles: { title: string; all: string; prev: string; next: string; regions: Record<'global' | 'kr' | 'jp', string>; names: Record<ThemeId, string>; about: Record<ThemeId, string> }
+  formats: { eyebrow: string; title: string; body: string; cta: string; shapes: string[] }
+  lanes: { eyebrow: string; title: string; body: string; cta: string; lanes: string[] }
+  statement: { eyebrow: string; text: string }
+  chat: { badge: string; title: string; body: string; you: string; bot: string; input: string }
+  anywhere: { title: string; rows: { name: string; state: string; open: boolean }[] }
+  features: { title: string; body: string; items: { title: string; body: string }[] }
   pricing: {
+    eyebrow: string
     title: string
     body: string
     perMonth: string
     soon: string
-    freeCta: string
+    cta: string
     names: Record<PlanId, string>
     whoFor: Record<PlanId, string>
     maxMinutes: string
-    exportsPerMonth: string
+    exports: string
     watermark: string
     noWatermark: string
     included: string
-    plannedNote: string
+    note: string
   }
   faq: { title: string; items: { q: string; a: string }[] }
-  closing: { title: string; cta: string }
   footer: {
-    business: string
-    name: string
-    representative: string
-    registrationNumber: string
-    mailOrderNumber: string
-    address: string
-    language: string
+    title: string
+    product: string
+    company: string
+    links: { editor: string; styles: string; pricing: string; faq: string }
+    business: { name: string; representative: string; registration: string; mailOrder: string; address: string }
+    rights: string
   }
+  floating: { label: string; placeholders: string[]; button: string }
 }
 
 export const SITE_COPY: Record<Lang, SiteCopy> = {
-  ko: {
-    nav: { how: '쓰는 순서', styles: '자막 디자인', pricing: '요금', faq: '자주 묻는 질문', open: '영상 올려서 써 보기', menu: '메뉴' },
+  en: {
+    announce: { badge: 'BETA', text: 'ReelMotion is in public beta — every feature is free while we build.' },
+    nav: { product: 'Product', styles: 'Styles', pricing: 'Pricing', faq: 'FAQ', start: 'Start creating', language: 'Language', menu: 'Menu', skip: 'Skip to content' },
     hero: {
-      title: ['말하는', '대로,', '예능', '자막이', '붙습니다'],
-      lead: '영상을 올리면 말소리를 어절마다 받아 적어, 움직이는 예능 자막으로 영상 위에 얹습니다.',
-      tryLabel: '여기에 적은 말이 옆 화면에서 자막으로 나옵니다',
-      tryPlaceholder: '자막으로 볼 말을 적어 보세요',
-      tryDefault: '이게 진짜 된다고?',
-      cta: '영상 올려서 써 보기',
-      ctaNote: '가입 없이 바로 열립니다. 지금은 영상 위에서 미리 보는 데까지 됩니다.',
-      wall: ['잠깐만요', '대박 사건', '오늘의 꿀팁', '끝까지 보세요', '말도 안 돼', '여기서 반전', '진짜예요?', '바로 이겁니다', '다시 한 번', '일단 해 봐요', '세상에나', '정리해 드림'],
+      before: 'Animate your ',
+      words: ['shorts.', 'podcasts.', 'lessons.', 'reels.', 'demos.'],
+      after: '',
+      body: 'ReelMotion listens to your video and adds titles, numbers, charts, name tags and captions — timed to every word you say.',
+      cta: 'Start creating',
+      reel: 'A talking video with a title, a name tag, a counter and a checklist appearing as she speaks',
     },
-    how: {
-      title: '영상 하나가 자막을 입기까지',
-      steps: [
-        { title: '영상 올리기', body: '영상을 고르면 바로 화면에 뜹니다. 가입은 필요 없습니다.' },
-        { title: '말소리 받아 적기', body: '말을 어절마다 나누고, 각 어절이 언제 나왔는지까지 받아 적습니다.' },
-        { title: '틀린 글자 고치기', body: '잘못 들은 글자는 글 상자에서 바로 고칩니다. 고쳐도 말과 자막의 박자는 그대로입니다. 줄을 바꾸면 자막도 거기서 끊깁니다.' },
-        { title: '디자인 고르기', body: '예능 기본, 핑크 수다, 빨강 외침, 정보 박스. 누르는 대로 영상 위에서 바뀝니다.' },
+    make: {
+      eyebrow: 'WHAT YOU CAN MAKE',
+      title: 'Every graphic your video needs',
+      body: 'From a single recording to titles, numbers and captions — placed where you say them.',
+      cols: [
+        { title: 'Titles & captions', body: 'A kinetic title opens your video and word-by-word captions follow your voice.' },
+        { title: 'Numbers & charts', body: 'Say “42%” and a counter rolls up. Say three numbers and they become a chart.' },
+        { title: 'Names & lists', body: 'Introduce yourself and a name tag slides in. Say “first, second” and a checklist builds.' },
       ],
-      upload: { drop: '영상 고르기', file: '내 영상.mp4' },
-      listen: { caption: '어절마다 시작 시각을 적습니다', sample: '여러분 오늘은요 진짜 대박 사건이 있었어요', seconds: '{n}초' },
-      fix: { before: '진짜', wrong: '데박', right: '대박', after: '사건이 있었어요', note: '글자만 바뀌고 시각은 그대로' },
-      pick: { caption: '고른 디자인이 바로 입혀집니다' },
+      tiles: ['Title', 'Name tag', 'Counter', 'Chart', 'Checklist'],
     },
-    statement: 'ReelMotion 은 문장이 아니라 어절마다 시간을 받아 적습니다. 그래서 지금 말하는 바로 그 단어가 화면에서 튀어 오릅니다.',
-    styles: { title: '자막 디자인 네 가지', body: '마음에 드는 것을 누르면 그 디자인으로 편집 화면이 열립니다.', open: '이 디자인으로 열기' },
-    pricing: {
-      title: '요금',
-      body: '지금은 무료로 미리보기까지 쓸 수 있습니다. 파일로 내보내기와 유료 요금제는 만들고 있습니다.',
-      perMonth: '원 / 월',
-      soon: '준비 중',
-      freeCta: '영상 올려서 써 보기',
-      names: { free: '무료', creator: '크리에이터', pro: '프로' },
-      whoFor: {
-        free: '먼저 써 보려는 분',
-        creator: '쇼츠를 꾸준히 올리는 분',
-        pro: '긴 영상과 여러 채널을 다루는 분',
+    steps: {
+      eyebrow: 'FROM VOICE TO GRAPHICS',
+      title1: 'One recording,',
+      title2: 'from voice to motion',
+      body: 'Drop in a talking video and ReelMotion carries it through transcript, graphics and style to a finished file. Everything you see here is drawn by the editor.',
+      steps: [
+        { name: 'Upload', hint: 'Any talking video' },
+        { name: 'Transcribe', hint: 'Every word, with its time' },
+        { name: 'Direct', hint: 'Graphics from what you say' },
+        { name: 'Style', hint: 'Six looks, one click' },
+        { name: 'Export', hint: 'MP4 in your browser' },
+      ],
+      transcript: 'TRANSCRIPT',
+      picked: 'Picked from your words',
+      exporting: 'Exporting',
+      ready: 'Ready to download',
+      upload: 'my-video.mp4',
+    },
+    styles: {
+      title: 'Style packs',
+      all: 'Try every style',
+      prev: 'Previous style',
+      next: 'Next style',
+      regions: { global: 'Global', kr: 'Korea', jp: 'Japan' },
+      names: { clean: 'Clean', neon: 'Neon', bold: 'Bold', editorial: 'Editorial', seoul: 'Seoul variety', tokyo: 'Tokyo telop' },
+      about: {
+        clean: 'Crisp white cards for explainers and courses',
+        neon: 'Glass and light for tech and creator channels',
+        bold: 'Loud yellow blocks that stop the scroll',
+        editorial: 'Serif titles for stories and interviews',
+        seoul: 'Thick outlines and pops from Korean variety shows',
+        tokyo: 'Layered telop outlines from Japanese TV',
       },
+    },
+    formats: {
+      eyebrow: 'EVERY FORMAT',
+      title: 'Made for every screen',
+      body: 'Vertical shorts and wide videos — the graphics resize themselves to fit.',
+      cta: 'Try it with your video',
+      shapes: ['9:16', '16:9'],
+    },
+    lanes: {
+      eyebrow: 'TIMELINE',
+      title: 'Every graphic, in its place',
+      body: 'Each graphic sits on the timeline next to the words that made it. Change a word or a number and it updates.',
+      cta: 'Open the editor',
+      lanes: ['Titles', 'Data', 'Captions'],
+    },
+    statement: {
+      eyebrow: 'WHY WE BUILT IT',
+      text: 'We built this for people who explain things on camera — so the numbers you say, the names you mention and the points you make show up on screen the moment you say them, without a week in an editing app.',
+    },
+    chat: {
+      badge: 'Coming soon',
+      title: 'Edit by chatting',
+      body: 'Ask for a change in plain words — “make the number bigger”, “turn this into a chart” — and watch it happen.',
+      you: 'Make the 37% bigger and give it more time on screen',
+      bot: 'Done. The counter is larger and now stays for five seconds.',
+      input: 'Ask for a change…',
+    },
+    anywhere: {
+      title: 'Available wherever you create.',
+      rows: [
+        { name: 'Web editor', state: 'Open', open: true },
+        { name: 'Mac & Windows app', state: 'Coming soon', open: false },
+        { name: 'iPhone & Android', state: 'Coming soon', open: false },
+        { name: 'Claude & ChatGPT', state: 'Coming soon', open: false },
+      ],
+    },
+    features: {
+      title: 'Designed to create',
+      body: 'Everything between your recording and a finished video, in one place.',
+      items: [
+        { title: 'Auto-directed', body: 'Graphics are picked from what you say: names, numbers, lists and quotes.' },
+        { title: 'Word-level timing', body: 'Every word gets its own start time, so captions and counters land on the beat.' },
+        { title: 'Six style packs', body: 'Clean, Neon, Bold and Editorial, plus Seoul variety and Tokyo telop.' },
+        { title: 'Edit anything', body: 'Fix a misheard word, change a number or a name — the timing stays put.' },
+        { title: 'Any shape', body: 'Vertical and wide videos. Graphics resize themselves.' },
+        { title: 'Private by default', body: 'Speech is transcribed and videos are exported inside your browser.' },
+      ],
+    },
+    pricing: {
+      eyebrow: 'PRICING',
+      title: 'Start free',
+      body: 'Every feature is free during the beta. Paid plans open when billing does.',
+      perMonth: 'KRW / month',
+      soon: 'Coming soon',
+      cta: 'Start creating',
+      names: { free: 'Free', creator: 'Creator', pro: 'Pro' },
+      whoFor: { free: 'For trying it out', creator: 'For weekly creators', pro: 'For long videos and teams' },
+      maxMinutes: 'Videos up to {n} min',
+      exports: '{n} exports a month',
+      watermark: 'ReelMotion watermark',
+      noWatermark: 'No watermark',
+      included: 'Every graphic and style pack',
+      note: 'Planned prices in KRW, VAT included. Limits apply once paid plans open.',
+    },
+    faq: {
+      title: 'Frequently asked questions',
+      items: [
+        { q: 'What does ReelMotion do?', a: 'You add a video of someone talking. ReelMotion writes down what is said, word by word, and places motion graphics — titles, name tags, counters, charts, checklists, quotes and captions — at the moment each thing is said. You can fix any word or number, change the style and export an MP4.' },
+        { q: 'Does my video get uploaded?', a: 'No. Speech is transcribed and the video is exported inside your browser, so the file stays on your computer.' },
+        { q: 'Which languages does it understand?', a: 'English, Korean and Japanese — for speech, for the graphics it picks and for this site. The Seoul and Tokyo style packs are made for Korean and Japanese text.' },
+        { q: 'Can I use what I make commercially?', a: 'Yes. What you export is yours, and every font in the style packs is licensed for commercial video.' },
+        { q: 'What do I need to run it?', a: 'A recent desktop browser such as Chrome, Edge or Safari. The first transcription downloads about 250 MB once; after that it starts right away.' },
+      ],
+    },
+    footer: {
+      title: 'Your voice, in motion.',
+      product: 'PRODUCT',
+      company: 'COMPANY',
+      links: { editor: 'Editor', styles: 'Style packs', pricing: 'Pricing', faq: 'FAQ' },
+      business: { name: 'Company', representative: 'Representative', registration: 'Business registration', mailOrder: 'Mail-order registration', address: 'Address' },
+      rights: '© 2026 브이미랩스. All rights reserved.',
+    },
+    floating: { label: 'Type a line to turn into graphics', placeholders: ['TYPE A LINE YOU WILL SAY', 'TRY: WE GREW 42% THIS YEAR', 'TRY: FIRST, PLAN. SECOND, SHIP.'], button: 'Try it' },
+  },
+  ko: {
+    announce: { badge: 'BETA', text: 'ReelMotion 공개 베타 — 만드는 동안 모든 기능이 무료예요.' },
+    nav: { product: '제품', styles: '스타일', pricing: '요금', faq: '자주 묻는 질문', start: '시작하기', language: '언어', menu: '메뉴', skip: '본문으로 건너뛰기' },
+    hero: {
+      before: '',
+      words: ['쇼츠', '팟캐스트', '강의', '릴스', '제품 영상'],
+      after: '에 모션을.',
+      body: 'ReelMotion이 영상 속 말을 듣고, 말하는 순간에 맞춰 제목·숫자·차트·이름표·자막을 얹습니다.',
+      cta: '지금 시작하기',
+      reel: '말하는 영상 위로 제목, 이름표, 숫자, 체크리스트가 말에 맞춰 나타나는 화면',
+    },
+    make: {
+      eyebrow: '만들 수 있는 것',
+      title: '영상에 필요한 그래픽을 한 번에',
+      body: '녹화 한 번이면 제목·숫자·자막이 말한 자리에 놓여요.',
+      cols: [
+        { title: '제목과 자막', body: '움직이는 제목으로 영상을 열고, 낱말마다 자막이 목소리를 따라가요.' },
+        { title: '숫자와 차트', body: '“42%”라고 말하면 숫자가 올라가고, 숫자 셋을 말하면 차트가 돼요.' },
+        { title: '이름표와 목록', body: '자기소개를 하면 이름표가 들어오고, “첫째, 둘째”라고 하면 목록이 쌓여요.' },
+      ],
+      tiles: ['제목', '이름표', '숫자', '차트', '목록'],
+    },
+    steps: {
+      eyebrow: '목소리에서 그래픽까지',
+      title1: '녹화 한 번으로,',
+      title2: '목소리가 모션이 되기까지',
+      body: '말하는 영상을 넣으면 받아쓰기·그래픽·스타일을 거쳐 완성 파일까지 이어져요. 여기 보이는 그래픽은 모두 편집기가 그린 거예요.',
+      steps: [
+        { name: '올리기', hint: '말하는 영상이면 무엇이든' },
+        { name: '받아쓰기', hint: '낱말마다 시간까지' },
+        { name: '연출', hint: '말에서 그래픽을 골라요' },
+        { name: '스타일', hint: '여섯 가지 느낌, 한 번에' },
+        { name: '내보내기', hint: '브라우저에서 MP4로' },
+      ],
+      transcript: '받아쓴 말',
+      picked: '말에서 고른 그래픽',
+      exporting: '내보내는 중',
+      ready: '내려받을 준비 완료',
+      upload: '내 영상.mp4',
+    },
+    styles: {
+      title: '스타일 묶음',
+      all: '모든 스타일 써 보기',
+      prev: '이전 스타일',
+      next: '다음 스타일',
+      regions: { global: '글로벌', kr: '한국', jp: '일본' },
+      names: { clean: '클린', neon: '네온', bold: '볼드', editorial: '에디토리얼', seoul: '서울 예능', tokyo: '도쿄 텔롭' },
+      about: {
+        clean: '설명 영상과 강의에 맞는 깔끔한 흰 카드',
+        neon: '테크·크리에이터 채널을 위한 유리와 빛',
+        bold: '스크롤을 멈추게 하는 노란 블록',
+        editorial: '이야기와 인터뷰를 위한 세리프 제목',
+        seoul: '한국 예능의 두꺼운 테두리와 톡 튀는 글자',
+        tokyo: '일본 방송의 겹겹이 두른 텔롭',
+      },
+    },
+    formats: {
+      eyebrow: '모든 화면',
+      title: '어떤 화면에도 맞게',
+      body: '세로 쇼츠도 가로 영상도 — 그래픽이 알아서 크기를 맞춰요.',
+      cta: '내 영상으로 써 보기',
+      shapes: ['9:16', '16:9'],
+    },
+    lanes: {
+      eyebrow: '타임라인',
+      title: '모든 그래픽을 제자리에',
+      body: '그래픽은 그것을 만든 말 바로 옆, 타임라인 위에 놓여요. 낱말이나 숫자를 고치면 그래픽도 바뀌어요.',
+      cta: '편집기 열기',
+      lanes: ['제목', '데이터', '자막'],
+    },
+    statement: {
+      eyebrow: '왜 만들었나',
+      text: '카메라 앞에서 설명하는 사람들을 위해 만들었어요. 말한 숫자, 언급한 이름, 짚은 요점이 편집 프로그램에서 일주일을 보내지 않아도 말하는 바로 그 순간 화면에 나타나도록.',
+    },
+    chat: {
+      badge: '곧 나와요',
+      title: '말로 고치는 편집',
+      body: '“숫자 더 크게”, “이걸 차트로” 처럼 평소 말로 부탁하면 바로 바뀌어요.',
+      you: '37%를 더 크게 하고 화면에 더 오래 보여 줘',
+      bot: '바꿨어요. 숫자를 키우고 5초 동안 보이게 했어요.',
+      input: '바꾸고 싶은 걸 말해 보세요…',
+    },
+    anywhere: {
+      title: '어디서 만들든 쓸 수 있어요.',
+      rows: [
+        { name: '웹 편집기', state: '열기', open: true },
+        { name: '맥 · 윈도우 앱', state: '곧 나와요', open: false },
+        { name: '아이폰 · 안드로이드', state: '곧 나와요', open: false },
+        { name: 'Claude · ChatGPT', state: '곧 나와요', open: false },
+      ],
+    },
+    features: {
+      title: '만드는 일에만 집중하세요',
+      body: '녹화부터 완성 영상까지, 필요한 건 모두 한곳에.',
+      items: [
+        { title: '자동 연출', body: '이름·숫자·목록·인용처럼 말한 내용에서 그래픽을 골라요.' },
+        { title: '낱말 단위 타이밍', body: '낱말마다 시작 시간이 있어 자막과 숫자가 박자에 맞게 떠요.' },
+        { title: '스타일 여섯 가지', body: '클린·네온·볼드·에디토리얼, 그리고 서울 예능과 도쿄 텔롭.' },
+        { title: '무엇이든 고치기', body: '잘못 들은 낱말, 숫자, 이름을 고쳐도 타이밍은 그대로예요.' },
+        { title: '어떤 비율이든', body: '세로 영상도 가로 영상도. 그래픽이 알아서 맞춰요.' },
+        { title: '기본은 비공개', body: '받아쓰기와 내보내기가 브라우저 안에서 이뤄져요.' },
+      ],
+    },
+    pricing: {
+      eyebrow: '요금',
+      title: '무료로 시작하세요',
+      body: '베타 동안은 모든 기능이 무료예요. 유료 요금제는 결제가 열리면 시작해요.',
+      perMonth: '원 / 월',
+      soon: '곧 나와요',
+      cta: '지금 시작하기',
+      names: { free: '무료', creator: '크리에이터', pro: '프로' },
+      whoFor: { free: '먼저 써 보려는 분', creator: '매주 올리는 크리에이터', pro: '긴 영상과 팀' },
       maxMinutes: '영상 하나 {n}분까지',
-      exportsPerMonth: '한 달에 {n}개 내보내기',
-      watermark: '내보낸 영상에 ReelMotion 표시',
-      noWatermark: 'ReelMotion 표시 없음',
-      included: '자막 디자인 전부, 말소리로 자막 만들기',
-      plannedNote: '값은 부가세를 포함한 예정 값입니다. 내보내기 한도는 출시할 때 확정합니다.',
+      exports: '한 달 {n}개 내보내기',
+      watermark: 'ReelMotion 워터마크',
+      noWatermark: '워터마크 없음',
+      included: '모든 그래픽과 스타일',
+      note: '부가세를 포함한 예정 가격이에요. 한도는 유료 요금제가 열린 뒤 적용돼요.',
     },
     faq: {
       title: '자주 묻는 질문',
       items: [
-        { q: '내 영상은 어디로 올라가나요?', a: '지금은 어디로도 올라가지 않습니다. 말소리 받아 적기가 이 브라우저 안에서 돌아가서 영상과 소리가 컴퓨터 밖으로 나가지 않습니다.' },
-        { q: '자막을 입힌 영상을 파일로 받을 수 있나요?', a: '아직 안 됩니다. 지금은 영상 위에서 미리 보는 데까지 되고, 파일로 내보내기를 만들고 있습니다.' },
-        { q: '받아 적은 글자가 틀리면 어떻게 하나요?', a: '글 상자에서 그 글자만 고치면 됩니다. 고쳐도 자막이 뜨는 시각은 바뀌지 않습니다.' },
-        { q: '처음 누르면 왜 시간이 걸리나요?', a: '말소리를 받아 적는 데 필요한 파일을 처음 한 번 내려받기 때문입니다. 정확도 「보통」은 약 250MB, 「높음」은 약 760MB 입니다. 두 번째부터는 다시 받지 않습니다.' },
-        { q: '어떤 언어로 쓸 수 있나요?', a: '화면은 한국어, 일본어, 영어로 바꿀 수 있습니다. 말하는 언어도 세 가지 중에서 고르거나 자동으로 둘 수 있습니다. 자막 디자인은 지금 한국 예능식 네 가지입니다.' },
+        { q: 'ReelMotion은 무엇을 하나요?', a: '말하는 영상을 넣으면 말을 낱말 단위로 받아 적고, 그 말을 하는 순간에 맞춰 제목·이름표·숫자·차트·목록·인용·자막 같은 모션그래픽을 놓아요. 낱말이나 숫자를 고치고 스타일을 바꾼 뒤 MP4로 내보낼 수 있어요.' },
+        { q: '제 영상이 어딘가로 올라가나요?', a: '아니요. 받아쓰기와 내보내기가 브라우저 안에서 이뤄져서 파일은 내 컴퓨터를 떠나지 않아요.' },
+        { q: '어떤 언어를 알아듣나요?', a: '영어·한국어·일본어예요. 받아쓰기, 그래픽 고르기, 이 사이트 모두요. 서울 예능과 도쿄 텔롭 스타일은 한국어와 일본어 글자에 맞춰 만들었어요.' },
+        { q: '만든 영상을 상업적으로 써도 되나요?', a: '네. 내보낸 영상은 내 것이고, 스타일에 쓰인 글꼴은 모두 상업 영상에 쓸 수 있는 라이선스예요.' },
+        { q: '무엇이 필요한가요?', a: '크롬·엣지·사파리 같은 최신 데스크톱 브라우저면 돼요. 처음 받아쓰기할 때 약 250MB를 한 번 내려받고, 그 뒤로는 바로 시작해요.' },
       ],
     },
-    closing: { title: '말은 이미 하셨으니, 자막은 맡기세요', cta: '영상 올려서 써 보기' },
     footer: {
-      business: '사업자 정보',
-      name: '상호',
-      representative: '대표',
-      registrationNumber: '사업자등록번호',
-      mailOrderNumber: '통신판매업 신고번호',
-      address: '주소',
-      language: '언어',
+      title: '목소리를, 모션으로.',
+      product: '제품',
+      company: '회사',
+      links: { editor: '편집기', styles: '스타일 묶음', pricing: '요금', faq: '자주 묻는 질문' },
+      business: { name: '상호', representative: '대표', registration: '사업자등록번호', mailOrder: '통신판매업 신고번호', address: '주소' },
+      rights: '© 2026 브이미랩스. 모든 권리 보유.',
     },
+    floating: { label: '그래픽으로 바꿀 말을 적어 보세요', placeholders: ['말할 문장을 적어 보세요', '예: 올해 매출이 42% 늘었어요', '예: 첫째, 계획. 둘째, 출시.'], button: '써 보기' },
   },
   ja: {
-    nav: { how: '使い方', styles: 'テロップデザイン', pricing: '料金', faq: 'よくある質問', open: '動画を入れて試す', menu: 'メニュー' },
+    announce: { badge: 'BETA', text: 'ReelMotion パブリックベータ — 開発中はすべての機能が無料です。' },
+    nav: { product: '製品', styles: 'スタイル', pricing: '料金', faq: 'よくある質問', start: 'はじめる', language: '言語', menu: 'メニュー', skip: '本文へ移動' },
     hero: {
-      title: ['話した', 'とおりに、', 'バラエティ', 'テロップが', 'つきます'],
-      lead: '動画を入れると、話し声を言葉ごとに書き起こし、動くバラエティ風テロップとして動画の上にのせます。',
-      tryLabel: 'ここに書いた言葉が、となりの画面にテロップで出ます',
-      tryPlaceholder: 'テロップにしたい言葉を書いてみてください',
-      tryDefault: 'これ ほんとに できるの?',
-      cta: '動画を入れて試す',
-      ctaNote: '登録なしですぐ開きます。今は動画の上でプレビューするところまでできます。',
-      wall: ['ちょっと 待って', 'まさかの 展開', '今日の コツ', '最後まで 見て', 'うそでしょ', 'ここで 逆転', 'ほんとに?', 'これです', 'もう 一回', 'まず やってみて', 'なんてこと', 'まとめます'],
+      before: '',
+      words: ['ショート', 'ポッドキャスト', '講義', 'リール', '製品動画'],
+      after: 'にモーションを。',
+      body: 'ReelMotion が動画の声を聞き取り、話した瞬間にタイトル・数字・グラフ・名前・字幕をのせます。',
+      cta: 'いますぐはじめる',
+      reel: '話す動画の上に、タイトル・名前・数字・チェックリストが声に合わせて現れる画面',
     },
-    how: {
-      title: '動画にテロップがつくまで',
-      steps: [
-        { title: '動画を入れる', body: '動画を選ぶと、すぐ画面に出ます。登録はいりません。' },
-        { title: '話し声を書き起こす', body: '言葉ごとに分けて、それぞれがいつ話されたかまで書き起こします。' },
-        { title: '間違いを直す', body: '聞き間違えた文字はテキスト欄ですぐ直せます。直しても声とテロップのタイミングはそのままです。改行するとテロップもそこで切れます。' },
-        { title: 'デザインを選ぶ', body: '4種類のデザインから。押すたびに動画の上で切り替わります。' },
+    make: {
+      eyebrow: 'つくれるもの',
+      title: '動画に必要なグラフィックを一度に',
+      body: '録画ひとつで、タイトル・数字・字幕が話したところに置かれます。',
+      cols: [
+        { title: 'タイトルと字幕', body: '動くタイトルで始まり、言葉ごとの字幕が声についていきます。' },
+        { title: '数字とグラフ', body: '「42%」と言えば数字がカウントアップ。数字を三つ言えばグラフに。' },
+        { title: '名前とリスト', body: '自己紹介すると名前が入り、「まず、次に」でリストが積み上がります。' },
       ],
-      upload: { drop: '動画を選ぶ', file: '自分の動画.mp4' },
-      listen: { caption: '言葉ごとに開始時刻を記録します', sample: 'みなさん 今日はですね 本当に すごい ことが ありました', seconds: '{n}秒' },
-      fix: { before: '本当に', wrong: 'すこい', right: 'すごい', after: 'ことが ありました', note: '文字だけ変わり、時刻はそのまま' },
-      pick: { caption: '選んだデザインがすぐ反映されます' },
+      tiles: ['タイトル', '名前', '数字', 'グラフ', 'リスト'],
     },
-    statement: 'ReelMotion は文ではなく言葉ごとに時刻を書き起こします。だから今話しているその言葉が画面で跳ねます。',
-    styles: { title: 'テロップデザイン 4種類', body: '気に入ったものを押すと、そのデザインで編集画面が開きます。', open: 'このデザインで開く' },
-    pricing: {
-      title: '料金',
-      body: '今は無料でプレビューまで使えます。ファイルへの書き出しと有料プランは準備中です。',
-      perMonth: 'ウォン / 月',
-      soon: '準備中',
-      freeCta: '動画を入れて試す',
-      names: { free: '無料', creator: 'クリエイター', pro: 'プロ' },
-      whoFor: {
-        free: 'まず試してみたい方',
-        creator: 'ショート動画を続けて投稿する方',
-        pro: '長い動画や複数のチャンネルを扱う方',
+    steps: {
+      eyebrow: '声からグラフィックへ',
+      title1: '録画ひとつで、',
+      title2: '声がモーションになるまで',
+      body: '話す動画を入れると、書き起こし・グラフィック・スタイルを経て完成ファイルまで。ここに見えるグラフィックはすべてエディターが描いています。',
+      steps: [
+        { name: 'アップロード', hint: '話す動画なら何でも' },
+        { name: '書き起こし', hint: '言葉ごとに時間まで' },
+        { name: '演出', hint: '話からグラフィックを選ぶ' },
+        { name: 'スタイル', hint: '六つの雰囲気をワンクリック' },
+        { name: '書き出し', hint: 'ブラウザで MP4 に' },
+      ],
+      transcript: '書き起こし',
+      picked: '言葉から選んだグラフィック',
+      exporting: '書き出し中',
+      ready: 'ダウンロードの準備完了',
+      upload: '自分の動画.mp4',
+    },
+    styles: {
+      title: 'スタイルパック',
+      all: 'すべてのスタイルを試す',
+      prev: '前のスタイル',
+      next: '次のスタイル',
+      regions: { global: 'グローバル', kr: '韓国', jp: '日本' },
+      names: { clean: 'クリーン', neon: 'ネオン', bold: 'ボールド', editorial: 'エディトリアル', seoul: 'ソウル バラエティ', tokyo: '東京 テロップ' },
+      about: {
+        clean: '解説動画や講座に合うすっきりした白いカード',
+        neon: 'テック系・クリエイター向けのガラスと光',
+        bold: 'スクロールを止める黄色いブロック',
+        editorial: '物語やインタビューのためのセリフ体タイトル',
+        seoul: '韓国バラエティの太い縁取りと弾む文字',
+        tokyo: '日本のテレビの重ねた縁取りテロップ',
       },
+    },
+    formats: {
+      eyebrow: 'あらゆる画面',
+      title: 'どの画面にもぴったり',
+      body: '縦のショートも横の動画も — グラフィックが自動でサイズを合わせます。',
+      cta: '自分の動画で試す',
+      shapes: ['9:16', '16:9'],
+    },
+    lanes: {
+      eyebrow: 'タイムライン',
+      title: 'すべてのグラフィックを、あるべき場所に',
+      body: 'グラフィックは、それを生んだ言葉のすぐ隣のタイムラインに置かれます。言葉や数字を直すと更新されます。',
+      cta: 'エディターを開く',
+      lanes: ['タイトル', 'データ', '字幕'],
+    },
+    statement: {
+      eyebrow: 'つくった理由',
+      text: 'カメラの前で説明する人のためにつくりました。話した数字、触れた名前、伝えたい要点が、編集アプリで一週間かけなくても、話したその瞬間に画面に現れるように。',
+    },
+    chat: {
+      badge: '近日公開',
+      title: '話しかけて編集',
+      body: '「数字をもっと大きく」「これをグラフに」と普段の言葉で頼めば、すぐに変わります。',
+      you: '37% をもっと大きくして、もう少し長く表示して',
+      bot: '変更しました。数字を大きくし、5秒間表示します。',
+      input: '変えたいことを伝えてください…',
+    },
+    anywhere: {
+      title: 'どこで作っても使えます。',
+      rows: [
+        { name: 'ウェブ エディター', state: '開く', open: true },
+        { name: 'Mac・Windows アプリ', state: '近日公開', open: false },
+        { name: 'iPhone・Android', state: '近日公開', open: false },
+        { name: 'Claude・ChatGPT', state: '近日公開', open: false },
+      ],
+    },
+    features: {
+      title: 'つくることだけに集中',
+      body: '録画から完成動画まで、必要なものはすべてここに。',
+      items: [
+        { title: '自動演出', body: '名前・数字・リスト・引用など、話した内容からグラフィックを選びます。' },
+        { title: '言葉ごとのタイミング', body: '言葉ごとに開始時刻があるので、字幕も数字もリズムに合います。' },
+        { title: '六つのスタイル', body: 'クリーン・ネオン・ボールド・エディトリアル、そしてソウルと東京。' },
+        { title: '何でも直せる', body: '聞き間違い、数字、名前を直してもタイミングはそのまま。' },
+        { title: 'どの比率でも', body: '縦の動画も横の動画も。グラフィックが自動で合わせます。' },
+        { title: '標準で非公開', body: '書き起こしと書き出しはブラウザの中で行われます。' },
+      ],
+    },
+    pricing: {
+      eyebrow: '料金',
+      title: '無料ではじめる',
+      body: 'ベータ期間中はすべての機能が無料です。有料プランは決済の開始とともに始まります。',
+      perMonth: 'ウォン / 月',
+      soon: '近日公開',
+      cta: 'いますぐはじめる',
+      names: { free: '無料', creator: 'クリエイター', pro: 'プロ' },
+      whoFor: { free: 'まず試したい方', creator: '毎週投稿するクリエイター', pro: '長い動画とチーム' },
       maxMinutes: '動画1本 {n}分まで',
-      exportsPerMonth: '月に{n}本まで書き出し',
-      watermark: '書き出した動画に ReelMotion の表示',
-      noWatermark: 'ReelMotion の表示なし',
-      included: 'すべてのテロップデザイン、音声からのテロップ作成',
-      plannedNote: '価格は税込みの予定額です。書き出しの上限は公開時に確定します。',
+      exports: '月 {n}本の書き出し',
+      watermark: 'ReelMotion のウォーターマーク',
+      noWatermark: 'ウォーターマークなし',
+      included: 'すべてのグラフィックとスタイル',
+      note: '税込みの予定価格(韓国ウォン)です。上限は有料プラン開始後に適用されます。',
     },
     faq: {
       title: 'よくある質問',
       items: [
-        { q: '動画はどこにアップロードされますか?', a: '今はどこにもアップロードされません。書き起こしはこのブラウザの中で動くので、動画と音声はパソコンの外に出ません。' },
-        { q: 'テロップ入りの動画をファイルで受け取れますか?', a: 'まだできません。今は動画の上でプレビューするところまでで、ファイルへの書き出しを作っています。' },
-        { q: '書き起こしが間違っていたら?', a: 'テキスト欄でその文字だけ直してください。直してもテロップが出る時刻は変わりません。' },
-        { q: '最初に時間がかかるのはなぜ?', a: '書き起こしに必要なファイルを最初の一度だけダウンロードするためです。精度「標準」は約250MB、「高い」は約760MBです。二度目からはダウンロードしません。' },
-        { q: 'どの言語で使えますか?', a: '画面は韓国語、日本語、英語に切り替えられます。話している言語も3つから選ぶか、自動にできます。テロップデザインは今のところ韓国バラエティ風の4種類です。' },
+        { q: 'ReelMotion は何をしますか?', a: '話す動画を入れると、言葉ごとに書き起こし、その言葉を話した瞬間にタイトル・名前・数字・グラフ・リスト・引用・字幕などのモーショングラフィックを置きます。言葉や数字を直し、スタイルを変えて MP4 で書き出せます。' },
+        { q: '動画はどこかにアップロードされますか?', a: 'いいえ。書き起こしと書き出しはブラウザの中で行われるので、ファイルはパソコンの外に出ません。' },
+        { q: 'どの言語に対応していますか?', a: '英語・韓国語・日本語です。書き起こし、グラフィックの選択、このサイトのすべてで。ソウルと東京のスタイルは韓国語と日本語の文字に合わせて作りました。' },
+        { q: '作った動画を商用で使えますか?', a: 'はい。書き出した動画はあなたのものです。スタイルに使われているフォントはすべて商用動画に使えるライセンスです。' },
+        { q: '何が必要ですか?', a: 'Chrome・Edge・Safari などの最新のデスクトップブラウザ。最初の書き起こしで約 250MB を一度だけダウンロードし、その後はすぐに始まります。' },
       ],
     },
-    closing: { title: '話すのは済みました。テロップは任せてください', cta: '動画を入れて試す' },
     footer: {
-      business: '事業者情報',
-      name: '商号',
-      representative: '代表',
-      registrationNumber: '事業者登録番号',
-      mailOrderNumber: '通信販売業届出番号',
-      address: '住所',
-      language: '言語',
+      title: '声を、モーションに。',
+      product: '製品',
+      company: '会社',
+      links: { editor: 'エディター', styles: 'スタイルパック', pricing: '料金', faq: 'よくある質問' },
+      business: { name: '商号', representative: '代表', registration: '事業者登録番号', mailOrder: '通信販売業届出番号', address: '住所' },
+      rights: '© 2026 브이미랩스. All rights reserved.',
     },
-  },
-  en: {
-    nav: { how: 'How it works', styles: 'Caption designs', pricing: 'Pricing', faq: 'Questions', open: 'Try it with your video', menu: 'Menu' },
-    hero: {
-      title: ['Say', 'it,', 'and', 'the captions', 'pop'],
-      lead: 'Add a video and ReelMotion writes down the speech word by word, then lays animated Korean variety-show captions over it.',
-      tryLabel: 'What you type here plays as a caption on the screen beside it',
-      tryPlaceholder: 'Type a line to see it as a caption',
-      tryDefault: 'Wait, this really works?',
-      cta: 'Try it with your video',
-      ctaNote: 'Opens right away, no sign-up. For now it previews captions over your video.',
-      wall: ['Hold on', 'Plot twist', "Today's tip", 'Watch to the end', 'No way', 'Here it comes', 'For real?', 'This is it', 'One more time', 'Just try it', 'Oh my', 'Quick recap'],
-    },
-    how: {
-      title: 'From a video to captions',
-      steps: [
-        { title: 'Add a video', body: 'Choose a video and it shows up right away. No sign-up needed.' },
-        { title: 'Write down the speech', body: 'The speech is split word by word, and the time each word was spoken is recorded.' },
-        { title: 'Fix wrong words', body: 'Fix a misheard word right in the text box. The captions keep their timing. A line break also breaks the caption there.' },
-        { title: 'Pick a design', body: 'Four designs. Each click changes the captions on the video.' },
-      ],
-      upload: { drop: 'Choose a video', file: 'my-video.mp4' },
-      listen: { caption: 'A start time is recorded for every word', sample: 'Okay everyone, today something truly wild happened', seconds: '{n}s' },
-      fix: { before: 'something truly', wrong: 'wide', right: 'wild', after: 'happened', note: 'Only the word changes; the time stays' },
-      pick: { caption: 'The design you pick is applied at once' },
-    },
-    statement: 'ReelMotion records a time for every word, not every sentence. That is why the exact word being spoken is the one that pops on screen.',
-    styles: { title: 'Four caption designs', body: 'Pick one and the editor opens with that design.', open: 'Open with this design' },
-    pricing: {
-      title: 'Pricing',
-      body: 'For now you can use it free, up to previewing. Exporting to a file and the paid plans are being built.',
-      perMonth: 'KRW / month',
-      soon: 'Coming',
-      freeCta: 'Try it with your video',
-      names: { free: 'Free', creator: 'Creator', pro: 'Pro' },
-      whoFor: {
-        free: 'For trying it out first',
-        creator: 'For people who post shorts regularly',
-        pro: 'For longer videos and several channels',
-      },
-      maxMinutes: 'Videos up to {n} min each',
-      exportsPerMonth: '{n} exports a month',
-      watermark: 'ReelMotion mark on exported videos',
-      noWatermark: 'No ReelMotion mark',
-      included: 'Every caption design, captions from speech',
-      plannedNote: 'Prices are planned amounts including VAT. Export limits will be confirmed at launch.',
-    },
-    faq: {
-      title: 'Questions',
-      items: [
-        { q: 'Where does my video get uploaded?', a: 'Nowhere, for now. The speech is written down inside this browser, so your video and audio never leave your computer.' },
-        { q: 'Can I download the captioned video as a file?', a: 'Not yet. For now you can preview captions over your video; exporting to a file is being built.' },
-        { q: 'What if a word is wrong?', a: 'Fix just that word in the text box. The time the caption appears does not change.' },
-        { q: 'Why does the first run take a while?', a: 'The files needed to write down speech are downloaded once. Standard accuracy is about 250MB and High is about 760MB. They are not downloaded again.' },
-        { q: 'Which languages can I use?', a: 'The screen can be Korean, Japanese or English. The spoken language can be one of those three, or automatic. Caption designs are four Korean variety-show styles for now.' },
-      ],
-    },
-    closing: { title: 'You have done the talking. Leave the captions to us', cta: 'Try it with your video' },
-    footer: {
-      business: 'Business information',
-      name: 'Company',
-      representative: 'Representative',
-      registrationNumber: 'Business registration no.',
-      mailOrderNumber: 'Mail-order business no.',
-      address: 'Address',
-      language: 'Language',
-    },
+    floating: { label: 'グラフィックにしたい言葉を入力', placeholders: ['話す文章を入力してください', '例: 今年の売上は42%伸びました', '例: まず計画。次にリリース。'], button: '試す' },
   },
 }

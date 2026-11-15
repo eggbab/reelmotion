@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReelMotion lab</title>
+    <style>
+      body { margin: 0; background: #0e0e13; color: #f3f2ef; font-family: system-ui; }
+      #grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px; }
+      figure { margin: 0; } figcaption { font-size: 12px; opacity: .7; padding: 4px 0; }
+      canvas { width: 100%; display: block; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div id="grid"></div>
+    <script type="module" src="/src/motion/lab.ts"></script>
+  </body>
+</html>

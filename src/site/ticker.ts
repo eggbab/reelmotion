@@ -1,4 +1,4 @@
-/** 화면에 보이는 자막 무대들이 한 박자로 그리도록 requestAnimationFrame 을 하나만 돌린다. */
+/** 화면에 보이는 무대들이 한 박자로 그리도록 requestAnimationFrame 을 하나만 돌린다. */
 const subscribers = new Set<(now: number) => void>()
 let frame = 0
 

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { detectLang } from './i18n'
-import type { Lang } from './i18n'
+import { detectLang } from './langs'
+import type { Lang } from './langs'
 
 const STORAGE_KEY = 'reelmotion.lang'
 
@@ -12,7 +12,7 @@ const LangContext = createContext<LangContextValue | null>(null)
 function initialLang(): Lang {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'ko' || saved === 'ja' || saved === 'en') return saved
+    if (saved === 'en' || saved === 'ko' || saved === 'ja') return saved
   } catch {
     // 저장소를 못 쓰는 브라우저(사생활 보호 창 등)에서는 브라우저 언어를 따른다.
   }
