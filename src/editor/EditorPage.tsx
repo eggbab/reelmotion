@@ -1,4 +1,4 @@
-import { Download, Pause, Play, Upload, X } from 'lucide-react'
+import { Download, FolderOpen, Pause, Play, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -7,15 +7,17 @@ import type { Word } from '../captions/types'
 import { ExportUnsupportedError, exportVideo } from '../export/exportVideo'
 import { useLang } from '../lang'
 import { fill } from '../langs'
+import type { Lang } from '../langs'
 import { CLIPS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import { direct } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
-import type { Graphic, ThemeId } from '../motion/types'
+import type { Graphic, Theme, ThemeId } from '../motion/types'
 import { Logo, LangPicker } from '../site/Chrome'
 import { pageMeta } from '../site/meta'
+import { pagePath } from '../site/routes'
 import { usePageMeta } from '../site/usePageMeta'
 import { NoAudioError } from '../speech/audio'
 import { retime } from '../speech/retime'
@@ -27,10 +29,18 @@ import { EDITOR_COPY, SAMPLE_SCRIPTS } from './copy'
 import type { EditorCopy } from './copy'
 import { clampToDuration, createGraphic, syncCaptions } from './graphics'
 import { Inspector } from './Inspector'
+import { ProjectGrid, ProjectsDialog } from './ProjectsDialog'
+import { PROJECT_VERSION, canStoreMedia, defaultName, formatMegabytes, newProjectId, nextSerial, safeFileName } from './projects'
+import type { ProjectSource, SavedProject } from './projects'
+import { StorageUnavailableError, deleteProject, getMedia, getProject, putMedia, putProject, storageEstimate } from './store'
 import { Timeline } from './Timeline'
+import { useProjectList } from './useProjectList'
 import './editor.css'
 
-type Source = { kind: 'sample'; clip: ClipId } | { kind: 'file'; file: File; url: string }
+type FileMeta = Extract<ProjectSource, { kind: 'file' }>
+
+/** 편집할 영상. missing: 다시 연 작업인데 영상이 이 브라우저에 저장돼 있지 않다(같은 파일을 다시 고른다). */
+type Source = { kind: 'sample'; clip: ClipId } | { kind: 'file'; file: File } | { kind: 'missing'; meta: FileMeta }
 
 type SpeechState =
   | { stage: 'idle' }
@@ -45,45 +55,233 @@ type SpeechEngine = 'server' | SpeechQuality
 
 type ExportState = { stage: 'idle' } | { stage: 'running'; progress: number } | { stage: 'done'; url: string; extension: string } | { stage: 'failed'; unsupported: boolean }
 
-const THEME_IDS = THEMES.map((theme) => theme.id)
+type SaveState = 'idle' | 'saving' | 'saved' | 'savedNoVideo' | 'failed' | 'unavailable'
 
-const sourceUrl = (source: Source) => (source.kind === 'file' ? source.url : clipUrl(source.clip))
+const THEME_IDS = THEMES.map((theme) => theme.id)
 
 async function sourceBlob(source: Source): Promise<Blob> {
   if (source.kind === 'file') return source.file
+  if (source.kind === 'missing') throw new Error('video is not connected')
   const response = await fetch(clipUrl(source.clip))
   return response.blob()
 }
 
+const fileMeta = (file: File): FileMeta => ({ kind: 'file', name: file.name, size: file.size, type: file.type, lastModified: file.lastModified })
+
+const projectSourceOf = (source: Source): ProjectSource => (source.kind === 'sample' ? source : source.kind === 'file' ? fileMeta(source.file) : source.meta)
+
+/** 목록에 보일 작은 그림: 지금 장면 + 그래픽, 긴 변 320px JPEG. */
+function makeThumbnail(video: HTMLVideoElement, graphics: Graphic[], theme: Theme): string | null {
+  try {
+    if (video.readyState < 2 || !video.videoWidth) return null
+    const scale = 320 / Math.max(video.videoWidth, video.videoHeight)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(video.videoWidth * scale)
+    canvas.height = Math.round(video.videoHeight * scale)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    renderGraphics(ctx, canvas.width, canvas.height, graphics, video.currentTime, theme)
+    return canvas.toDataURL('image/jpeg', 0.72)
+  } catch {
+    return null
+  }
+}
+
+/** 작업 하나의 처음 상태: 새 작업, 첫 화면에서 넘어온 대본, 또는 다시 연 작업 */
+type Initial = {
+  id: string | null
+  name: string
+  createdAt: number
+  source: Source | null
+  script: string
+  recognized: Word[] | null
+  graphics: Graphic[]
+  theme: ThemeId
+  speechLanguage: string
+  duration: number
+  portrait: boolean
+  thumbnail: string | null
+  /** 이미 저장된 작업(다시 연 것) — 고치지 않아도 저장 대상이다 */
+  saved: boolean
+  hasMedia: boolean
+}
+
+function blankInitial(lang: Lang, theme: ThemeId = 'neon'): Initial {
+  return { id: null, name: '', createdAt: Date.now(), source: null, script: '', recognized: null, graphics: [], theme, speechLanguage: lang, duration: 0, portrait: false, thumbnail: null, saved: false, hasMedia: false }
+}
+
+/** 첫 화면의 떠 있는 입력 칸(?script=)과 스타일 카드(?theme=)에서 넘어온 값 */
+function landingInitial(params: URLSearchParams, lang: Lang): Initial {
+  const theme = THEME_IDS.includes(params.get('theme') as ThemeId) ? (params.get('theme') as ThemeId) : 'neon'
+  const script = params.get('script')
+  const blank = blankInitial(lang, theme)
+  return script ? { ...blank, source: { kind: 'sample', clip: 'explainer' }, script } : blank
+}
+
+function projectInitial(project: SavedProject, media: Blob | null): Initial {
+  const source: Source =
+    project.source.kind === 'sample'
+      ? project.source
+      : media
+        ? { kind: 'file', file: new File([media], project.source.name, { type: project.source.type || media.type, lastModified: project.source.lastModified }) }
+        : { kind: 'missing', meta: project.source }
+  return {
+    id: project.id,
+    name: project.name,
+    createdAt: project.createdAt,
+    source,
+    script: project.script,
+    recognized: project.recognized,
+    graphics: project.graphics,
+    theme: project.theme,
+    speechLanguage: project.speechLanguage,
+    duration: project.duration,
+    portrait: project.portrait,
+    thumbnail: project.thumbnail,
+    saved: true,
+    hasMedia: media !== null,
+  }
+}
+
+type Opened = { kind: 'ok'; initial: Initial } | { kind: 'notFound' } | { kind: 'unavailable' }
+
+async function openStored(id: string): Promise<Opened> {
+  try {
+    const project = await getProject(id)
+    if (!project) return { kind: 'notFound' }
+    const media = project.source.kind === 'file' && project.hasMedia ? await getMedia(id).catch(() => null) : null
+    return { kind: 'ok', initial: projectInitial(project, media) }
+  } catch {
+    return { kind: 'unavailable' }
+  }
+}
+
+type Notice = 'notFound' | 'unavailable' | null
+type Session = { key: number; id: string | null; initial: Initial; notice: Notice }
+
+/**
+ * 편집기. 주소의 ?project=<id> 가 이 브라우저에 저장된 작업을 가리키면 그 작업을 연다(projects.ts·store.ts).
+ * 작업 하나가 Workspace 하나다 — 새 작업·다른 작업을 열면 Workspace 를 새로 만든다.
+ */
 export function EditorPage() {
   const { lang } = useLang()
   const copy = EDITOR_COPY[lang]
-  const [params] = useSearchParams()
-  const initialScript = params.get('script')
-  const [source, setSource] = useState<Source | null>(() => (initialScript ? { kind: 'sample', clip: 'explainer' } : null))
-  const [script, setScript] = useState(() => initialScript ?? SAMPLE_SCRIPTS[lang])
-  const [recognized, setRecognized] = useState<Word[] | null>(null)
-  const [graphics, setGraphics] = useState<Graphic[]>([])
-  const [themeId, setThemeId] = useState<ThemeId>(() => (THEME_IDS.includes(params.get('theme') as ThemeId) ? (params.get('theme') as ThemeId) : 'neon'))
+  const [params, setParams] = useSearchParams()
+  const wanted = params.get('project')
+  const [session, setSession] = useState<Session>(() => ({ key: 0, id: null, initial: landingInitial(params, lang), notice: null }))
+  const loading = wanted !== null && wanted !== session.id
+
+  useEffect(() => {
+    if (!wanted || wanted === session.id) return
+    let alive = true
+    void openStored(wanted).then((opened) => {
+      if (!alive) return
+      if (opened.kind === 'ok') {
+        setSession((current) => ({ key: current.key + 1, id: wanted, initial: opened.initial, notice: null }))
+      } else {
+        setSession((current) => ({ key: current.key + 1, id: null, initial: blankInitial(lang), notice: opened.kind }))
+        setParams({}, { replace: true })
+      }
+    })
+    return () => {
+      alive = false
+    }
+  }, [wanted, session.id, lang, setParams])
+
+  usePageMeta(pageMeta('app', lang))
+
+  // 처음 저장한 작업: 주소에 id 를 적어 새로고침해도 다시 열리게 한다(주소를 먼저 바꾸면 「여는 중」으로 깜빡이므로 id 를 먼저 둔다).
+  const onSaved = useCallback(
+    (id: string) => {
+      setSession((current) => ({ ...current, id }))
+      setParams({ project: id }, { replace: true })
+    },
+    [setParams],
+  )
+  const onNew = useCallback(() => {
+    setSession((current) => ({ key: current.key + 1, id: null, initial: blankInitial(lang), notice: null }))
+    setParams({}, { replace: !wanted })
+  }, [lang, setParams, wanted])
+  const onOpen = useCallback(
+    (id: string) => {
+      if (id !== session.id) setParams({ project: id })
+    },
+    [session.id, setParams],
+  )
+
+  if (loading) {
+    return (
+      <div className="editor">
+        <header className="ed-top">
+          <Link to={pagePath('home', lang)} className="ed-logo" aria-label={copy.home}>
+            <Logo />
+          </Link>
+        </header>
+        <main className="ed-start">
+          <p className="ed-loading">{copy.projects.loading}</p>
+        </main>
+      </div>
+    )
+  }
+  return <Workspace key={session.key} initial={session.initial} notice={session.notice} projectId={session.id} onSaved={onSaved} onNew={onNew} onOpen={onOpen} />
+}
+
+type WorkspaceProps = {
+  initial: Initial
+  notice: Notice
+  projectId: string | null
+  onSaved: (id: string) => void
+  onNew: () => void
+  onOpen: (id: string) => void
+}
+
+function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: WorkspaceProps) {
+  const { lang } = useLang()
+  const copy = EDITOR_COPY[lang]
+  const [source, setSource] = useState<Source | null>(initial.source)
+  const [name, setName] = useState(initial.name)
+  const [script, setScript] = useState(initial.script)
+  const [recognized, setRecognized] = useState<Word[] | null>(initial.recognized)
+  const [graphics, setGraphics] = useState<Graphic[]>(initial.graphics)
+  const [themeId, setThemeId] = useState<ThemeId>(initial.theme)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'graphics' | 'transcript'>('transcript')
-  const [duration, setDuration] = useState(0)
-  const [size, setSize] = useState({ width: 1280, height: 720 })
+  const [tab, setTab] = useState<'graphics' | 'transcript'>(initial.graphics.length > 0 ? 'graphics' : 'transcript')
+  const [duration, setDuration] = useState(initial.duration)
+  const [size, setSize] = useState(initial.portrait ? { width: 720, height: 1280 } : { width: 1280, height: 720 })
   const [time, setTime] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speech, setSpeech] = useState<SpeechState>({ stage: 'idle' })
-  const [speechLanguage, setSpeechLanguage] = useState<string>(lang)
+  const [speechLanguage, setSpeechLanguage] = useState<string>(initial.speechLanguage)
   const [engine, setEngine] = useState<SpeechEngine>('standard')
   const [engineChosen, setEngineChosen] = useState(false)
   const [server, setServer] = useState<SpeechServer | null>(null)
   const [exportState, setExportState] = useState<ExportState>({ stage: 'idle' })
-  const [autoMade, setAutoMade] = useState(false)
+  // 다시 연 작업은 그래픽을 지웠더라도 저절로 다시 만들지 않는다.
+  const [autoMade, setAutoMade] = useState(initial.saved)
+  // 저장은 손을 댄 뒤부터: 넣은 영상은 바로, 예시 영상은 무언가 고쳤을 때(예시를 둘러보기만 하면 목록이 어지럽지 않게).
+  const [touched, setTouched] = useState(initial.saved)
+  const [saveState, setSaveState] = useState<SaveState>(initial.saved ? (initial.source?.kind === 'missing' ? 'savedNoVideo' : 'saved') : 'idle')
+  const [showProjects, setShowProjects] = useState(false)
+  const [mismatch, setMismatch] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const serial = useRef(100)
+  const serial = useRef(nextSerial(initial.graphics))
   const run = useRef(0)
   const exportAbort = useRef<AbortController | null>(null)
+  const touch = () => setTouched(true)
+
+  // 영상 요소에 주소를 붙인다. 넣은 파일은 임시 주소를 만들고, 영상이 바뀌거나 작업을 닫으면 돌려준다.
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !source || source.kind === 'missing') return
+    const url = source.kind === 'file' ? URL.createObjectURL(source.file) : clipUrl(source.clip)
+    video.src = url
+    return () => {
+      if (source.kind === 'file') URL.revokeObjectURL(url)
+    }
+  }, [source])
 
   const theme = themeById(themeId)
   const words = useMemo(() => (recognized ? retime(recognized, script) : duration > 0 ? scriptToWords(script, duration) : []), [recognized, script, duration])
@@ -161,15 +359,24 @@ export function EditorPage() {
 
   const openFile = (file: File | undefined) => {
     if (!file || !file.type.startsWith('video/')) return
-    if (source?.kind === 'file') URL.revokeObjectURL(source.url)
     run.current += 1
-    setSource({ kind: 'file', file, url: URL.createObjectURL(file) })
+    setSource({ kind: 'file', file })
+    setName((current) => current || defaultName(fileMeta(file), copy.untitled))
     setRecognized(null)
     setScript('')
     setGraphics([])
     setSpeech({ stage: 'idle' })
     setTab('transcript')
     setAutoMade(true)
+    touch()
+  }
+
+  /** 다시 연 작업의 영상을 다시 고른다. 받아 적은 말과 그래픽은 그대로 둔다. */
+  const reconnect = (file: File | undefined) => {
+    if (!file || !file.type.startsWith('video/') || source?.kind !== 'missing') return
+    setMismatch(file.name !== source.meta.name || file.size !== source.meta.size)
+    setSource({ kind: 'file', file })
+    touch()
   }
 
   const openSample = (clip: ClipId) => {
@@ -200,6 +407,7 @@ export function EditorPage() {
       setRecognized(result)
       setScript(joinWords(result))
       setSpeech({ stage: 'done', count: result.length })
+      touch()
     } catch (error) {
       if (!current()) return
       if (error instanceof ServerTooLongError) setSpeech({ stage: 'failed', reason: 'tooLong', maxSeconds: error.maxSeconds })
@@ -211,18 +419,24 @@ export function EditorPage() {
     setGraphics(clampToDuration(direct(words), duration))
     setSelectedId(null)
     setTab('graphics')
+    touch()
   }
 
-  const updateGraphic = (next: Graphic) => setGraphics((list) => list.map((g) => (g.id === next.id ? next : g)))
+  const updateGraphic = (next: Graphic) => {
+    setGraphics((list) => list.map((g) => (g.id === next.id ? next : g)))
+    touch()
+  }
   const addGraphic = (kind: Graphic['kind']) => {
     const g = createGraphic(kind, time, duration || 10, `u${++serial.current}`)
     setGraphics((list) => [...list, g])
     setSelectedId(g.id)
     setTab('graphics')
+    touch()
   }
   const removeGraphic = (id: string) => {
     setGraphics((list) => list.filter((g) => g.id !== id))
     setSelectedId(null)
+    touch()
   }
 
   useEffect(() => {
@@ -239,6 +453,117 @@ export function EditorPage() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [selectedId])
+
+  // ── 이 브라우저에 저장(「내 작업」) ──
+  const idRef = useRef(projectId)
+  const mediaRef = useRef<'none' | 'saving' | 'saved' | 'skipped'>(initial.hasMedia ? 'saved' : 'none')
+  const thumbRef = useRef({ data: initial.thumbnail, at: 0 })
+  const queue = useRef<Promise<void>>(Promise.resolve())
+  const pending = useRef<(() => void) | null>(null)
+  const mounted = useRef(true)
+  const discarded = useRef(false)
+  const onSavedRef = useRef(onSaved)
+  useEffect(() => {
+    onSavedRef.current = onSaved
+  }, [onSaved])
+
+  /** 작업을 쓴다. 새 작업이면 먼저 작업만 써서 바로 목록에 보이게 하고, 넣은 영상은 그다음 한 번만 따로 쓴다. */
+  const persist = async (record: SavedProject, file: File | null) => {
+    if (discarded.current) return
+    try {
+      const isNew = idRef.current === null
+      const id = idRef.current ?? newProjectId()
+      idRef.current = id
+      await putProject({ ...record, id, hasMedia: file !== null && mediaRef.current === 'saved' })
+      if (isNew && mounted.current) onSavedRef.current(id)
+      if (file && mediaRef.current === 'none') {
+        mediaRef.current = 'saving'
+        const fits = canStoreMedia(file.size, await storageEstimate())
+        const stored = fits && (await putMedia(id, file).then(
+          () => true,
+          () => false,
+        ))
+        mediaRef.current = stored ? 'saved' : 'skipped'
+        if (!discarded.current) await putProject({ ...record, id, hasMedia: stored, updatedAt: Date.now() })
+      }
+      const videoKept = record.source.kind === 'sample' || (file !== null && mediaRef.current === 'saved')
+      setSaveState(videoKept ? 'saved' : 'savedNoVideo')
+    } catch (error) {
+      setSaveState(error instanceof StorageUnavailableError ? 'unavailable' : 'failed')
+    }
+  }
+
+  // 고친 뒤 0.8초 동안 더 고치지 않으면 저장한다. 앞 저장이 끝난 뒤 차례로 쓴다(옛 내용이 새 내용을 덮지 않게).
+  useEffect(() => {
+    if (!touched || !source) return
+    let done = false
+    const save = () => {
+      if (done || discarded.current) return
+      done = true
+      pending.current = null
+      const video = videoRef.current
+      if (video && (!thumbRef.current.data || Date.now() - thumbRef.current.at > 8000)) {
+        const data = makeThumbnail(video, shown, theme)
+        if (data) thumbRef.current = { data, at: Date.now() }
+      }
+      const projectSource = projectSourceOf(source)
+      const record: SavedProject = {
+        version: PROJECT_VERSION,
+        id: '',
+        name: name.trim() || defaultName(projectSource, copy.untitled),
+        createdAt: initial.createdAt,
+        updatedAt: Date.now(),
+        source: projectSource,
+        hasMedia: false,
+        script,
+        recognized,
+        graphics,
+        theme: themeId,
+        speechLanguage,
+        duration,
+        portrait: size.height > size.width,
+        thumbnail: thumbRef.current.data,
+      }
+      const file = source.kind === 'file' ? source.file : null
+      setSaveState('saving')
+      queue.current = queue.current.then(() => persist(record, file))
+    }
+    pending.current = save
+    const timer = window.setTimeout(save, 800)
+    return () => window.clearTimeout(timer)
+    // persist 는 ref 와 상태 바꾸기만 쓴다(매번 새로 만들어져도 같은 일을 한다).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [touched, source, name, script, recognized, graphics, themeId, speechLanguage, duration, size, shown, theme, copy.untitled, initial.createdAt])
+
+  // 탭을 숨기거나 닫거나 다른 작업으로 넘어갈 때, 기다리던 저장을 바로 한다.
+  useEffect(() => {
+    mounted.current = true
+    const flush = () => pending.current?.()
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', flush)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', flush)
+      flush()
+      mounted.current = false
+    }
+  }, [])
+
+  /** 「내 작업」에서 지우기. 지금 작업이면 기다리던 저장을 버리고, 쓰던 저장이 끝난 뒤 지우고 새 작업으로. */
+  const deleteStored = async (id: string) => {
+    if (id !== idRef.current) {
+      await deleteProject(id).catch(() => undefined)
+      return
+    }
+    discarded.current = true
+    pending.current = null
+    await queue.current.catch(() => undefined)
+    await deleteProject(id).catch(() => undefined)
+    onNew()
+  }
 
   const startExport = async () => {
     if (!source) return
@@ -262,50 +587,88 @@ export function EditorPage() {
     setExportState({ stage: 'idle' })
   }
 
-  usePageMeta(pageMeta('app', lang))
-
-  const fileName = source?.kind === 'file' ? source.file.name : source ? `sample-${source.clip}` : copy.untitled
+  const currentSource = source ? projectSourceOf(source) : null
+  const displayName = name.trim() || (currentSource ? defaultName(currentSource, copy.untitled) : copy.untitled)
   const isSample = source?.kind === 'sample'
+  const saveLabel: Record<Exclude<SaveState, 'idle'>, string> = {
+    saving: copy.projects.saving,
+    saved: copy.projects.saved,
+    savedNoVideo: copy.projects.savedNoVideo,
+    failed: copy.projects.failed,
+    unavailable: copy.projects.unavailable,
+  }
 
   return (
     <div className="editor">
       <header className="ed-top">
-        <Link to="/" className="ed-logo" aria-label={copy.home}>
+        <Link to={pagePath('home', lang)} className="ed-logo" aria-label={copy.home}>
           <Logo />
         </Link>
-        <span className="ed-name">{fileName}</span>
+        {source && (
+          <input
+            className="ed-name"
+            value={name}
+            placeholder={displayName}
+            aria-label={copy.projects.name}
+            maxLength={80}
+            spellCheck={false}
+            onChange={(event) => {
+              setName(event.target.value)
+              touch()
+            }}
+          />
+        )}
+        {source && saveState !== 'idle' && (
+          <span className={`ed-save is-${saveState}`} title={saveState === 'savedNoVideo' ? copy.projects.noVideoSaved : undefined}>
+            {saveLabel[saveState]}
+          </span>
+        )}
         <div className="ed-top__side">
+          <button type="button" className="btn-outline ed-projects" onClick={() => setShowProjects(true)} aria-label={copy.projects.open} title={copy.projects.open}>
+            <FolderOpen size={16} aria-hidden="true" />
+            <span>{copy.projects.open}</span>
+          </button>
           <LangPicker label="Language" />
-          <button type="button" className="btn-mint ed-export" disabled={!source || duration === 0} onClick={() => void startExport()}>
+          <button
+            type="button"
+            className="btn-mint ed-export"
+            disabled={!source || source.kind === 'missing' || duration === 0}
+            onClick={() => void startExport()}
+            aria-label={copy.export}
+          >
             <Download size={16} aria-hidden="true" />
-            {copy.export}
+            <span>{copy.export}</span>
           </button>
         </div>
       </header>
 
       {!source ? (
-        <StartScreen copy={copy} onFile={openFile} onSample={openSample} />
+        <StartScreen copy={copy} lang={lang} notice={notice} onFile={openFile} onSample={openSample} onOpen={onOpen} onShowAll={() => setShowProjects(true)} />
       ) : (
         <div className="ed-body">
           <section className="ed-stage">
-            <div className="ed-frame" style={{ aspectRatio: `${size.width} / ${size.height}` }}>
-              <video
-                ref={videoRef}
-                src={sourceUrl(source)}
-                playsInline
-                loop
-                onLoadedMetadata={(event) => {
-                  const video = event.currentTarget
-                  setDuration(video.duration)
-                  setSize({ width: video.videoWidth || 1280, height: video.videoHeight || 720 })
-                }}
-                onPlay={() => setPlaying(true)}
-                onPause={() => setPlaying(false)}
-              />
-              <canvas ref={canvasRef} onClick={togglePlay} />
-            </div>
+            {source.kind === 'missing' ? (
+              <Reconnect copy={copy} meta={source.meta} onFile={reconnect} />
+            ) : (
+              <div className="ed-frame" style={{ aspectRatio: `${size.width} / ${size.height}` }}>
+                <video
+                  ref={videoRef}
+                  playsInline
+                  loop
+                  onLoadedMetadata={(event) => {
+                    const video = event.currentTarget
+                    setDuration(video.duration)
+                    setSize({ width: video.videoWidth || 1280, height: video.videoHeight || 720 })
+                  }}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                />
+                <canvas ref={canvasRef} onClick={togglePlay} />
+              </div>
+            )}
+            {mismatch && <p className="ed-warn">{copy.projects.mismatch}</p>}
             <div className="ed-controls">
-              <button type="button" className="round-btn" onClick={togglePlay} aria-label={playing ? copy.pause : copy.play}>
+              <button type="button" className="round-btn" onClick={togglePlay} aria-label={playing ? copy.pause : copy.play} disabled={source.kind === 'missing'}>
                 {playing ? <Pause size={18} /> : <Play size={18} />}
               </button>
               <span className="ed-time">
@@ -319,7 +682,16 @@ export function EditorPage() {
               <span>{copy.style}</span>
               <div>
                 {THEMES.map((item) => (
-                  <button key={item.id} type="button" className={`swatch ${item.id === themeId ? 'is-on' : ''}`} onClick={() => setThemeId(item.id)} aria-pressed={item.id === themeId}>
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`swatch ${item.id === themeId ? 'is-on' : ''}`}
+                    onClick={() => {
+                      setThemeId(item.id)
+                      touch()
+                    }}
+                    aria-pressed={item.id === themeId}
+                  >
                     <i style={{ background: item.accent }} />
                     {copy.themes[item.id]}
                   </button>
@@ -338,8 +710,12 @@ export function EditorPage() {
               <TranscriptPanel
                 copy={copy}
                 isSample={isSample}
+                canListen={source.kind === 'file'}
                 script={script}
-                onScript={setScript}
+                onScript={(text) => {
+                  setScript(text)
+                  touch()
+                }}
                 estimated={!recognized}
                 speech={speech}
                 speechLanguage={speechLanguage}
@@ -364,13 +740,74 @@ export function EditorPage() {
         </div>
       )}
 
-      {exportState.stage !== 'idle' && <ExportDialog copy={copy} state={exportState} fileName={fileName} onClose={closeExport} onRetry={() => void startExport()} />}
+      {exportState.stage !== 'idle' && <ExportDialog copy={copy} state={exportState} baseName={safeFileName(displayName, 'reelmotion')} onClose={closeExport} onRetry={() => void startExport()} />}
+      {showProjects && (
+        <ProjectsDialog
+          copy={copy}
+          lang={lang}
+          currentId={projectId}
+          onOpen={(id) => {
+            setShowProjects(false)
+            onOpen(id)
+          }}
+          onNew={() => {
+            setShowProjects(false)
+            onNew()
+          }}
+          onDelete={deleteStored}
+          onClose={() => setShowProjects(false)}
+        />
+      )}
     </div>
   )
 }
 
-function StartScreen({ copy, onFile, onSample }: { copy: EditorCopy; onFile: (file: File | undefined) => void; onSample: (clip: ClipId) => void }) {
+/** 다시 연 작업의 영상이 이 브라우저에 없을 때: 같은 파일을 다시 고른다. */
+function Reconnect({ copy, meta, onFile }: { copy: EditorCopy; meta: FileMeta; onFile: (file: File | undefined) => void }) {
   const [over, setOver] = useState(false)
+  const p = copy.projects
+  return (
+    <div
+      className={`drop reconnect ${over ? 'is-over' : ''}`}
+      onDragOver={(event) => {
+        event.preventDefault()
+        setOver(true)
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(event: DragEvent) => {
+        event.preventDefault()
+        setOver(false)
+        onFile(event.dataTransfer.files[0])
+      }}
+    >
+      <h2>{p.reconnectTitle}</h2>
+      <p>{p.reconnectBody}</p>
+      <p className="reconnect__file">
+        {meta.name} · {formatMegabytes(meta.size)}
+      </p>
+      <label className="btn-mint">
+        <Upload size={16} aria-hidden="true" />
+        {p.reconnectPick}
+        <input type="file" accept="video/*" hidden onChange={(event: ChangeEvent<HTMLInputElement>) => onFile(event.target.files?.[0])} />
+      </label>
+    </div>
+  )
+}
+
+type StartProps = {
+  copy: EditorCopy
+  lang: Lang
+  notice: Notice
+  onFile: (file: File | undefined) => void
+  onSample: (clip: ClipId) => void
+  onOpen: (id: string) => void
+  onShowAll: () => void
+}
+
+function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }: StartProps) {
+  const [over, setOver] = useState(false)
+  const { state } = useProjectList()
+  const recent = state.status === 'ready' ? state.items.slice(0, 4) : []
   const onDrop = (event: DragEvent) => {
     event.preventDefault()
     setOver(false)
@@ -378,6 +815,7 @@ function StartScreen({ copy, onFile, onSample }: { copy: EditorCopy; onFile: (fi
   }
   return (
     <main className="ed-start">
+      {notice && <p className="ed-notice">{notice === 'notFound' ? copy.projects.notFound : copy.projects.unavailable}</p>}
       <div
         className={`drop ${over ? 'is-over' : ''}`}
         onDragOver={(event) => {
@@ -398,6 +836,17 @@ function StartScreen({ copy, onFile, onSample }: { copy: EditorCopy; onFile: (fi
           {copy.start.drop} · {copy.start.privacy}
         </small>
       </div>
+      {recent.length > 0 && (
+        <>
+          <div className="ed-start__row">
+            <p className="ed-start__label">{copy.projects.recent}</p>
+            <button type="button" className="btn-text" onClick={onShowAll}>
+              {copy.projects.all}
+            </button>
+          </div>
+          <ProjectGrid items={recent} copy={copy} lang={lang} currentId={null} onOpen={onOpen} />
+        </>
+      )}
       <p className="ed-start__label">{copy.start.samples}</p>
       <ul className="samples">
         {(Object.keys(CLIPS) as ClipId[]).map((clip) => (
@@ -415,6 +864,8 @@ function StartScreen({ copy, onFile, onSample }: { copy: EditorCopy; onFile: (fi
 type TranscriptProps = {
   copy: EditorCopy
   isSample: boolean
+  /** 받아쓸 소리가 있다(넣은 영상이 연결돼 있다) */
+  canListen: boolean
   script: string
   onScript: (text: string) => void
   estimated: boolean
@@ -458,7 +909,7 @@ function TranscriptPanel(p: TranscriptProps) {
   return (
     <div className="transcript-panel">
       <div className="row-wrap">
-        <button type="button" className="btn-outline" disabled={p.isSample || busy} onClick={p.onListen}>
+        <button type="button" className="btn-outline" disabled={!p.canListen || busy} onClick={p.onListen}>
           {t.listen}
         </button>
         <label className="mini-select">
@@ -501,8 +952,7 @@ function TranscriptPanel(p: TranscriptProps) {
   )
 }
 
-function ExportDialog({ copy, state, fileName, onClose, onRetry }: { copy: EditorCopy; state: ExportState; fileName: string; onClose: () => void; onRetry: () => void }) {
-  const base = fileName.replace(/\.[^.]+$/, '')
+function ExportDialog({ copy, state, baseName, onClose, onRetry }: { copy: EditorCopy; state: ExportState; baseName: string; onClose: () => void; onRetry: () => void }) {
   return (
     <div className="dialog-back" role="presentation">
       <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="export-title">
@@ -524,7 +974,7 @@ function ExportDialog({ copy, state, fileName, onClose, onRetry }: { copy: Edito
           <>
             <h2 id="export-title">{copy.exportDone}</h2>
             <video src={state.url} controls playsInline className="dialog__video" />
-            <a className="btn-mint" href={state.url} download={`${base}-reelmotion.${state.extension}`}>
+            <a className="btn-mint" href={state.url} download={`${baseName}-reelmotion.${state.extension}`}>
               <Download size={16} aria-hidden="true" />
               {fill(copy.download, { ext: state.extension.toUpperCase() })}
             </a>

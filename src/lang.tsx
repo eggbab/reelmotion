@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { saveLang } from './langs'
 import type { Lang } from './langs'
 import { pagePath } from './site/routes'
@@ -17,6 +17,7 @@ const LangContext = createContext<LangContextValue | null>(null)
  */
 export function LangProvider({ lang, page, children }: { lang: Lang; page: PageId; children: ReactNode }) {
   const navigate = useNavigate()
+  const { search } = useLocation()
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -27,10 +28,11 @@ export function LangProvider({ lang, page, children }: { lang: Lang; page: PageI
       lang,
       setLang: (next) => {
         saveLang(next)
-        if (next !== lang) navigate(pagePath(page, next))
+        // 편집기는 열린 작업(?project=)을 그대로 둔 채 언어만 바꾼다.
+        if (next !== lang) navigate(pagePath(page, next) + (page === 'app' ? search : ''))
       },
     }),
-    [lang, page, navigate],
+    [lang, page, navigate, search],
   )
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>
 }

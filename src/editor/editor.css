@@ -6,6 +6,20 @@
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
+  /* 한국어는 빈칸에서만 줄을 나눈다(소개 페이지와 같다). 일본어는 아래에서 따로. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.editor:lang(ja) {
+  word-break: normal;
+  line-break: strict;
+}
+
+@supports (word-break: auto-phrase) {
+  .editor:lang(ja) {
+    word-break: auto-phrase;
+  }
 }
 
 .ed-top {
@@ -22,19 +36,56 @@
   text-decoration: none;
 }
 
-.ed-name {
-  overflow: hidden;
-  color: var(--muted);
-  font: 400 13px/1.4 var(--font);
+/* 작업 이름: 글처럼 보이다가 누르면 고칠 수 있다(일반 입력 칸 규칙보다 이기도록 .editor 를 붙인다) */
+.editor .ed-name {
+  width: clamp(120px, 24vw, 320px);
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font: 500 13px/1.4 var(--font);
   text-overflow: ellipsis;
+  transition: border-color 0.2s var(--ease);
+}
+
+.editor .ed-name:hover,
+.editor .ed-name:focus {
+  border-color: var(--line-strong);
+  background: rgb(255 255 255 / 4%);
+}
+
+.editor .ed-name::placeholder {
+  color: var(--text-2);
+}
+
+.ed-save {
+  color: var(--dim);
+  font: 400 12px/1.4 var(--font);
   white-space: nowrap;
+}
+
+.ed-save.is-failed,
+.ed-save.is-unavailable {
+  color: var(--danger);
+}
+
+.ed-save.is-savedNoVideo {
+  color: #f5c26b;
 }
 
 .ed-top__side {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 8px;
   margin-left: auto;
+}
+
+.ed-top__side > * {
+  flex: none;
+  white-space: nowrap;
 }
 
 .editor .btn-mint {
@@ -356,7 +407,7 @@
 }
 
 .editor select,
-.editor input:not([type='range']):not([type='file']),
+.editor input:not([type='range']):not([type='file']):not(.ed-name),
 .editor textarea {
   min-height: 36px;
   padding: 0 10px;
@@ -641,6 +692,248 @@
   pointer-events: none;
 }
 
+/* 「내 작업」 */
+.btn-text {
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--mint-soft);
+  font: 500 13px/1.3 var(--font);
+  cursor: pointer;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.btn-danger {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #1a0505;
+  font: 600 13px/1 var(--font);
+  cursor: pointer;
+}
+
+.ed-notice {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12.8px;
+  background: var(--surface);
+  color: var(--text-2);
+  font: 400 14px/1.5 var(--font);
+}
+
+.ed-loading {
+  margin: 80px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.ed-warn {
+  max-width: 560px;
+  margin: 0;
+  color: #f5c26b;
+  font: 400 13px/1.5 var(--font);
+  text-align: center;
+}
+
+.ed-start__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.ed-start__row .ed-start__label {
+  margin: 0 0 14px;
+}
+
+.projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project {
+  position: relative;
+}
+
+.project__open {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 0 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.project__open:hover,
+.project.is-current .project__open {
+  border-color: var(--mint);
+}
+
+.project__open:hover {
+  transform: translateY(-2px);
+}
+
+.project__thumb {
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+  background: #0a0a0e;
+  color: var(--dim);
+  aspect-ratio: 16 / 9;
+}
+
+.project__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project__thumb.is-tall img {
+  object-fit: contain;
+}
+
+.project__name {
+  overflow: hidden;
+  padding: 0 12px;
+  font: 600 14px/1.35 var(--font);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project__meta {
+  padding: 0 12px;
+  color: var(--muted);
+  font: 400 12px/1.4 var(--font);
+}
+
+.project__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--mint);
+  color: var(--mint-ink);
+  font: 600 11px/1.3 var(--font);
+}
+
+.project__badge.is-warn {
+  background: #f5c26b;
+  color: #1a1200;
+}
+
+.project__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 60%);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+
+.project:hover .project__delete,
+.project__delete:focus-visible {
+  opacity: 1;
+}
+
+/* 마우스가 없는 기기(휴대폰)에서는 늘 보인다 */
+@media (hover: none) {
+  .project__delete {
+    opacity: 1;
+  }
+}
+
+.project__confirm {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--danger);
+  border-radius: 14px;
+  background: rgb(14 14 19 / 94%);
+  font: 500 13px/1.4 var(--font);
+  text-align: center;
+}
+
+/* 내보내기 창(.dialog)보다 넓고 왼쪽 정렬. 아래 .dialog 규칙보다 이기도록 두 이름을 함께 쓴다. */
+.dialog.dialog--projects {
+  justify-items: stretch;
+  width: min(780px, 100%);
+  max-height: min(86vh, 900px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.projects__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 40px;
+}
+
+.projects__empty {
+  margin: 0;
+  padding: 28px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.projects__note {
+  margin: 0;
+  color: var(--dim);
+  font: 400 12.5px/1.55 var(--font);
+}
+
+/* 다시 연 작업의 영상 고르기: 영상 자리를 채운다 */
+.reconnect {
+  width: min(560px, 100%);
+}
+
+.reconnect h2 {
+  margin: 0;
+  font: 700 22px/1.3 var(--font);
+  letter-spacing: -0.02em;
+}
+
+.reconnect__file {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
 /* 내보내기 */
 .dialog-back {
   position: fixed;
@@ -752,7 +1045,34 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ed-name {
+  .editor .ed-name {
+    width: 0;
+    flex: 1;
+  }
+
+  .ed-save,
+  .ed-projects span {
     display: none;
+  }
+}
+
+/* 휴대폰: 머리줄에 다 들어가게 로고 글자와 내보내기 글자를 숨기고 그림만(단추 이름은 aria-label 로 남는다) */
+@media (max-width: 560px) {
+  .ed-top {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .ed-logo .logo {
+    gap: 0;
+    font-size: 0;
+  }
+
+  .ed-export span {
+    display: none;
+  }
+
+  .editor .ed-export {
+    padding: 0 12px;
   }
 }

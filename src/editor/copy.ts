@@ -78,6 +78,34 @@ export type EditorCopy = {
   }
   lanes: string[]
   sampleNote: string
+  /** 「내 작업」: 이 브라우저에 저장하고 다시 열기(projects.ts) */
+  projects: {
+    open: string
+    title: string
+    new: string
+    recent: string
+    all: string
+    empty: string
+    note: string
+    current: string
+    needsVideo: string
+    noVideoSaved: string
+    delete: string
+    confirmDelete: string
+    keep: string
+    name: string
+    saving: string
+    saved: string
+    savedNoVideo: string
+    failed: string
+    unavailable: string
+    loading: string
+    notFound: string
+    reconnectTitle: string
+    reconnectBody: string
+    reconnectPick: string
+    mismatch: string
+  }
 }
 
 export const EDITOR_COPY: Record<Lang, EditorCopy> = {
@@ -165,6 +193,33 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['Titles', 'Names', 'Data', 'Captions'],
     sampleNote: 'Sample clips have no speech, so their script is typed.',
+    projects: {
+      open: 'My projects',
+      title: 'My projects',
+      new: 'New project',
+      recent: 'Recent projects',
+      all: 'See all',
+      empty: 'No saved projects yet. Add a video and your work is saved here as you go.',
+      note: 'Projects and their videos are saved only in this browser. Clearing browser data — or a long time without visiting — can remove them, so export the videos you finish.',
+      current: 'Open now',
+      needsVideo: 'Choose the video again',
+      noVideoSaved: 'The video was too large to keep in this browser — you will choose it again when you reopen.',
+      delete: 'Delete',
+      confirmDelete: 'Delete this project?',
+      keep: 'Keep',
+      name: 'Project name',
+      saving: 'Saving…',
+      saved: 'Saved in this browser',
+      savedNoVideo: 'Saved · without the video',
+      failed: 'Could not save',
+      unavailable: 'This browser cannot save projects',
+      loading: 'Opening your project…',
+      notFound: 'That project is not in this browser. Projects open only in the browser that saved them.',
+      reconnectTitle: 'Choose this project’s video again',
+      reconnectBody: 'The video was too large to keep in this browser. Choose the same file to keep editing.',
+      reconnectPick: 'Choose the video',
+      mismatch: 'This file’s name or size differs from the original. If it is a different video, the timing may not match.',
+    },
   },
   ko: {
     home: 'ReelMotion 처음으로',
@@ -250,6 +305,33 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['제목', '이름표', '데이터', '자막'],
     sampleNote: '예시 영상에는 말소리가 없어서 대본을 적어 두었어요.',
+    projects: {
+      open: '내 작업',
+      title: '내 작업',
+      new: '새 작업',
+      recent: '최근 작업',
+      all: '모두 보기',
+      empty: '아직 저장된 작업이 없어요. 영상을 넣으면 만드는 대로 여기에 저장돼요.',
+      note: '작업과 영상은 이 브라우저에만 저장돼요. 브라우저 데이터를 지우거나 오래 들어오지 않으면 지워질 수 있으니, 다 만든 영상은 내보내 두세요.',
+      current: '지금 작업',
+      needsVideo: '영상 다시 고르기',
+      noVideoSaved: '영상이 커서 이 브라우저에 함께 저장하지 못했어요. 다시 열 때 같은 영상을 골라 주세요.',
+      delete: '지우기',
+      confirmDelete: '이 작업을 지울까요?',
+      keep: '그대로 두기',
+      name: '작업 이름',
+      saving: '저장 중…',
+      saved: '이 브라우저에 저장됨',
+      savedNoVideo: '저장됨 · 영상은 빼고',
+      failed: '저장하지 못했어요',
+      unavailable: '이 브라우저에서는 저장할 수 없어요',
+      loading: '작업을 여는 중…',
+      notFound: '이 브라우저에 없는 작업이에요. 작업은 저장한 브라우저에서만 열려요.',
+      reconnectTitle: '이 작업의 영상을 다시 골라 주세요',
+      reconnectBody: '영상이 커서 이 브라우저에 함께 저장하지 못했어요. 같은 파일을 고르면 이어서 편집할 수 있어요.',
+      reconnectPick: '영상 고르기',
+      mismatch: '처음 파일과 이름이나 크기가 달라요. 다른 영상이면 시간이 맞지 않을 수 있어요.',
+    },
   },
   ja: {
     home: 'ReelMotion ホーム',
@@ -335,6 +417,33 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     lanes: ['タイトル', '名前', 'データ', '字幕'],
     sampleNote: 'サンプル動画には声がないため、台本を入力してあります。',
+    projects: {
+      open: 'マイプロジェクト',
+      title: 'マイプロジェクト',
+      new: '新しいプロジェクト',
+      recent: '最近のプロジェクト',
+      all: 'すべて見る',
+      empty: 'まだ保存したプロジェクトはありません。動画を入れると、作るそばからここに保存されます。',
+      note: 'プロジェクトと動画はこのブラウザにだけ保存されます。ブラウザのデータを消したり、長く開かなかったりすると消えることがあるため、完成した動画は書き出しておいてください。',
+      current: '編集中',
+      needsVideo: '動画の選び直しが必要',
+      noVideoSaved: '動画が大きいため、このブラウザに一緒に保存できませんでした。開き直すときに同じ動画を選んでください。',
+      delete: '削除',
+      confirmDelete: 'このプロジェクトを削除しますか?',
+      keep: 'やめる',
+      name: 'プロジェクト名',
+      saving: '保存中…',
+      saved: 'このブラウザに保存済み',
+      savedNoVideo: '保存済み・動画は除く',
+      failed: '保存できませんでした',
+      unavailable: 'このブラウザでは保存できません',
+      loading: 'プロジェクトを開いています…',
+      notFound: 'このブラウザにないプロジェクトです。プロジェクトは保存したブラウザでのみ開けます。',
+      reconnectTitle: 'このプロジェクトの動画をもう一度選んでください',
+      reconnectBody: '動画が大きいため、このブラウザに一緒に保存できませんでした。同じファイルを選ぶと編集を続けられます。',
+      reconnectPick: '動画を選ぶ',
+      mismatch: '元のファイルと名前かサイズが違います。別の動画だと、タイミングが合わないことがあります。',
+    },
   },
 }
 
