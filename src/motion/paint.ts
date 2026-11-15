@@ -7,8 +7,11 @@ import type { Stroke, Theme } from './types'
 export const UNIT = 0.013
 export type Frame = { ctx: CanvasRenderingContext2D; w: number; h: number; u: number; portrait: boolean }
 
+/** 세로 영상인가(그래픽을 가운데에 놓는다). 거의 정사각형인 영상은 가로로 본다 — 편집기의 「위치」 고르기도 이것을 쓴다. */
+export const isPortrait = (w: number, h: number) => h > w * 1.05
+
 export function makeFrame(ctx: CanvasRenderingContext2D, w: number, h: number): Frame {
-  return { ctx, w, h, u: Math.min(w, h) * UNIT, portrait: h > w * 1.05 }
+  return { ctx, w, h, u: Math.min(w, h) * UNIT, portrait: isPortrait(w, h) }
 }
 
 export function fontString(family: string, size: number, weight: number, italic = false): string {

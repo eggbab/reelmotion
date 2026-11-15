@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import type { Graphic } from '../motion/types'
+import { sideOf } from '../faces/track'
+import type { Graphic, Side } from '../motion/types'
 import type { EditorCopy } from './copy'
 
 const KINDS: Graphic['kind'][] = ['title', 'lowerThird', 'stat', 'bars', 'list', 'callout', 'quote', 'captions']
@@ -9,6 +10,8 @@ type Props = {
   copy: EditorCopy
   graphics: Graphic[]
   selected: Graphic | null
+  /** 세로 영상이면 그래픽이 가운데에 놓여 「위치」를 고를 게 없다 */
+  portrait: boolean
   onSelect: (id: string) => void
   onAdd: (kind: Graphic['kind']) => void
   onChange: (graphic: Graphic) => void
@@ -31,8 +34,9 @@ const num = (value: string, fallback: number) => {
 }
 
 /** 그래픽 목록, 더하기, 고른 그래픽의 글·숫자·시간 고치기 */
-export function Inspector({ copy, graphics, selected, onSelect, onAdd, onChange, onRemove }: Props) {
+export function Inspector({ copy, graphics, selected, portrait, onSelect, onAdd, onChange, onRemove }: Props) {
   const f = copy.graphics.fields
+  const side = selected && !portrait ? sideOf(selected) : null
   return (
     <div className="inspector">
       <div className="add">
@@ -84,6 +88,14 @@ export function Inspector({ copy, graphics, selected, onSelect, onAdd, onChange,
             </Field>
           </div>
           <KindFields copy={copy} g={selected} onChange={onChange} f={f} />
+          {side && (
+            <Field label={f.side} hint={f.sideHint}>
+              <select data-testid="graphic-side" value={side} onChange={(e) => onChange({ ...selected, side: e.target.value as Side })}>
+                <option value="left">{f.left}</option>
+                <option value="right">{f.right}</option>
+              </select>
+            </Field>
+          )}
         </div>
       )}
     </div>

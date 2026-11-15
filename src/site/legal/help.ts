@@ -45,6 +45,7 @@ export const HELP: LegalDocs = {
             ],
           },
           '숫자·순서·이름이 없는 이야기라 제목과 자막만 나오면 「그래픽」 탭 위의 「AI로 강조할 순간 찾기」를 눌러 보세요. 우리 서버의 AI가 대본을 읽고 제목·목록·인용을 그 말을 하는 때에 더해요(되돌릴 수 있어요). 말하지 않은 말을 인용으로 넣지는 않아요.',
+          '가로 영상이면 숫자·차트·목록·제목·이름표가 말하는 사람의 얼굴을 가리지 않는 쪽(왼쪽·오른쪽)에 놓여요. 얼굴 자리는 이 브라우저 안에서 찾고 어디로도 보내지 않아요. 쪽은 「그래픽」 탭의 「위치」에서 바꿀 수 있어요. 세로 영상은 그래픽이 가운데에 놓여요.',
         ],
       },
       {
@@ -164,6 +165,7 @@ export const HELP: LegalDocs = {
             ],
           },
           'If a talk without numbers, steps or names only gets a title and captions, press “Find more moments with AI” at the top of the Graphics tab. The AI on our server reads the script and adds titles, checklists and quotes at the moment they are said (you can undo it). It never quotes words that were not said.',
+          'On a landscape video, counters, charts, checklists, titles and name tags go on the side (left or right) that keeps the speaker’s face clear. The face is found in your browser and never sent anywhere. Change the side with “Position” on the Graphics tab. On a portrait video, graphics sit in the center.',
         ],
       },
       {
@@ -283,6 +285,7 @@ export const HELP: LegalDocs = {
             ],
           },
           '数字・順番・名前のない話でタイトルと字幕しか出ないときは、「グラフィック」タブの上の「AIで見せ場を探す」を押してください。当社サーバーの AI が台本を読み、タイトル・チェックリスト・引用を、その言葉を話すときに追加します(元に戻せます)。話していない言葉を引用にすることはありません。',
+          '横長の動画では、カウンター・グラフ・チェックリスト・タイトル・名前テロップを、話している人の顔を隠さない側(左・右)に置きます。顔の位置はこのブラウザの中で探し、どこにも送りません。側は「グラフィック」タブの「位置」で変えられます。縦長の動画では、グラフィックスは中央に置かれます。',
         ],
       },
       {

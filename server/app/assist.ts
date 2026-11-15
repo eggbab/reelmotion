@@ -92,14 +92,15 @@ Operations:
 - {"op":"replace","find":"<exact text from the transcript>","replace":"<new text>"} fix words in the transcript (captions follow it)
 
 Graphic kinds and their fields:
-- title: text
-- lowerThird (name tag): name, role
-- stat (counter): value (a number), prefix, suffix (like "%" or "x"), decimals, label
-- bars (bar chart): title, unit, items [{"label": "...", "value": 12}]
-- list (checklist): title, items ["...", "..."]
+- title: text, side
+- lowerThird (name tag): name, role, side
+- stat (counter): value (a number), prefix, suffix (like "%" or "x"), decimals, label, side
+- bars (bar chart): title, unit, items [{"label": "...", "value": 12}], side
+- list (checklist): title, items ["...", "..."], side
 - callout (pointer): text, x, y (position on the screen from 0 to 1)
 - quote: text, author
 - captions: only start and end; the words come from the transcript
+"side" is "left" or "right": which side of a landscape video the graphic sits on. The editor first puts it on the side away from the speaker's face; in a portrait video graphics are always centered, so "side" changes nothing there.
 
 Styles: clean (plain white), neon (glowing colors), bold (thick and colorful), editorial (magazine, serif), seoul (Korean variety-show captions), tokyo (Japanese TV telop).
 

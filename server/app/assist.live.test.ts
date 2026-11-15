@@ -13,8 +13,9 @@ const url = process.env.ASSIST_URL
 const graphics: Graphic[] = [
   { id: 'g1', kind: 'title', start: 0.2, end: 3, text: 'Three habits for better sleep' },
   { id: 'g2', kind: 'lowerThird', start: 0.5, end: 4, name: 'Mina Park', role: 'Sleep researcher' },
-  { id: 'g3', kind: 'stat', start: 4, end: 7, value: 37, prefix: '', suffix: '%', decimals: 0, label: 'fall asleep faster' },
-  { id: 'g4', kind: 'list', start: 7, end: 10, title: 'Tips', items: ['No screens after ten', 'Same wake time'], itemTimes: [7.4, 8.2] },
+  // 가로 영상에서 얼굴을 피해 쪽이 정해진 뒤의 모습(src/faces/track.ts)
+  { id: 'g3', kind: 'stat', start: 4, end: 7, value: 37, prefix: '', suffix: '%', decimals: 0, label: 'fall asleep faster', side: 'right' },
+  { id: 'g4', kind: 'list', start: 7, end: 10, title: 'Tips', items: ['No screens after ten', 'Same wake time'], itemTimes: [7.4, 8.2], side: 'left' },
   { id: 'g5', kind: 'captions', start: 0, end: 10, words: [] },
 ]
 const state: AssistState = {
@@ -33,6 +34,9 @@ const cases: { lang: Lang; instruction: string; check: (ops: AssistOp[]) => bool
   { lang: 'en', instruction: "Add a quote 'Sleep is a skill' from 5 to 8 seconds", check: (ops) => ops.some((op) => op.op === 'add' && op.kind === 'quote' && String(op.fields.text).includes('Sleep is a skill')) },
   { lang: 'ko', instruction: '자막에서 teh 를 the 로 고쳐 줘', check: (ops) => ops.some((op) => op.op === 'replace' && op.find.includes('teh')) },
   { lang: 'ko', instruction: '이름표를 2초 늦게 나오게 해 줘', check: (ops) => ops.some((op) => op.op === 'update' && op.id === 'g2' && Math.abs(Number(op.fields.start) - 2.5) < 0.3) },
+  { lang: 'ko', instruction: '숫자를 왼쪽으로 옮겨 줘', check: (ops) => ops.some((op) => op.op === 'update' && op.id === 'g3' && op.fields.side === 'left') },
+  { lang: 'en', instruction: 'Put the checklist on the right side', check: (ops) => ops.some((op) => op.op === 'update' && op.id === 'g4' && op.fields.side === 'right') },
+  { lang: 'ja', instruction: 'タイトルを右側に置いて', check: (ops) => ops.some((op) => op.op === 'update' && op.id === 'g1' && op.fields.side === 'right') },
 ]
 
 describe.skipIf(!url)('말로 고치기 — 실제 모델', () => {

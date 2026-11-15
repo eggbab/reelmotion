@@ -26,15 +26,15 @@ const MAX_TEXT = 120
 const MAX_ITEMS = 8
 const MIN_LENGTH = 0.3
 
-type FieldKind = 'text' | 'optionalText' | 'number' | 'decimals' | 'ratio' | 'texts' | 'bars'
+type FieldKind = 'text' | 'optionalText' | 'number' | 'decimals' | 'ratio' | 'texts' | 'bars' | 'side'
 
-/** 그래픽 종류별로 고칠 수 있는 칸. 시간(start·end)은 모두 고칠 수 있다. */
+/** 그래픽 종류별로 고칠 수 있는 칸. 시간(start·end)은 모두 고칠 수 있다. side 는 가로 영상에서 놓이는 쪽(src/faces/track.ts). */
 export const FIELDS: Record<GraphicKind, Record<string, FieldKind>> = {
-  title: { text: 'text' },
-  lowerThird: { name: 'text', role: 'optionalText' },
-  stat: { value: 'number', prefix: 'optionalText', suffix: 'optionalText', decimals: 'decimals', label: 'optionalText' },
-  bars: { title: 'optionalText', unit: 'optionalText', items: 'bars' },
-  list: { title: 'optionalText', items: 'texts' },
+  title: { text: 'text', side: 'side' },
+  lowerThird: { name: 'text', role: 'optionalText', side: 'side' },
+  stat: { value: 'number', prefix: 'optionalText', suffix: 'optionalText', decimals: 'decimals', label: 'optionalText', side: 'side' },
+  bars: { title: 'optionalText', unit: 'optionalText', items: 'bars', side: 'side' },
+  list: { title: 'optionalText', items: 'texts', side: 'side' },
   callout: { text: 'text', x: 'ratio', y: 'ratio' },
   quote: { text: 'text', author: 'optionalText' },
   captions: {},
@@ -73,6 +73,8 @@ function cleanField(kind: FieldKind, value: unknown): unknown {
       return isNumber(value) ? clamp(Math.round(value), 0, 3) : undefined
     case 'ratio':
       return isNumber(value) ? clamp(value, 0, 1) : undefined
+    case 'side':
+      return value === 'left' || value === 'right' ? value : undefined
     case 'texts': {
       if (!Array.isArray(value)) return undefined
       const items = value.map((item) => cleanText(item, true)).filter((item): item is string => item !== undefined)

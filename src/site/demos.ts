@@ -202,7 +202,8 @@ export function demo(id: DemoId, lang: Lang, theme?: ThemeId): Demo {
         theme: theme ?? 'editorial',
         graphics: [
           { id: 'a', kind: 'title', start: 0.2, end: 3.6, text: x.classTitle, emphasis: lang === 'en' ? 5 : undefined },
-          { id: 'b', kind: 'list', start: 3.8, end: 9.8, title: x.classListTitle, items: x.classList, itemTimes: [4.3, 5.4, 6.5] },
+          // 선생님이 가운데·왼쪽에 서 있어 목록은 오른쪽에(편집기의 얼굴 피하기와 같은 판단 — src/faces/track.ts)
+          { id: 'b', kind: 'list', start: 3.8, end: 9.8, title: x.classListTitle, items: x.classList, itemTimes: [4.3, 5.4, 6.5], side: 'right' },
         ],
       }
     case 'growth':
@@ -211,7 +212,8 @@ export function demo(id: DemoId, lang: Lang, theme?: ThemeId): Demo {
         theme: theme ?? 'neon',
         graphics: [
           { id: 'a', kind: 'lowerThird', start: 0.4, end: 4.6, name: x.growName, role: x.growRole },
-          { id: 'b', kind: 'stat', start: 4.4, end: 9.6, value: 182, prefix: '', suffix: '%', decimals: 0, label: x.growStat },
+          // 사람이 오른쪽에 앉아 있어 숫자는 왼쪽에(편집기의 얼굴 피하기와 같은 판단)
+          { id: 'b', kind: 'stat', start: 4.4, end: 9.6, value: 182, prefix: '', suffix: '%', decimals: 0, label: x.growStat, side: 'left' },
         ],
       }
     case 'vlog':

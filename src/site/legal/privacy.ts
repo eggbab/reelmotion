@@ -4,6 +4,9 @@ import type { LegalDocs } from './types'
  * 개인정보처리방침. 원문은 한국어이고 영어·일본어는 번역이다.
  * 글은 실제 동작과 같아야 한다(2026-11-15 확인). 동작을 바꾸면 이 글도 함께 고친다(AGENTS.md 규칙).
  * - 영상: 브라우저 안에서만 처리, 올리지 않는다(src/export).
+ * - 얼굴 자리(src/faces, 2026-11-15): 가로 영상에 그래픽이 있으면 장면에서 가장 큰 얼굴의 상자(화면의 비율)만 브라우저 안에서 찾는다.
+ *   누구인지 알아보지 않는다(얼굴 인식 아님). 상자는 메모리에만 두고 보내거나 저장하지 않는다. 작업에는 그래픽의 쪽(left·right)만.
+ *   모델(UltraFace, 1.3MB)과 실행 파일은 우리 사이트에서 받아 서비스 워커 캐시·브라우저 캐시에 둔다.
  * - 소리: 16kHz 모노로 바꿔 받아쓰기 서버로 보낸다(src/speech/server.ts). 서버는 메모리에서만 다루고 결과를 돌려주면 버린다
  *   (server/asr — 디스크에 쓰지 않음, 접속 기록 끔).
  * - 접속 기록: 웹(deploy/Caddyfile)은 접속 기록을 쓰지 않고 오류 기록에서 IP·머리글을 지운다. 앞단(운영 PC 의 공개 주소)도
@@ -48,6 +51,7 @@ export const PRIVACY: LegalDocs = {
             ],
           },
           '영상 파일과 내보낸 결과물은 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다. 로그인하지 않으면 이름·메일 같은 정보도 받지 않습니다.',
+          '그래픽이 말하는 사람의 얼굴을 가리지 않도록, 편집기는 이용자의 기기 안에서 영상 장면의 얼굴이 화면 어디에 있는지만 찾습니다. 누구인지 알아보지 않으며, 찾은 자리는 회사로 보내거나 저장하지 않고 편집기를 닫으면 사라집니다. 작업에는 그래픽이 놓인 쪽(왼쪽·오른쪽)만 남습니다.',
         ],
       },
       {
@@ -94,6 +98,7 @@ export const PRIVACY: LegalDocs = {
               '고른 화면 언어와 닫은 공지: 브라우저 저장소(localStorage)에 기억합니다. 회사로 보내지 않습니다.',
               '브라우저 안 받아쓰기를 쓰면: 받아쓰기 모델 파일을 브라우저 캐시에 저장해 다음에는 다시 내려받지 않습니다.',
               '편집기 화면 파일: 편집기를 열면 그 화면 파일(프로그램과 글꼴)을 브라우저 저장소에 받아 두어 인터넷이 없어도 편집기가 열립니다. 이용자의 정보는 들어 있지 않습니다.',
+              '얼굴 자리 찾기 파일: 가로 영상에 그래픽을 놓을 때 얼굴 자리를 찾는 모델과 실행 파일을 회사 사이트에서 받아 브라우저 저장소와 캐시에 둡니다. 이용자의 정보는 들어 있지 않습니다.',
             ],
           },
           '브라우저 설정에서 이 사이트의 데이터를 지우면 함께 지워집니다.',
@@ -169,6 +174,7 @@ export const PRIVACY: LegalDocs = {
             ],
           },
           'We do not receive video files or what you export. Videos are processed only on your device. If you do not log in, we do not receive information such as your name or email address either.',
+          'So that graphics do not cover the speaker’s face, the editor finds, on your device, only where a face is on the screen in your video’s frames. It does not recognize who anyone is. The face positions are not sent to us or saved, and they are gone when you close the editor. Your project keeps only the side each graphic sits on (left or right).',
         ],
       },
       {
@@ -215,6 +221,7 @@ export const PRIVACY: LegalDocs = {
               'Your language choice and the notices you dismissed: remembered in your browser’s local storage. They are not sent to us.',
               'If you transcribe in your browser: the speech model files are saved in your browser’s cache so they are not downloaded again.',
               'Editor files: when you open the editor, its files (the program and fonts) are saved in your browser’s storage so the editor opens without the internet. They contain none of your information.',
+              'Face-finding files: when graphics are placed on a landscape video, the model and program that find face positions are downloaded from our site and kept in your browser’s storage and cache. They contain none of your information.',
             ],
           },
           'Clearing this site’s data in your browser settings removes them.',
@@ -290,6 +297,7 @@ export const PRIVACY: LegalDocs = {
             ],
           },
           '動画ファイルと書き出した作成物は受け取りません。動画はお使いの端末の中だけで処理します。ログインしなければ、氏名やメールアドレスなどの情報も受け取りません。',
+          'グラフィックが話している人の顔を隠さないように、エディターはお使いの端末の中で、動画の場面のどこに顔があるかだけを探します。誰なのかは識別しません。見つけた位置は当社に送らず保存もせず、エディターを閉じると消えます。作品には、グラフィックを置く側(左・右)だけが残ります。',
         ],
       },
       {
@@ -336,6 +344,7 @@ export const PRIVACY: LegalDocs = {
               '選んだ表示言語と閉じたお知らせ: ブラウザのストレージ(localStorage)に記憶します。当社には送りません。',
               'ブラウザ内の文字起こしを使う場合: 文字起こしモデルのファイルをブラウザのキャッシュに保存し、次からは再ダウンロードしません。',
               'エディターの画面ファイル: エディターを開くと、その画面ファイル(プログラムとフォント)をブラウザのストレージに保存し、インターネットがなくてもエディターを開けるようにします。利用者の情報は含まれません。',
+              '顔の位置を探すファイル: 横長の動画にグラフィックを置くとき、顔の位置を探すモデルと実行ファイルを当社サイトから受け取り、ブラウザのストレージとキャッシュに置きます。利用者の情報は含まれません。',
             ],
           },
           'ブラウザの設定でこのサイトのデータを消すと、あわせて消えます。',

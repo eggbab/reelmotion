@@ -30,7 +30,8 @@ export function drawTitle(f: Frame, g: TitleGraphic, t: number, theme: Theme) {
   const size = (theme.displayItalic ? 9 : 7.4) * u * (portrait ? 1.05 : 1)
   const lineHeight = size * (theme.displayItalic ? 1.02 : 1.12)
   const maxWidth = w * (portrait ? 0.86 : 0.6)
-  const align: 'left' | 'center' = portrait ? 'center' : 'left'
+  // 가로 영상의 기본은 왼쪽 위, side 가 'right' 면 오른쪽 맞춤(얼굴을 피해 — src/faces/track.ts). 세로 영상은 가운데.
+  const align: 'left' | 'center' | 'right' = portrait ? 'center' : g.side === 'right' ? 'right' : 'left'
   const left = w * 0.06
   const top = h * (portrait ? 0.15 : 0.12)
 
@@ -50,7 +51,7 @@ export function drawTitle(f: Frame, g: TitleGraphic, t: number, theme: Theme) {
   // 판 묶음이 아니면 제목 위에 짧은 강조 막대를 그어 시작을 알린다.
   if (!solid && !pops(theme)) {
     const bar = outQuart(local / 0.4) * (1 - inCubic(leave))
-    const barX = align === 'left' ? left : w / 2 - size * 0.8
+    const barX = align === 'left' ? left : align === 'right' ? w - left - size * 1.6 : w / 2 - size * 0.8
     ctx.fillStyle = theme.accent
     ctx.fillRect(barX, top - size * 0.42, size * 1.6 * bar, Math.max(2, size * 0.07))
   }
@@ -59,7 +60,7 @@ export function drawTitle(f: Frame, g: TitleGraphic, t: number, theme: Theme) {
     const words = line.split(' ')
     const widths = words.map((word) => ctx.measureText(word).width)
     const lineWidth = widths.reduce((a, b) => a + b, 0) + space * (words.length - 1)
-    const x0 = align === 'left' ? left : (w - lineWidth) / 2
+    const x0 = align === 'left' ? left : align === 'right' ? w - left - lineWidth : (w - lineWidth) / 2
     const baseline = top + lineHeight * (lineIndex + 0.8)
 
     if (solid) {
@@ -108,7 +109,6 @@ export function drawLowerThird(f: Frame, g: LowerThirdGraphic, t: number, theme:
   const { local, exit } = envelope(g.start, g.end, t)
   const nameSize = 3.9 * u
   const roleSize = 2.4 * u
-  const x = w * (portrait ? 0.07 : 0.05)
   const bottom = h * (portrait ? 0.68 : 0.8)
 
   ctx.save()
@@ -124,6 +124,8 @@ export function drawLowerThird(f: Frame, g: LowerThirdGraphic, t: number, theme:
   const height = role ? nameSize * 1.25 + roleSize * 1.6 + 1.6 * u : nameSize * 1.25 + 2.2 * u
   const width = Math.max(nameWidth, roleWidth) + padX * 2
   const top = bottom - height
+  // 가로 영상에서 side 가 'right' 면 오른쪽 끝에(얼굴을 피해), 아니면 왼쪽
+  const x = portrait ? w * 0.07 : g.side === 'right' ? w * 0.95 - width - barWidth : w * 0.05
 
   const bar = outCubic(local / 0.28) * exit
   const wipe = outQuart((local - 0.12) / 0.5) * outCubic(exit)
@@ -166,7 +168,7 @@ export function drawStat(f: Frame, g: StatGraphic, t: number, theme: Theme) {
   const ring = g.suffix.trim() === '%' && g.prefix === '' && g.value > 0 && g.value <= 100
   const numberSize = (ring ? 8.6 : 11.5) * u
   const labelSize = 2.7 * u
-  const cx = portrait ? w / 2 : w * 0.74
+  const cx = portrait ? w / 2 : g.side === 'left' ? w * 0.26 : w * 0.74
   const cy = h * (portrait ? 0.42 : 0.44)
   const radius = 11 * u
 
@@ -232,7 +234,7 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
   const pad = 3 * u
   const titleBlock = g.title ? titleSize * 1.6 : 0
   const height = pad * 2 + titleBlock + rowH * items.length
-  const x = portrait ? (w - width) / 2 : w * 0.94 - width
+  const x = portrait ? (w - width) / 2 : g.side === 'left' ? w * 0.06 : w * 0.94 - width
   const y = portrait ? h * 0.3 : (h - height) / 2
 
   ctx.save()
@@ -294,7 +296,7 @@ export function drawList(f: Frame, g: ListGraphic, t: number, theme: Theme) {
   const titleLines = g.title ? fitLines(ctx, caseFor(theme, g.title), width - pad * 2, 2) : []
   const titleBlock = titleLines.length > 0 ? titleSize * 1.9 + (titleLines.length - 1) * titleLineH : 0
   const height = pad * 2 + titleBlock + rows.reduce((sum, lines) => sum + rowHeight(lines), 0)
-  const x = portrait ? (w - width) / 2 : w * 0.06
+  const x = portrait ? (w - width) / 2 : g.side === 'right' ? w * 0.94 - width : w * 0.06
   const y = portrait ? h * 0.24 : (h - height) / 2
 
   ctx.globalAlpha = clamp01(local / 0.25) * outCubic(exit)

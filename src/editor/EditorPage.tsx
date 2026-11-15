@@ -17,9 +17,13 @@ import { CLIPS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import { fetchDraft } from '../connect/api'
 import { reportError } from '../errors'
+import { detectFaces } from '../faces/detect'
+import { needsPlacement, placeAwayFromFaces } from '../faces/track'
+import type { FaceSample } from '../faces/track'
 import { release } from '../http'
 import { direct, resolveOverlaps } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
+import { isPortrait } from '../motion/paint'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
 import type { Graphic, Theme, ThemeId } from '../motion/types'
@@ -357,6 +361,10 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const [saveState, setSaveState] = useState<SaveState>(initial.saved ? (initial.source?.kind === 'missing' ? 'savedNoVideo' : 'saved') : 'idle')
   const [showProjects, setShowProjects] = useState(false)
   const [mismatch, setMismatch] = useState(false)
+  // 그래픽이 말하는 사람의 얼굴을 가리지 않게(src/faces): 길이·크기를 안 영상(metaFor)에서, 쪽을 정할 그래픽이 생기면
+  // 이 브라우저 안에서 얼굴 자리를 찾는다(faces — 영상마다 한 번, 못 찾으면 빈 목록).
+  const [metaFor, setMetaFor] = useState<Source | null>(null)
+  const [faces, setFaces] = useState<{ source: Source; track: FaceSample[] } | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -394,6 +402,39 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const words = useMemo(() => (recognized ? retime(recognized, script) : duration > 0 ? scriptToWords(script, duration) : []), [recognized, script, duration])
   const shown = useMemo(() => syncCaptions(graphics, words), [graphics, words])
   const selected = shown.find((g) => g.id === selectedId) ?? null
+  // 그리는 쪽(src/motion/paint.ts)과 같은 기준: 세로 영상은 그래픽이 가운데라 쪽을 정할 게 없다
+  const portrait = isPortrait(size.width, size.height)
+  const faceTrack = faces !== null && faces.source === source ? faces.track : null
+
+  // 얼굴 자리를 알면, 쪽이 아직 정해지지 않은 그래픽(자동으로 만든 것·AI·말로 더한 것·손으로 더한 것)의 쪽을 정한다.
+  // 한 번 정한 쪽은 다시 정하지 않는다(src/faces/track.ts). AI 되돌리기는 정한 뒤의 그래픽을 기준으로 둔다.
+  if (faceTrack) {
+    const placed = placeAwayFromFaces(graphics, faceTrack, portrait)
+    if (placed !== graphics) {
+      setGraphics(placed)
+      setAiUndo((undo) => (undo && undo.after === graphics ? { ...undo, after: placed } : undo))
+    }
+  }
+
+  const wantFaces = source !== null && source.kind !== 'missing' && metaFor === source && !portrait && duration > 0 && needsPlacement(graphics)
+  useEffect(() => {
+    if (!wantFaces || !source || (faces !== null && faces.source === source)) return
+    const controller = new AbortController()
+    void (async () => {
+      const blob = await sourceBlob(source).catch(() => null)
+      if (!blob || controller.signal.aborted) return
+      try {
+        const track = await detectFaces(blob, duration, controller.signal)
+        if (!controller.signal.aborted) setFaces({ source, track: track ?? [] })
+      } catch (error) {
+        if (controller.signal.aborted) return
+        // 못 찾아도 그래픽은 기본 자리에 있고 사람이 「위치」에서 고를 수 있다. 까닭은 운영자가 알 수 있게 알린다.
+        reportError(error)
+        setFaces({ source, track: [] })
+      }
+    })()
+    return () => controller.abort()
+  }, [wantFaces, source, duration, faces])
 
   // 예시 영상, 첫 화면에서 넘어온 대본, 커넥터 초안의 대본은 영상 길이를 안 뒤 한 번 자동으로 그래픽을 만든다
   // (직접 넣은 영상은 autoMade 가 처음부터 true 라 저절로 만들지 않는다).
@@ -878,7 +919,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
               <Reconnect copy={copy} meta={source.meta} onFile={reconnect} />
             ) : (
               // --ar(가로÷세로)로 상자 크기를 정한다 — 창이 좁든 낮든 영상 비율을 지켜야 그래픽이 영상과 어긋나지 않는다(editor.css).
-              <div className="ed-frame" style={{ aspectRatio: `${size.width} / ${size.height}`, '--ar': size.width / size.height } as CSSProperties}>
+              // data-faces: 얼굴 찾기가 끝난 영상(화면 시험이 기다리는 표시 — e2e/tests/faces.cjs)
+              <div className="ed-frame" data-faces={faceTrack ? 'done' : undefined} style={{ aspectRatio: `${size.width} / ${size.height}`, '--ar': size.width / size.height } as CSSProperties}>
                 <video
                   ref={videoRef}
                   playsInline
@@ -887,6 +929,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                     const video = event.currentTarget
                     setDuration(video.duration)
                     setSize({ width: video.videoWidth || 1280, height: video.videoHeight || 720 })
+                    setMetaFor(source)
                   }}
                   onPlay={() => setPlaying(true)}
                   onPause={() => setPlaying(false)}
@@ -1002,7 +1045,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                     onUndo={undoMoments}
                   />
                 )}
-                <Inspector copy={copy} graphics={shown} selected={selected} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
+                <Inspector copy={copy} graphics={shown} selected={selected} portrait={portrait} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
               </>
             )}
           </aside>

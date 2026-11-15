@@ -3,7 +3,12 @@ import type { Word } from '../captions/types'
 /** 모션그래픽 한 덩어리. 시간은 영상 기준 초. */
 export type GraphicKind = 'title' | 'lowerThird' | 'stat' | 'bars' | 'list' | 'callout' | 'quote' | 'captions'
 
-type Base = { id: string; start: number; end: number }
+/**
+ * 가로 영상에서 그래픽이 놓이는 쪽. 비면 그 종류의 기본 자리(숫자·차트는 오른쪽, 제목·이름표·목록은 왼쪽).
+ * 말하는 사람의 얼굴을 가리지 않게 편집기가 정하거나(src/faces/track.ts) 사람이 고른다. 세로 영상에서는 쓰지 않는다(가운데).
+ */
+export type Side = 'left' | 'right'
+type Base = { id: string; start: number; end: number; side?: Side }
 
 export type TitleGraphic = Base & { kind: 'title'; text: string; /** 강조할 낱말의 순번(없으면 강조 없음) */ emphasis?: number }
 export type LowerThirdGraphic = Base & { kind: 'lowerThird'; name: string; role: string }

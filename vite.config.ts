@@ -48,6 +48,19 @@ function noticeOf(dir: string): string {
   return [rule, `${pkg.name} ${pkg.version} — ${license}`, where, rule, texts.join('\n\n') || `(${license}: no license file in the package)`].filter(Boolean).join('\n')
 }
 
+/**
+ * 이 사이트가 파일로 주는 AI 모델과 그 사용 허가문. /licenses 쪽의 목록(src/site/legal/credits.ts 의 MODEL_CREDITS 중 file 이 있는 것)과
+ * 같아야 한다 — credits.test.ts 가 확인한다(이 설정 파일은 화면 코드를 들여오지 않는다).
+ */
+const BUNDLED_MODELS = [
+  { name: 'UltraFace RFB-320', license: 'MIT', file: 'src/faces/ultraface-rfb-320.onnx', notice: 'src/faces/ULTRAFACE-LICENSE.txt', url: 'https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB' },
+]
+
+function modelNoticeOf(model: (typeof BUNDLED_MODELS)[number]): string {
+  const rule = '-'.repeat(72)
+  return [rule, `${model.name} — ${model.license} (model file: ${model.file.split('/').pop()})`, model.url, rule, readFileSync(model.notice, 'utf8').trim()].join('\n')
+}
+
 /** 화면 빌드와 워커 빌드 양쪽에서 모은다. 워커가 먼저 묶이므로 화면 빌드의 끝에서 파일을 쓴다. */
 function thirdPartyNotices(write: boolean): Plugin {
   return {
@@ -59,11 +72,12 @@ function thirdPartyNotices(write: boolean): Plugin {
       const dirs = [...bundledPackages].filter((dir) => existsSync(join(dir, 'package.json'))).sort((a, b) => a.localeCompare(b))
       const head = [
         'ReelMotion — third-party software notices',
-        'The open-source packages bundled into this website, with their versions and full license texts.',
-        'Fonts, speech models and sample videos are listed at /licenses.',
+        'The open-source packages and AI model files bundled into this website, with their versions and full license texts.',
+        'Fonts, other AI models and sample videos are listed at /licenses.',
         '',
       ].join('\n')
-      this.emitFile({ type: 'asset', fileName: 'licenses.txt', source: `${head}\n${dirs.map(noticeOf).join('\n\n')}\n` })
+      const notices = [...dirs.map(noticeOf), ...BUNDLED_MODELS.map(modelNoticeOf)]
+      this.emitFile({ type: 'asset', fileName: 'licenses.txt', source: `${head}\n${notices.join('\n\n')}\n` })
     },
   }
 }

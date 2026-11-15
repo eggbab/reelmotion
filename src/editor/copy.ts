@@ -83,6 +83,11 @@ export type EditorCopy = {
       y: string
       author: string
       captionsHint: string
+      /** 가로 영상에서 그래픽이 놓이는 쪽(src/faces/track.ts) */
+      side: string
+      left: string
+      right: string
+      sideHint: string
     }
   }
   lanes: string[]
@@ -253,6 +258,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
         y: 'Down (%)',
         author: 'Who said it',
         captionsHint: 'Captions follow the transcript. Edit the words in the Transcript tab.',
+        side: 'Position',
+        left: 'Left',
+        right: 'Right',
+        sideHint: 'Set automatically to the side that keeps the speaker’s face clear. What you choose here stays.',
       },
     },
     lanes: ['Titles', 'Names', 'Data', 'Captions'],
@@ -417,6 +426,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
         y: '세로(%)',
         author: '말한 사람',
         captionsHint: '자막은 받아쓴 말을 따라가요. 낱말은 「받아쓴 말」 탭에서 고치세요.',
+        side: '위치',
+        left: '왼쪽',
+        right: '오른쪽',
+        sideHint: '말하는 사람의 얼굴을 가리지 않는 쪽으로 저절로 정해져요. 여기서 고르면 그대로 둬요.',
       },
     },
     lanes: ['제목', '이름표', '데이터', '자막'],
@@ -581,6 +594,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
         y: '縦(%)',
         author: '話した人',
         captionsHint: '字幕は書き起こしに合わせて動きます。言葉は「書き起こし」タブで直してください。',
+        side: '位置',
+        left: '左',
+        right: '右',
+        sideHint: '話している人の顔を隠さない側に自動で決まります。ここで選ぶと、そのままにします。',
       },
     },
     lanes: ['タイトル', '名前', 'データ', '字幕'],

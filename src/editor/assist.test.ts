@@ -22,6 +22,23 @@ describe('compactGraphics (AI 에게 보내는 요약)', () => {
 })
 
 describe('validateOps (AI 가 준 고치기 검사)', () => {
+  it('놓이는 쪽(side)은 왼쪽·오른쪽만, 쪽을 고르는 그래픽에만', () => {
+    const ops = validateOps(
+      {
+        ops: [
+          { op: 'update', id: 'g3', fields: { side: 'left' } },
+          { op: 'update', id: 'g1', fields: { side: 'top' } },
+          { op: 'update', id: 'g5', fields: { side: 'right' } },
+        ],
+      },
+      state,
+    )
+    expect(ops).toEqual([{ op: 'update', id: 'g3', fields: { side: 'left' } }])
+    const after = applyOps({ graphics, theme: 'neon', script: '', duration: 12 }, ops, () => 'x')
+    expect(after.graphics.find((graphic) => graphic.id === 'g3')?.side).toBe('left')
+    expect(compactGraphics([{ ...graphics[2], side: 'right' }])[0]).toMatchObject({ side: 'right' })
+  })
+
   it('바른 고치기는 남기고, 없는 그래픽·모르는 칸·틀린 값은 버린다', () => {
     const ops = validateOps(
       {
