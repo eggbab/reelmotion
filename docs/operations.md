@@ -91,7 +91,9 @@ docker compose exec app node main.js admin usage 메일주소
 - `usage <메일>`: 달마다 다 만든 내보내기 수(최근 12달).
 
 ## 백업
-백업할 것은 `app-data` 볼륨의 `reelmotion.db` 하나다(계정·작업·내보내기 수). 영상은 서버에 없다. 판을 올리기 전과, 적어도 한 달에 한 번 한다.
+백업할 것은 `app-data` 볼륨의 `reelmotion.db` 하나다(계정·작업·내보내기 수). 영상은 서버에 없다.
+- **자동**: 앱 서버가 한 시간마다 확인해 서울 날짜로 하루 하나(`/data/backups/reelmotion-YYYYMMDD.db`)를 만들고, 7일이 지난 것은 지운다(`BACKUP_DAYS`, 0 이면 끔, 30 이하). 앱 기록에 `backup: reelmotion-…db` 가 찍힌다. 목록 보기: `docker compose exec app ls /data/backups`
+- 자동 백업은 같은 PC 안에 있어 디스크가 망가지면 함께 잃는다. 그래서 **매주 하나를 꺼내 다른 곳(외장 디스크 등)에 두고, 꺼낸 것도 30일이 지나면 지운다** — 개인정보처리방침에 「백업은 30일이 지나면 지운다(탈퇴한 정보도 백업에는 최대 30일)」고 적었다. 판을 올리기 전에도 하나 만든다.
 1. 돌아가는 중에도 안전하게 한 파일로 복사한다(SQLite 의 `VACUUM INTO`, 같은 이름이 있으면 멈춘다):
 ```bash
 docker compose exec app node main.js admin backup /data/backup-20261115.db
@@ -100,6 +102,7 @@ docker compose exec app node main.js admin backup /data/backup-20261115.db
 ```bash
 docker compose cp app:/data/backup-20261115.db ./backup-20261115.db
 ```
+자동 백업으로 되살릴 때는 파일을 넣을 필요 없이 `admin restore /data/backups/reelmotion-YYYYMMDD.db` 로 바로 한다(아래 세 번째 명령에서 주소만 바꾼다).
 되살리기(파일을 넣고 → 앱을 끄고 → 되돌리고 → 켠다). 되돌리기 명령은 아무것도 지우지 않는다: 백업이 멀쩡한 ReelMotion 저장소인지 먼저 보고, 지금 저장소는 `reelmotion.db.before-restore-<시각>` 으로 옆에 남긴 뒤 백업을 넣는다. 앱이 켜져 있으면 멈추고 알려 준다.
 ```bash
 docker compose cp ./backup-20261115.db app:/data/restore.db

@@ -4,6 +4,7 @@ import { serve } from '@hono/node-server'
 import { createApp } from './app'
 import { createLlamaModel } from './assist'
 import { restoreDatabase, runAdmin } from './admin'
+import { autoBackup } from './backup'
 import { readConfig } from './config'
 import { openDb } from './db'
 import { createGoogleClient } from './google'
@@ -31,9 +32,21 @@ if (process.argv[2] === 'admin') {
 sweep(db, Date.now())
 setInterval(() => sweep(db, Date.now()), 60 * 60 * 1000).unref()
 
+// 자동 백업: 한 시간마다 확인해 서울 날짜로 하루 하나를 만들고 오래된 것은 지운다(backup.ts). 기록에는 파일 이름만 남긴다.
+const backup = () => {
+  try {
+    const { created, removed } = autoBackup(db, join(config.dataDir, 'backups'), Date.now(), config.backupDays)
+    if (created || removed.length > 0) console.log(`backup: ${created ?? 'kept'}${removed.length > 0 ? ` · removed ${removed.join(', ')}` : ''}`)
+  } catch (error) {
+    console.error('backup failed:', error instanceof Error ? error.message : error)
+  }
+}
+backup()
+setInterval(backup, 60 * 60 * 1000).unref()
+
 const app = createApp({ db, google: config.google ? createGoogleClient(config.google) : null, config, assist: config.assistUrl ? createLlamaModel(config.assistUrl) : null })
 serve({ fetch: app.fetch, hostname: config.host, port: config.port }, ({ port }) => {
-  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
+  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
 })
 
 const stop = () => {

@@ -42,6 +42,8 @@ services:
       ASSIST_URL: http://assist:8080
       # 요금제 한도(영상 길이·한 달 횟수·무료 워터마크). 베타 동안은 0, 카드 결제를 붙이는 날 1 로(docs/operations.md 「결제 붙이기」).
       ENFORCE_PLANS: ${ENFORCE_PLANS:-0}
+      # 자동 백업(/data/backups, 하루 하나)을 며칠 남길지. 0 이면 끔, 30 이하(개인정보처리방침 「백업은 30일까지」).
+      BACKUP_DAYS: ${BACKUP_DAYS:-7}
     volumes:
       - app-data:/data
     restart: unless-stopped

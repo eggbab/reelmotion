@@ -14,6 +14,8 @@ import type { LegalDocs } from './types'
  * - 말로 고치기(server/app/assist.ts): 적은 말과 작업의 글을 우리 서버의 AI 가 읽고 버린다. 로그인하지 않았으면 남용 막기로 IP 를 메모리에 10분까지.
  * - 내보내기(server/app/app.ts /api/usage/export): 내보내기 전에 영상 길이(초)만 받아 요금제 한도를 보고 버린다. 다 만들면 로그인한 사람의
  *   달마다 횟수(usage 표)를 하나 센다. 탈퇴하면 함께 지운다(on delete cascade).
+ * - 백업(server/app/backup.ts): 앱 서버가 하루 한 번 저장소 전체를 같은 서버 안에 백업하고 7일(BACKUP_DAYS, 30 이하)이 지나면 지운다.
+ *   운영자가 꺼내 둔 백업도 30일이 지나면 지운다(docs/operations.md 「백업」). 그래서 「백업에는 최대 30일」.
  * - 바깥 회사: 브라우저 안 받아쓰기의 모델 파일만 Hugging Face 에서 직접 받는다. 실행 파일(onnxruntime)은 우리 서버에서 준다.
  */
 export const PRIVACY: LegalDocs = {
@@ -62,6 +64,7 @@ export const PRIVACY: LegalDocs = {
               '접속 정보: 접속 기록을 남기지 않습니다. 서버 오류를 고치기 위한 기록에도 IP 주소와 말소리를 남기지 않습니다.',
               '계정 정보, 계정에 저장한 작업, 내보내기 횟수: 탈퇴할 때까지 보관하고, 탈퇴하면 바로 지웁니다. 작업 하나는 「내 작업」에서 지우면 바로 지웁니다. 한도를 확인할 때 받은 영상 길이는 저장하지 않습니다.',
               '로그인 기록: 로그인 유지 기간(30일, 쓸 때마다 다시 30일)이 끝나거나 로그아웃하면 지웁니다.',
+              '백업: 장애에 대비해 계정 정보, 계정에 저장한 작업, 내보내기 횟수를 하루 한 번 백업하고, 30일이 지난 백업은 지웁니다. 그래서 탈퇴하거나 지운 정보도 백업에는 최대 30일 남을 수 있습니다.',
               '말로 고치기에 적은 말: 고치기를 돌려주면 바로 지웁니다. 로그인하지 않았으면 남용을 막으려고 요청 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
             ],
           },
@@ -174,6 +177,7 @@ export const PRIVACY: LegalDocs = {
               'Connection information: we keep no access logs. Records we keep to fix server errors contain no IP addresses or audio either.',
               'Account information, projects kept in your account and your export count: kept until you delete your account, then deleted right away. Deleting a project in My projects deletes it right away. The video length we receive to check limits is not kept.',
               'Login records: deleted when the login period ends (30 days, renewed as you use the Service) or when you log out.',
+              'Backups: to recover from failures, we back up account information, projects kept in accounts and export counts once a day, and delete backups older than 30 days. Information you delete, including a closed account, may therefore remain in a backup for up to 30 days.',
               'What you type in chat editing: deleted as soon as the edits are returned. If you are not logged in, your IP address is held in server memory for up to 10 minutes to count requests and prevent abuse.',
             ],
           },
@@ -286,6 +290,7 @@ export const PRIVACY: LegalDocs = {
               '接続情報: アクセス記録を残しません。サーバーの障害を直すための記録にも、IP アドレスと音声は残しません。',
               'アカウント情報、アカウントに保存したプロジェクト、書き出し回数: 退会するまで保管し、退会するとすぐに消します。プロジェクトは「マイプロジェクト」で削除するとすぐに消します。上限の確認で受け取った動画の長さは保存しません。',
               'ログインの記録: ログインの保持期間(30日、使うたびに延長)が終わるか、ログアウトすると消します。',
+              'バックアップ: 障害に備えて、アカウント情報・アカウントに保存したプロジェクト・書き出し回数を1日1回バックアップし、30日を過ぎたバックアップは削除します。そのため、退会や削除をした情報もバックアップには最大30日残ることがあります。',
               '話して直すに書いた言葉: 変更をお返ししたらすぐに消します。ログインしていない場合は、不正利用を防ぐため、回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
             ],
           },

@@ -24,6 +24,14 @@ describe('앱 서버 설정', () => {
     expect(readConfig({ ENFORCE_PLANS: '1' }).enforcePlans).toBe(true)
   })
 
+  it('자동 백업은 기본 7일, 0 이면 끄고, 30일(개인정보처리방침)을 넘거나 틀린 값이면 멈춘다', () => {
+    expect(readConfig({}).backupDays).toBe(7)
+    expect(readConfig({ BACKUP_DAYS: '0' }).backupDays).toBe(0)
+    expect(readConfig({ BACKUP_DAYS: '14' }).backupDays).toBe(14)
+    expect(() => readConfig({ BACKUP_DAYS: 'week' })).toThrow()
+    expect(() => readConfig({ BACKUP_DAYS: '31' })).toThrow()
+  })
+
   it('사이트 주소 꼴이 틀리면 멈춘다', () => {
     expect(() => readConfig({ SITE_ORIGIN: 'x.test/path' })).toThrow()
   })
