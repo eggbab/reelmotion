@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "e2e": "node e2e/run.cjs",
+    "e2e:media": "node e2e/make-media.cjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

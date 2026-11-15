@@ -1,0 +1,11 @@
+# 화면 시험용 설정. 운영에서 쓰지 않는다 — 가짜 로그인(AUTH_DEV)이 켜진다.
+#   cd deploy && docker compose -f compose.yml -f ../e2e/compose.test.yml up -d --build
+services:
+  app:
+    environment:
+      # 구글 없이 로그인하는 시험용 길(POST /api/auth/dev). 운영에서는 절대 켜지 않는다.
+      AUTH_DEV: "1"
+      # 시험 사이트는 http 라 로그인 쿠키에 Secure 를 붙이지 않는다.
+      COOKIE_SECURE: "0"
+      # 장애 확인을 20초마다(관리자 화면의 상태가 빨리 채워지게)
+      WATCH_SECONDS: "20"

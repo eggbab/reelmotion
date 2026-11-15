@@ -1,0 +1,6 @@
+# 고친 화면을 이미지를 다시 굽지 않고 바로 시험할 때: `npm run build` 로 만든 dist 를 웹 서버에 그대로 물린다.
+#   cd deploy && docker compose -f compose.yml -f ../e2e/compose.test.yml -f ../e2e/compose.dist.yml up -d --no-build web
+services:
+  web:
+    volumes:
+      - ../dist:/srv:ro

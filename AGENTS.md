@@ -61,7 +61,7 @@
 - 알려진 한계: 일본어는 띄어쓰기가 없어 Whisper 가 글자 단위로 시간을 준다(어절로 묶는 처리가 필요). 큰 영상 파일은 통째로 메모리에 올린다. 「높음」의 그래픽 카드 가속(WebGPU)은 아직 쓰지 않는다.
 
 ## 편집기 화면 규칙(2026-11-15 휴대폰 다듬기에서 정함 — 바꿀 때 지킬 것)
-- **미리보기 상자는 늘 영상 비율**이어야 한다(`.ed-frame` 의 `--ar`·`--max-h`, `editor.css`). 상자 비율이 영상과 다르면 그 위의 그래픽 캔버스가 영상과 어긋난다 — 예전에는 창이 높거나(1280×1000) 휴대폰에서 세로 영상을 열면 어긋났다. 확인: 스크래치의 `aspect.cjs`(창 5가지 × 가로·세로 영상).
+- **미리보기 상자는 늘 영상 비율**이어야 한다(`.ed-frame` 의 `--ar`·`--max-h`, `editor.css`). 상자 비율이 영상과 다르면 그 위의 그래픽 캔버스가 영상과 어긋난다 — 예전에는 창이 높거나(1280×1000) 휴대폰에서 세로 영상을 열면 어긋났다. 확인: `node e2e/tests/aspect.cjs`(창 5가지 × 가로·세로 영상).
 - 좁은 화면(900px 이하)은 미리보기 → 타임라인 → 판 순서로 쌓고, 세로로 넉넉하면(620px 이상) 미리보기를 위에 붙인다. 그래픽이 없으면 타임라인을 숨긴다(`.ed-body.is-empty`).
 - 타임라인(`Timeline.tsx`, 계산은 `timelineMath.ts`): 배율은 1초의 픽셀 수(짧으면 화면에 꼭 맞게, 길면 최소 28px 로 가로 밀기, −·+ 로 바꿈). 손가락은 **고른 블록만** 끌린다(고르지 않은 블록 위에서는 화면이 밀린다 — `touch-action`), 세로로 밀면 브라우저가 끊고(pointercancel) 그사이 움직임을 되돌린다. 눈금 줄은 위치 옮기기 자리(`touch-action: none`).
 - 영상 위치를 옮기는 `seek` 는 화면의 시각(`time`)도 바로 바꾼다 — 다음 그리기를 기다리면 막대가 옛 자리로 되돌아가 빠른 키 입력이 한 걸음으로 뭉친다.
@@ -76,6 +76,7 @@
 ## 기술 스택과 명령
 - Vite 8 · React 19 · TypeScript 7 · Vitest · oxlint · motion(스크롤 연동) · mediabunny(내보내기) · @huggingface/transformers(받아쓰기). 패키지 관리자는 npm 만.
 - `npm run dev` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`(화면 빌드 → 서버용 빌드 → 쪽마다 미리 그리기. 도메인을 알면 `SITE_ORIGIN=https://… npm run build`)
+- **화면 시험(끝에서 끝까지, 실제 크롬으로)**: `npm run e2e:media`(시험 영상 만들기) → 시험용 스택 띄우기 → `npm run e2e`. 14개 묶음·확인 206개(2026-11-15). 띄우는 법·시험마다 보는 것·스택을 다르게 띄워야 하는 시험은 **`e2e/README.md`**. 화면이나 서버 흐름을 고치면 관련 시험을 돌리고, 새 흐름을 만들면 시험을 더한다. 2026-11-15 까지는 작업 공간의 임시 폴더에만 있어 작업 공간이 닫히면 사라졌다.
 - 공유 그림·홈 화면 아이콘 다시 만들기(개발용, Playwright 필요): `node scripts/og.mjs` — 그리는 쪽은 `og.html`·`src/motion/og.ts`.
 - 그래픽 견본(개발용): `npm run dev` 후 `/lab.html?kinds=title,stat&themes=neon,seoul&portrait=1&lang=ko`.
 

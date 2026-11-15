@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 dist-app
 data
+# 화면 시험이 만든 것(영상·화면 사진·브라우저 자료)
+e2e/out
+e2e/media
