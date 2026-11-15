@@ -5,6 +5,8 @@ export type Word = {
   end: number
   /** 대본에서 이 어절 뒤에 줄이 바뀐다 — 자막도 여기서 끊는다. */
   lineEnd?: boolean
+  /** 다음 낱말과 빈칸 없이 붙여 쓴다(일본어처럼 띄어쓰기가 없는 말). */
+  joinNext?: boolean
 }
 
 /** 화면에 한 번에 뜨는 자막 한 덩어리. */

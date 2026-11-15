@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
+import { joinWords } from '../captions/segment'
 import type { Graphic } from '../motion/types'
 import type { EditorCopy } from './copy'
 import { LANE_COUNT, laneOf, moveGraphic, resizeGraphic } from './graphics'
@@ -34,7 +35,7 @@ function summary(g: Graphic): string {
     case 'list':
       return g.title || g.items.join(' · ')
     case 'captions':
-      return g.words.map((word) => word.text).join(' ')
+      return joinWords(g.words)
   }
 }
 

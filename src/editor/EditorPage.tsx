@@ -2,7 +2,7 @@ import { Download, Pause, Play, Upload, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { scriptToWords } from '../captions/segment'
+import { joinWords, scriptToWords } from '../captions/segment'
 import type { Word } from '../captions/types'
 import { ExportUnsupportedError, exportVideo } from '../export/exportVideo'
 import { useLang } from '../lang'
@@ -17,6 +17,8 @@ import type { Graphic, ThemeId } from '../motion/types'
 import { Logo, LangPicker } from '../site/Chrome'
 import { NoAudioError } from '../speech/audio'
 import { retime } from '../speech/retime'
+import { ServerBusyError, ServerTooLongError, checkSpeechServer, transcribeOnServer } from '../speech/server'
+import type { ServerProgress, SpeechServer } from '../speech/server'
 import { SPEECH_MODELS, transcribe } from '../speech/transcribe'
 import type { SpeechProgress, SpeechQuality } from '../speech/transcribe'
 import { EDITOR_COPY, SAMPLE_SCRIPTS } from './copy'
@@ -28,7 +30,16 @@ import './editor.css'
 
 type Source = { kind: 'sample'; clip: ClipId } | { kind: 'file'; file: File; url: string }
 
-type SpeechState = { stage: 'idle' } | SpeechProgress | { stage: 'done'; count: number } | { stage: 'failed'; reason: 'noAudio' | 'empty' | 'error' }
+type SpeechState =
+  | { stage: 'idle' }
+  | SpeechProgress
+  | ServerProgress
+  | { stage: 'done'; count: number }
+  | { stage: 'failed'; reason: 'noAudio' | 'empty' | 'error' | 'busy' }
+  | { stage: 'failed'; reason: 'tooLong'; maxSeconds: number }
+
+/** 받아쓰는 곳: ReelMotion 서버(Qwen3-ASR) 또는 이 브라우저(Whisper 보통·높음) */
+type SpeechEngine = 'server' | SpeechQuality
 
 type ExportState = { stage: 'idle' } | { stage: 'running'; progress: number } | { stage: 'done'; url: string; extension: string } | { stage: 'failed'; unsupported: boolean }
 
@@ -60,7 +71,9 @@ export function EditorPage() {
   const [playing, setPlaying] = useState(false)
   const [speech, setSpeech] = useState<SpeechState>({ stage: 'idle' })
   const [speechLanguage, setSpeechLanguage] = useState<string>(lang)
-  const [quality, setQuality] = useState<SpeechQuality>('standard')
+  const [engine, setEngine] = useState<SpeechEngine>('standard')
+  const [engineChosen, setEngineChosen] = useState(false)
+  const [server, setServer] = useState<SpeechServer | null>(null)
   const [exportState, setExportState] = useState<ExportState>({ stage: 'idle' })
   const [autoMade, setAutoMade] = useState(false)
 
@@ -85,6 +98,27 @@ export function EditorPage() {
   useEffect(() => {
     void loadFontsForGraphics(theme, shown)
   }, [theme, shown])
+
+  // 받아쓰기 서버가 있는지 본다. 모델을 올리는 중이면 15초마다 다시 본다.
+  useEffect(() => {
+    const controller = new AbortController()
+    let timer = 0
+    const check = async () => {
+      const status = await checkSpeechServer(controller.signal)
+      if (controller.signal.aborted) return
+      setServer(status)
+      if (status && !status.ready) timer = window.setTimeout(() => void check(), 15000)
+    }
+    void check()
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [])
+
+  // 서버가 준비돼 있고 사용자가 직접 고르지 않았으면 서버로 받아 적는다.
+  if (!engineChosen && server?.ready && engine !== 'server') setEngine('server')
+  if (!engineChosen && !server?.ready && engine === 'server') setEngine('standard')
 
   // 그리기: 영상 위 캔버스에 지금 시각의 그래픽
   useEffect(() => {
@@ -152,21 +186,22 @@ export function EditorPage() {
     const current = () => run.current === mine
     try {
       const blob = await sourceBlob(source)
-      const result = await transcribe(blob, {
-        quality,
-        language: speechLanguage === 'auto' ? null : (speechLanguage as 'en' | 'ko' | 'ja'),
-        onProgress: (progress) => current() && setSpeech(progress),
-      })
+      const language = speechLanguage === 'auto' ? null : (speechLanguage as 'en' | 'ko' | 'ja')
+      const onProgress = (progress: SpeechProgress | ServerProgress) => current() && setSpeech(progress)
+      const result =
+        engine === 'server' ? await transcribeOnServer(blob, { language, onProgress }) : await transcribe(blob, { quality: engine, language, onProgress })
       if (!current()) return
       if (result.length === 0) {
         setSpeech({ stage: 'failed', reason: 'empty' })
         return
       }
       setRecognized(result)
-      setScript(result.map((word) => word.text).join(' '))
+      setScript(joinWords(result))
       setSpeech({ stage: 'done', count: result.length })
     } catch (error) {
-      if (current()) setSpeech({ stage: 'failed', reason: error instanceof NoAudioError ? 'noAudio' : 'error' })
+      if (!current()) return
+      if (error instanceof ServerTooLongError) setSpeech({ stage: 'failed', reason: 'tooLong', maxSeconds: error.maxSeconds })
+      else setSpeech({ stage: 'failed', reason: error instanceof NoAudioError ? 'noAudio' : error instanceof ServerBusyError ? 'busy' : 'error' })
     }
   }
 
@@ -309,8 +344,12 @@ export function EditorPage() {
                 speech={speech}
                 speechLanguage={speechLanguage}
                 onSpeechLanguage={setSpeechLanguage}
-                quality={quality}
-                onQuality={setQuality}
+                engine={engine}
+                server={server}
+                onEngine={(value) => {
+                  setEngine(value)
+                  setEngineChosen(true)
+                }}
                 onListen={() => void listen()}
                 hasGraphics={graphics.length > 0}
                 canMake={words.length > 0}
@@ -382,8 +421,9 @@ type TranscriptProps = {
   speech: SpeechState
   speechLanguage: string
   onSpeechLanguage: (value: string) => void
-  quality: SpeechQuality
-  onQuality: (value: SpeechQuality) => void
+  engine: SpeechEngine
+  server: SpeechServer | null
+  onEngine: (value: SpeechEngine) => void
   onListen: () => void
   hasGraphics: boolean
   canMake: boolean
@@ -392,21 +432,27 @@ type TranscriptProps = {
 
 function TranscriptPanel(p: TranscriptProps) {
   const t = p.copy.transcript
-  const busy = p.speech.stage === 'decoding' || p.speech.stage === 'download' || p.speech.stage === 'listening'
+  const busy = ['decoding', 'download', 'listening', 'uploading', 'serverListening'].includes(p.speech.stage)
   const message = (() => {
     switch (p.speech.stage) {
       case 'idle':
-        return p.isSample ? p.copy.sampleNote : fill(t.firstTime, { mb: SPEECH_MODELS[p.quality].megabytes })
+        if (p.isSample) return p.copy.sampleNote
+        return p.engine === 'server' ? t.serverNote : fill(t.firstTime, { mb: SPEECH_MODELS[p.engine].megabytes })
       case 'decoding':
         return t.decoding
       case 'download':
         return fill(t.download, { n: Math.round(p.speech.progress * 100) })
       case 'listening':
         return t.listening
+      case 'uploading':
+        return t.uploading
+      case 'serverListening':
+        return t.serverListening
       case 'done':
         return fill(t.done, { n: p.speech.count })
       case 'failed':
-        return { noAudio: t.noAudio, empty: t.noSpeech, error: t.failed }[p.speech.reason]
+        if (p.speech.reason === 'tooLong') return fill(t.tooLong, { min: Math.floor(p.speech.maxSeconds / 60) })
+        return { noAudio: t.noAudio, empty: t.noSpeech, error: t.failed, busy: t.busy }[p.speech.reason]
     }
   })()
   return (
@@ -425,10 +471,15 @@ function TranscriptPanel(p: TranscriptProps) {
           </select>
         </label>
         <label className="mini-select">
-          {t.quality}
-          <select value={p.quality} disabled={busy} onChange={(e) => p.onQuality(e.target.value as SpeechQuality)}>
-            <option value="standard">{t.standard}</option>
-            <option value="precise">{t.precise}</option>
+          {t.engine}
+          <select value={p.engine} disabled={busy} onChange={(e) => p.onEngine(e.target.value as SpeechEngine)}>
+            {p.server && (
+              <option value="server" disabled={!p.server.ready}>
+                {p.server.ready ? t.engineServer : t.engineServerStarting}
+              </option>
+            )}
+            <option value="standard">{t.engineStandard}</option>
+            <option value="precise">{t.enginePrecise}</option>
           </select>
         </label>
       </div>

@@ -1,3 +1,4 @@
+import { joinWords } from '../captions/segment'
 import type { Word } from '../captions/types'
 import { findNumbers } from './numbers'
 import type { FoundNumber } from './numbers'
@@ -16,7 +17,7 @@ export function splitSentences(words: Word[]): Sentence[] {
     if (current.length === 0) return
     sentences.push({
       words: current,
-      text: current.map((word) => word.text).join(' '),
+      text: joinWords(current),
       start: current[0].start,
       end: current[current.length - 1].end,
     })
@@ -86,7 +87,11 @@ function labelOf(n: FoundNumber): string {
   return ''
 }
 
-const PARTICLE_AFTER = /^(이|가|은|는|을|를|의|도|에|에서|만|が|は|の|を|も|に)(?=\s|$)/u
+// 숫자 바로 뒤에 붙어 남는 조사. 한국어는 뒤에 빈칸이 와야(「3명이 안에」), 일본어는 바로 이어져도(「7000の島々」) 뗀다.
+const PARTICLE_AFTER = /^(?:(?:이|가|은|는|을|를|의|도|에|에서|만)(?=\s|$)|(?:が|は|の|を|も|に))/u
+/** 숫자 바로 앞의 어림 말(약 3명, 約7000) */
+const APPROX_BEFORE = /(約|およそ|ほぼ|약|대략|총)$/u
+const CJK_EDGE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u
 
 const STRONG_UNITS = new Set(['%', 'x', '배', '倍', 'M', 'B', 'K', '만', '억', '万', '億', '만원', '억원', '원', '円'])
 
@@ -106,11 +111,14 @@ function statLabel(text: string, n: FoundNumber): string {
     .split(/\s+/)
     .filter(Boolean)
   while (before.length > 0 && LEADING.has(before[before.length - 1].toLowerCase())) before.pop()
+  const head = before.join(' ').replace(APPROX_BEFORE, '').trimEnd()
   const after = clause
     .slice(at + n.raw.length)
     .replace(PARTICLE_AFTER, '')
     .replace(/[.!?。！？]+\s*$/, '')
-  return clampText(tidy(`${before.join(' ')} ${after}`), 40)
+  // 일본어처럼 붙여 쓰는 말은 빈칸 없이 잇는다.
+  const joined = CJK_EDGE.test(head.slice(-1)) && CJK_EDGE.test(after.trimStart().slice(0, 1)) ? `${head}${after.trimStart()}` : `${head} ${after}`
+  return clampText(tidy(joined), 40)
 }
 
 const tidy = (text: string) =>

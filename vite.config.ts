@@ -10,7 +10,8 @@ const isolationHeaders = {
 
 export default defineConfig({
   plugins: [react()],
-  server: { headers: isolationHeaders },
+  // 받아쓰기 서버(server/asr, Qwen3-ASR)를 같은 주소로 부른다. 서버가 꺼져 있으면 편집기는 브라우저 받아쓰기를 쓴다.
+  server: { headers: isolationHeaders, proxy: { '/api/asr': { target: 'http://127.0.0.1:8008', changeOrigin: true } } },
   preview: { headers: isolationHeaders },
   worker: { format: 'es' },
   // 글꼴 조각을 CSS 안에 넣지 않는다(넣으면 첫 화면 CSS 가 1MB 를 넘는다).

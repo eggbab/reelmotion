@@ -63,6 +63,11 @@ describe('direct', () => {
     expect(stat.label.startsWith('집에 충돌했을 때 안에')).toBe(true)
   })
 
+  it('일본어 숫자 설명은 빈칸 없이 잇고, 約 같은 어림 말과 앞에 남는 조사를 뺀다', () => {
+    const graphics = direct(timed('日本には約7000の島々があり、その最大は本州です。', 10))
+    expect(byKind(graphics, 'stat')[0]).toMatchObject({ value: 7000, label: '日本には島々があり' })
+  })
+
   it('첫째·둘째처럼 이어지는 말을 목록으로 만든다', () => {
     const graphics = direct(timed('Here is my routine.\nFirst, drink water.\nSecond, stretch for five minutes.\nThird, plan the day.', 24))
     const [list] = byKind(graphics, 'list')

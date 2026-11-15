@@ -446,7 +446,10 @@ export function drawCaptions(f: Frame, g: CaptionsGraphic, t: number, theme: The
   const words = cue.words.map((word) => (style.upper ? word.text.toUpperCase() : word.text))
   const widths = words.map((word) => ctx.measureText(word).width)
   const space = size * SPACE
-  const lines = layoutLines(widths, space, w * 0.86)
+  // 일본어처럼 붙여 쓰는 낱말 사이에는 빈칸을 두지 않는다.
+  const joins = cue.words.map((word) => Boolean(word.joinNext))
+  const gap = (i: number) => (joins[i] ? 0 : space)
+  const lines = layoutLines(widths, space, w * 0.86, joins)
   const lineH = size * LINE
   const centerY = h * (portrait ? 0.8 : 0.87) - ((lines.length - 1) * lineH) / 2
   const active = activeWordIndex(cue, t)
@@ -459,12 +462,12 @@ export function drawCaptions(f: Frame, g: CaptionsGraphic, t: number, theme: The
   const placed: { index: number; x: number; y: number }[] = []
   let widest = 0
   lines.forEach((indexes, lineIndex) => {
-    const lineWidth = indexes.reduce((sum, i) => sum + widths[i], 0) + space * (indexes.length - 1)
+    const lineWidth = indexes.reduce((sum, i, k) => sum + widths[i] + (k < indexes.length - 1 ? gap(i) : 0), 0)
     widest = Math.max(widest, lineWidth)
     let x = (w - lineWidth) / 2
     for (const index of indexes) {
       placed.push({ index, x: x + widths[index] / 2, y: centerY + lineIndex * lineH })
-      x += widths[index] + space
+      x += widths[index] + gap(index)
     }
   })
 

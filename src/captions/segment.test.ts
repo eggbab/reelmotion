@@ -94,3 +94,27 @@ describe('줄바꿈', () => {
     expect(cues.map((c) => c.words.map((x) => x.text).join(' '))).toEqual(['하나 둘', '셋'])
   })
 })
+
+describe('일본어처럼 띄어쓰기가 없는 말', () => {
+  it('낱말로 나누되 조사·문장 부호는 앞 낱말에 붙이고, 사이에 빈칸을 두지 않는다', async () => {
+    const { segmentText } = await import('./segment')
+    const parts = segmentText('今日はいい天気ですね。最初に、水を飲む。')
+    expect(parts.map((p) => p.text)).toEqual(['今日はいい', '天気ですね。', '最初に、', '水を', '飲む。'])
+    expect(parts.slice(0, -1).every((p) => p.joinNext)).toBe(true)
+    expect(parts.at(-1)?.joinNext).toBe(false)
+  })
+
+  it('나눈 조각의 글자 위치를 원문 기준으로 돌려준다', async () => {
+    const { segmentText } = await import('./segment')
+    const text = 'Hi there\n今日は'
+    for (const p of segmentText(text)) expect(text.slice(p.start, p.end)).toBe(p.text)
+  })
+
+  it('대본을 시간에 놓을 때 joinNext 를 남기고, 자막 글자 수에 빈칸을 세지 않는다', () => {
+    const words = scriptToWords('今日はいい天気ですね。', 4)
+    expect(words.map((x) => Boolean(x.joinNext))).toEqual([true, false])
+    // 5 + 6 = 11 자. 빈칸까지 세면 12 자라 둘로 나뉘었을 것이다.
+    const cues = wordsToCues(words, { maxChars: 11 })
+    expect(cues).toHaveLength(1)
+  })
+})

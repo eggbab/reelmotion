@@ -53,8 +53,11 @@ export function retime(base: Word[], text: string): Word[] {
     tokens.map((token) => normalize(token.text)),
   )
   const out: Word[] = []
-  const push = (token: { text: string; lineEnd: boolean }, start: number, end: number) => {
-    out.push(token.lineEnd ? { text: token.text, start, end, lineEnd: true } : { text: token.text, start, end })
+  const push = (token: { text: string; lineEnd: boolean; joinNext: boolean }, start: number, end: number) => {
+    const word: Word = { text: token.text, start, end }
+    if (token.lineEnd) word.lineEnd = true
+    if (token.joinNext) word.joinNext = true
+    out.push(word)
   }
 
   let prevBase = -1

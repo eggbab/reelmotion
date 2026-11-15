@@ -1,0 +1,5 @@
+# 받아쓰기 서버. PyTorch 는 Dockerfile 이 하드웨어에 맞는 판을 먼저 깐다(그래픽 카드면 cu126, 아니면 cpu).
+qwen-asr==0.0.6
+starlette>=1.0.1,<2
+uvicorn[standard]==0.54.0
+numpy>=2,<3

@@ -22,9 +22,16 @@ export type EditorCopy = {
     listen: string
     language: string
     auto: string
-    quality: string
-    standard: string
-    precise: string
+    engine: string
+    engineServer: string
+    engineServerStarting: string
+    engineStandard: string
+    enginePrecise: string
+    serverNote: string
+    uploading: string
+    serverListening: string
+    busy: string
+    tooLong: string
     firstTime: string
     noSpeech: string
     decoding: string
@@ -102,9 +109,16 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       listen: 'Transcribe speech',
       language: 'Spoken language',
       auto: 'Auto',
-      quality: 'Accuracy',
-      standard: 'Standard (fast)',
-      precise: 'High (slow)',
+      engine: 'Transcribe with',
+      engineServer: 'ReelMotion server (Qwen3-ASR)',
+      engineServerStarting: 'ReelMotion server — starting…',
+      engineStandard: 'This browser — fast',
+      enginePrecise: 'This browser — accurate (slow)',
+      serverNote: 'Only the sound is sent to the ReelMotion speech server to be written down, and it is not kept. Your video stays here.',
+      uploading: 'Sending the sound…',
+      serverListening: 'The server is listening…',
+      busy: 'The speech server is busy. Try again in a moment, or transcribe in this browser.',
+      tooLong: 'The speech server takes up to {min} minutes of audio. Transcribe in this browser instead.',
       firstTime: 'The first time downloads about {mb} MB. Your video never leaves this browser.',
       noSpeech: 'No speech was found. You can type the script below instead.',
       decoding: 'Reading the audio…',
@@ -180,9 +194,16 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       listen: '말 받아쓰기',
       language: '말하는 언어',
       auto: '자동',
-      quality: '정확도',
-      standard: '보통 (빠름)',
-      precise: '높음 (느림)',
+      engine: '받아쓰는 곳',
+      engineServer: 'ReelMotion 서버 (Qwen3-ASR)',
+      engineServerStarting: 'ReelMotion 서버 — 준비 중…',
+      engineStandard: '이 브라우저 — 빠르게',
+      enginePrecise: '이 브라우저 — 정확하게(느림)',
+      serverNote: '소리만 ReelMotion 받아쓰기 서버로 보내 받아 적고, 서버에 남기지 않아요. 영상은 보내지 않아요.',
+      uploading: '소리를 보내는 중…',
+      serverListening: '서버가 듣는 중…',
+      busy: '받아쓰기 서버가 바빠요. 잠시 뒤 다시 누르거나 이 브라우저에서 받아 적어 주세요.',
+      tooLong: '받아쓰기 서버는 소리 {min}분까지 받아요. 이 브라우저에서 받아 적어 주세요.',
       firstTime: '처음 한 번 약 {mb}MB를 내려받아요. 영상은 이 브라우저 밖으로 나가지 않아요.',
       noSpeech: '말소리를 찾지 못했어요. 아래에 대본을 직접 적어도 돼요.',
       decoding: '소리를 읽는 중…',
@@ -258,9 +279,16 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       listen: '声を書き起こす',
       language: '話している言語',
       auto: '自動',
-      quality: '精度',
-      standard: '標準(速い)',
-      precise: '高い(遅い)',
+      engine: '書き起こす場所',
+      engineServer: 'ReelMotion サーバー(Qwen3-ASR)',
+      engineServerStarting: 'ReelMotion サーバー — 準備中…',
+      engineStandard: 'このブラウザ — 速い',
+      enginePrecise: 'このブラウザ — 正確(遅い)',
+      serverNote: '音声だけを ReelMotion の書き起こしサーバーに送り、サーバーには残しません。動画は送りません。',
+      uploading: '音声を送っています…',
+      serverListening: 'サーバーが聞き取り中…',
+      busy: '書き起こしサーバーが混み合っています。少し待つか、このブラウザで書き起こしてください。',
+      tooLong: '書き起こしサーバーは音声 {min} 分までです。このブラウザで書き起こしてください。',
       firstTime: '初回のみ約 {mb}MB をダウンロードします。動画はこのブラウザの外に出ません。',
       noSpeech: '話し声が見つかりませんでした。下に台本を入力してもかまいません。',
       decoding: '音声を読み込み中…',
