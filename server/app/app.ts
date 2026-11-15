@@ -18,6 +18,8 @@ import type { AssistModel } from './assist'
 import { BACKUP_FILE, effectivePlan, listBackups, overview, searchUsers, setPlan } from './admin-data'
 import type { BillingProvider } from './billing'
 import { createConnector, openDraftStore } from './connect'
+import { ERRORS_PER_MINUTE, MAX_ERROR_BODY, PULSE_PER_MINUTE, agentOf, cleanError, createPulse } from './pulse'
+import { isClientEvent } from '../../src/pulseEvents'
 import type { DraftStore } from './connect'
 import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
@@ -308,6 +310,28 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     return c.json({ ok: true })
   })
 
+  // ── 쓰임 숫자·브라우저 오류(누가 했는지는 남기지 않는다 — pulse.ts) ──
+  const pulse = createPulse({ db, now })
+  const pulseLimiter = createRateLimiter(PULSE_PER_MINUTE, 60_000, now)
+  const errorLimiter = createRateLimiter(ERRORS_PER_MINUTE, 60_000, now)
+
+  app.post('/pulse', bodyLimit({ maxSize: 1024, onError: (c) => c.json({ error: 'too_large' }, 413) }), async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { event?: unknown } | null
+    const event = typeof body === 'object' && body !== null ? body.event : undefined
+    if (!isClientEvent(event)) return c.json({ error: 'bad_request' }, 400)
+    if (!pulseLimiter.hit(visitorOf(c))) return c.json({ error: 'rate_limited' }, 429)
+    pulse.count(event, agentOf(c.req.header('user-agent')))
+    return c.body(null, 204)
+  })
+
+  app.post('/client-error', bodyLimit({ maxSize: MAX_ERROR_BODY, onError: (c) => c.json({ error: 'too_large' }, 413) }), async (c) => {
+    const error = cleanError(await c.req.json().catch(() => null))
+    if (!error) return c.json({ error: 'bad_request' }, 400)
+    if (!errorLimiter.hit(visitorOf(c))) return c.json({ error: 'rate_limited' }, 429)
+    pulse.reportError(error, agentOf(c.req.header('user-agent')))
+    return c.body(null, 204)
+  })
+
   // ── 말로 고치기 ──
   app.get('/assist/health', async (c) => c.json({ ready: assist ? await assist.ready() : false }))
 
@@ -327,6 +351,7 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     try {
       const result = parseReply(await assist.complete(buildMessages(state, instruction, lang), RESPONSE_SCHEMA), state)
       if (!result || (!result.reply && result.ops.length === 0)) return c.json({ error: 'bad_reply' }, 502)
+      pulse.count('chat_edit', agentOf(c.req.header('user-agent')))
       return c.json(result)
     } catch (error) {
       console.error('assist failed:', error instanceof Error ? error.message : error)
@@ -337,7 +362,7 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
   })
 
   // ── Claude·ChatGPT 커넥터(MCP)와 그 초안 ──
-  const connector = createConnector({ db: drafts, now, siteOrigin: config.siteOrigin, enabled: config.connector ?? true })
+  const connector = createConnector({ db: drafts, now, siteOrigin: config.siteOrigin, enabled: config.connector ?? true, onUse: (event) => pulse.count(event, 'connector') })
   app.all('/mcp', (c) => connector.handle(c.req.raw, visitorOf(c)))
 
   /** 「편집기로 열기」 주소(?draft=)가 가리키는 대본·스타일. 7일이 지났거나 없으면 404. */
@@ -377,6 +402,14 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     db.prepare('update notice set active = ?, level = ?, text_ko = ?, text_en = ?, text_ja = ?, updated_at = ? where id = 1').run(body.active ? 1 : 0, body.level, text.ko, text.en, text.ja, now())
     const row = readNotice()
     return c.json({ notice: { active: row.active === 1, level: row.level, text: noticeText(row), version: row.updated_at } })
+  })
+
+  // 쓰임 숫자(최근 7일)와 브라우저 오류 — 관리자만
+  app.get('/admin/pulse', (c) => c.json(pulse.summary()))
+  app.get('/admin/errors', (c) => c.json({ errors: pulse.errors() }))
+  app.delete('/admin/errors', (c) => {
+    pulse.clearErrors()
+    return c.json({ ok: true })
   })
 
   app.get('/admin/overview', (c) =>

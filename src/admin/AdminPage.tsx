@@ -16,7 +16,9 @@ import { backupUrl, changePlan, fetchOverview, findUsers, sendTestAlert } from '
 import type { AdminOverview, AdminUser } from './api'
 import { ADMIN_COPY } from './copy'
 import type { AdminCopy } from './copy'
+import { ErrorsCard } from './ErrorsCard'
 import { NoticeCard } from './NoticeCard'
+import { PulseCard } from './PulseCard'
 
 const LOCALE: Record<Lang, string> = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' }
 const clock = (ms: number, lang: Lang) => new Date(ms).toLocaleString(LOCALE[lang], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -282,6 +284,8 @@ function AdminBoard({ copy, lang }: Props) {
     <>
       <StatusCard copy={copy} lang={lang} status={data.status} />
       <NumbersCard copy={copy} lang={lang} data={data} />
+      <PulseCard copy={copy} />
+      <ErrorsCard copy={copy} lang={lang} />
       <PeopleCard copy={copy} lang={lang} recent={data.recent} onChanged={reload} />
       <NoticeCard copy={copy} lang={lang} />
       <BackupsCard copy={copy} lang={lang} backups={data.backups} />

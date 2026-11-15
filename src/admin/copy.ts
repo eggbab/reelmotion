@@ -1,4 +1,5 @@
 import type { Lang } from '../langs'
+import type { PulseEvent } from '../pulseEvents'
 
 /** 관리자 화면(/admin) 글. 운영자가 보는 곳이라 짧게. */
 export type AdminCopy = {
@@ -75,6 +76,29 @@ export type AdminCopy = {
   noticeSaved: string
   noticeErrors: Record<'empty' | 'too_long' | 'failed', string>
   noticeUpdated: string
+  /** 쓰임 숫자(최근 7일) — 누가 했는지는 없다 */
+  pulse: {
+    title: string
+    note: string
+    what: string
+    total: string
+    bots: string
+    empty: string
+    exportsTitle: string
+    browser: string
+    started: string
+    done: string
+    failed: string
+    unsupported: string
+    events: Record<PulseEvent, string>
+    families: Record<'chrome' | 'safari' | 'firefox' | 'edge' | 'samsung' | 'opera' | 'whale' | 'inapp' | 'other', string>
+    systems: Record<'windows' | 'mac' | 'ios' | 'android' | 'chromeos' | 'linux' | 'other', string>
+    connector: string
+    bot: string
+    unknown: string
+  }
+  /** 브라우저 오류(최근 30일) */
+  errors: { title: string; note: string; empty: string; count: string; last: string; version: string; stack: string; clear: string; cleared: string }
 }
 
 export const ADMIN_COPY: Record<Lang, AdminCopy> = {
@@ -157,6 +181,52 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     noticeSaved: '저장했어요.',
     noticeErrors: { empty: '공지를 보이려면 한 언어 이상 글을 적어 주세요.', too_long: '언어마다 300자까지 적을 수 있어요.', failed: '저장하지 못했어요. 다시 시도해 주세요.' },
     noticeUpdated: '마지막 저장: {time}',
+    pulse: {
+      title: '쓰임 (최근 7일)',
+      note: '누가 했는지는 남기지 않고, 날짜마다 횟수만 세요. 날짜는 서울 시간이에요.',
+      what: '무엇',
+      total: '합계',
+      bots: '검색 로봇 같은 자동 프로그램 {n}번은 뺐어요.',
+      empty: '아직 기록이 없어요.',
+      exportsTitle: '브라우저별 내보내기',
+      browser: '브라우저',
+      started: '시작',
+      done: '끝',
+      failed: '실패',
+      unsupported: '못 함',
+      events: {
+        editor_open: '편집기 열기',
+        video_added: '영상 넣기',
+        sample_opened: '예시 영상 열기',
+        draft_opened: '커넥터 링크로 열기',
+        transcribe_ok: '받아쓰기 됨',
+        transcribe_failed: '받아쓰기 실패',
+        graphics_made: '그래픽 만들기',
+        export_started: '내보내기 시작',
+        export_done: '내보내기 끝',
+        export_failed: '내보내기 실패',
+        export_unsupported: '내보내기 못 하는 브라우저',
+        chat_edit: '말로 고치기',
+        connector_plan: '커넥터: 계획 보기',
+        connector_link: '커넥터: 링크 만들기',
+      },
+      families: { chrome: '크롬', safari: '사파리', firefox: '파이어폭스', edge: '엣지', samsung: '삼성 인터넷', opera: '오페라', whale: '웨일', inapp: '앱 안 브라우저', other: '그 밖' },
+      systems: { windows: '윈도우', mac: '맥', ios: '아이폰·아이패드', android: '안드로이드', chromeos: '크롬북', linux: '리눅스', other: '그 밖' },
+      connector: 'Claude·ChatGPT',
+      bot: '자동 프로그램',
+      unknown: '알 수 없음',
+    },
+    errors: {
+      title: '브라우저 오류 (최근 30일)',
+      note: '편집기가 이용자의 브라우저에서 고장 났을 때의 오류예요. 누구인지는 남기지 않아요.',
+      empty: '오류가 없어요.',
+      count: '{n}번',
+      last: '마지막 {time}',
+      version: '판 {v}',
+      stack: '어디서 났는지 보기',
+      clear: '모두 지우기',
+      cleared: '지웠어요.',
+    },
   },
   en: {
     title: 'Admin',
@@ -237,6 +307,52 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     noticeSaved: 'Saved.',
     noticeErrors: { empty: 'Write the notice in at least one language to show it.', too_long: 'Each language can have up to 300 characters.', failed: 'Could not save. Please try again.' },
     noticeUpdated: 'Last saved: {time}',
+    pulse: {
+      title: 'Usage (last 7 days)',
+      note: 'Counts per day only, with no record of who. Days are in Seoul time.',
+      what: 'What',
+      total: 'Total',
+      bots: '{n} from automated programs such as search crawlers are left out.',
+      empty: 'Nothing recorded yet.',
+      exportsTitle: 'Exports by browser',
+      browser: 'Browser',
+      started: 'Started',
+      done: 'Finished',
+      failed: 'Failed',
+      unsupported: 'Not supported',
+      events: {
+        editor_open: 'Editor opened',
+        video_added: 'Video added',
+        sample_opened: 'Sample opened',
+        draft_opened: 'Opened from a connector link',
+        transcribe_ok: 'Transcribed',
+        transcribe_failed: 'Transcription failed',
+        graphics_made: 'Graphics made',
+        export_started: 'Export started',
+        export_done: 'Export finished',
+        export_failed: 'Export failed',
+        export_unsupported: 'Export not supported',
+        chat_edit: 'Chat edits',
+        connector_plan: 'Connector: plans',
+        connector_link: 'Connector: links',
+      },
+      families: { chrome: 'Chrome', safari: 'Safari', firefox: 'Firefox', edge: 'Edge', samsung: 'Samsung Internet', opera: 'Opera', whale: 'Whale', inapp: 'In-app browser', other: 'Other' },
+      systems: { windows: 'Windows', mac: 'Mac', ios: 'iPhone & iPad', android: 'Android', chromeos: 'Chromebook', linux: 'Linux', other: 'Other' },
+      connector: 'Claude & ChatGPT',
+      bot: 'Automated program',
+      unknown: 'Unknown',
+    },
+    errors: {
+      title: 'Browser errors (last 30 days)',
+      note: 'Errors from when the editor broke in someone’s browser. There is no record of who.',
+      empty: 'No errors.',
+      count: '{n} times',
+      last: 'last {time}',
+      version: 'build {v}',
+      stack: 'Show where it happened',
+      clear: 'Clear all',
+      cleared: 'Cleared.',
+    },
   },
   ja: {
     title: '管理画面',
@@ -317,5 +433,51 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     noticeSaved: '保存しました。',
     noticeErrors: { empty: 'お知らせを表示するには、1つ以上の言語で文を書いてください。', too_long: '言語ごとに300文字まで書けます。', failed: '保存できませんでした。もう一度お試しください。' },
     noticeUpdated: '最後の保存: {time}',
+    pulse: {
+      title: '利用状況(直近7日)',
+      note: '誰が行ったかは記録せず、日ごとの回数だけを数えます。日付はソウル時間です。',
+      what: '内容',
+      total: '合計',
+      bots: '検索ロボットなどの自動プログラム {n} 回は除いています。',
+      empty: 'まだ記録がありません。',
+      exportsTitle: 'ブラウザ別の書き出し',
+      browser: 'ブラウザ',
+      started: '開始',
+      done: '完了',
+      failed: '失敗',
+      unsupported: '非対応',
+      events: {
+        editor_open: 'エディターを開いた',
+        video_added: '動画を追加',
+        sample_opened: 'サンプルを開いた',
+        draft_opened: 'コネクターのリンクから開いた',
+        transcribe_ok: '文字起こし成功',
+        transcribe_failed: '文字起こし失敗',
+        graphics_made: 'グラフィック作成',
+        export_started: '書き出し開始',
+        export_done: '書き出し完了',
+        export_failed: '書き出し失敗',
+        export_unsupported: '書き出し非対応',
+        chat_edit: '話して直す',
+        connector_plan: 'コネクター: 計画',
+        connector_link: 'コネクター: リンク',
+      },
+      families: { chrome: 'Chrome', safari: 'Safari', firefox: 'Firefox', edge: 'Edge', samsung: 'Samsung Internet', opera: 'Opera', whale: 'Whale', inapp: 'アプリ内ブラウザ', other: 'その他' },
+      systems: { windows: 'Windows', mac: 'Mac', ios: 'iPhone・iPad', android: 'Android', chromeos: 'Chromebook', linux: 'Linux', other: 'その他' },
+      connector: 'Claude・ChatGPT',
+      bot: '自動プログラム',
+      unknown: '不明',
+    },
+    errors: {
+      title: 'ブラウザのエラー(直近30日)',
+      note: '利用者のブラウザでエディターが壊れたときのエラーです。誰かは記録しません。',
+      empty: 'エラーはありません。',
+      count: '{n}回',
+      last: '最後 {time}',
+      version: 'ビルド {v}',
+      stack: '発生箇所を見る',
+      clear: 'すべて消す',
+      cleared: '消しました。',
+    },
   },
 }

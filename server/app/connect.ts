@@ -70,7 +70,16 @@ export function openDraftStore(path: string): DraftStore {
   return db
 }
 
-export function createConnector({ db, now, siteOrigin, enabled = true }: { db: DraftStore; now: () => number; siteOrigin: string | null; enabled?: boolean }) {
+type ConnectorOptions = {
+  db: DraftStore
+  now: () => number
+  siteOrigin: string | null
+  enabled?: boolean
+  /** 계획을 냈거나 링크를 만들었을 때(쓰임 숫자 — 누가 불렀는지는 넘기지 않는다) */
+  onUse?: (event: 'connector_plan' | 'connector_link') => void
+}
+
+export function createConnector({ db, now, siteOrigin, enabled = true, onUse }: ConnectorOptions) {
   const limiter = createRateLimiter(DRAFTS_PER_MINUTE, 60_000, now)
   const visitors = createRateLimiter(DRAFTS_PER_VISITOR, 60_000, now)
 
@@ -131,6 +140,7 @@ export function createConnector({ db, now, siteOrigin, enabled = true }: { db: D
       async ({ script, language, video_seconds }) => {
         const plan = planFromScript(script, { language, seconds: video_seconds })
         if (!plan.ok) return failure(PLAN_ERRORS[plan.error])
+        onUse?.('connector_plan')
         const head = `${plan.graphics.length} graphics over ${plan.seconds}s${plan.estimated ? ' (length estimated from the script)' : ''}:`
         return { ...text(`${head}\n${describePlan(plan)}`), structuredContent: { language: plan.language, seconds: plan.seconds, estimated: plan.estimated, graphics: plan.graphics } }
       },
@@ -157,6 +167,7 @@ export function createConnector({ db, now, siteOrigin, enabled = true }: { db: D
         const lang = language ?? guessLang(script)
         const theme = style ?? 'neon'
         const draft = saveDraft(lang, theme, script)
+        onUse?.('connector_link')
         const url = `${origin}${draftPath(lang, draft.id)}`
         const expires = new Date(draft.expiresAt).toISOString()
         return {

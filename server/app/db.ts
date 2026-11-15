@@ -4,7 +4,8 @@ import { DatabaseSync } from 'node:sqlite'
  * 앱 서버의 저장소: SQLite 파일 하나(운영은 볼륨 /data/reelmotion.db — 백업은 이 파일을 복사, docs/operations.md).
  * 판을 올릴 때는 MIGRATIONS 끝에 하나를 더한다(이미 쓴 것은 고치지 않는다).
  * 저장하는 것: 계정(구글 id·메일·이름·요금제), 로그인 세션(토큰은 해시만), 로그인 중인 요청(10분), 작업(영상 제외), 월별 내보내기 수,
- * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님). 커넥터 초안은 여기 두지 않는다(백업에 들어가지 않게 따로 — connect.ts).
+ * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님), 쓰임 숫자(날짜·이름·브라우저 종류·횟수)와 브라우저 오류(오류 글·쪽 주소·브라우저 종류·판 —
+ * 누구인지는 없다, pulse.ts). 커넥터 초안은 여기 두지 않는다(백업에 들어가지 않게 따로 — connect.ts).
  * 바꾸면 개인정보처리방침(src/site/legal/privacy.ts)도 함께 고친다.
  */
 const MIGRATIONS: string[] = [
@@ -58,6 +59,28 @@ const MIGRATIONS: string[] = [
     updated_at integer not null default 0
   );
   insert into notice (id) values (1);
+  `,
+  // 2026-11-15: 운영자가 고장과 쓰임을 보는 숫자(pulse.ts). 누가 했는지는 넣을 칸이 없다.
+  `
+  create table pulse_daily (
+    day text not null,
+    event text not null,
+    agent text not null,
+    count integer not null default 0,
+    primary key (day, event, agent)
+  );
+  create table client_errors (
+    fingerprint text primary key,
+    message text not null,
+    stack text not null default '',
+    page text not null default '',
+    agent text not null default '',
+    version text not null default '',
+    count integer not null default 1,
+    first_at integer not null,
+    last_at integer not null
+  );
+  create index client_errors_last on client_errors(last_at);
   `,
 ]
 

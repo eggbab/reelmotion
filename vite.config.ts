@@ -75,8 +75,12 @@ const isolationHeaders = {
   'Cross-Origin-Embedder-Policy': 'credentialless',
 }
 
+/** 이 빌드의 판 번호(만든 때). 브라우저 오류를 알릴 때 어느 판에서 났는지 적는다 — src/errors.ts. BUILD_ID 로 바꿔 줄 수 있다. */
+const buildId = process.env.BUILD_ID || new Date().toISOString().slice(0, 16).replace(/\D/g, '')
+
 export default defineConfig({
   plugins: [react(), thirdPartyNotices(true)],
+  define: { __RM_BUILD__: JSON.stringify(buildId) },
   // 받아쓰기 서버(server/asr, Qwen3-ASR)를 같은 주소로 부른다. 서버가 꺼져 있으면 편집기는 브라우저 받아쓰기를 쓴다.
   // 앱 서버(server/app, 로그인·작업 저장)는 /api 의 나머지. 둘 다 꺼져 있어도 편집기는 돈다(계정 기능만 숨는다).
   server: {

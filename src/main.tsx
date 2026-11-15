@@ -6,18 +6,24 @@ import { BrowserRouter } from 'react-router'
 import { AppRoutes } from './App.tsx'
 import './index.css'
 import './site/site.css'
+import { watchErrors } from './errors'
 import { watchInstall } from './pwa/install'
+import { ErrorBoundary } from './site/ErrorBoundary'
 import { renderKey } from './site/routes'
 
 // 「앱으로 설치」 사건은 화면보다 먼저 올 수 있어 여기서부터 듣는다(src/pwa/install.ts).
 watchInstall()
+// 잡히지 않은 오류를 운영자가 알 수 있게 알린다(src/errors.ts — 누구인지는 보내지 않는다).
+watchErrors()
 
 const root = document.getElementById('root')!
 const app = (
   <StrictMode>
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>
 )
 

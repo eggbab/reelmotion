@@ -16,12 +16,14 @@ import type { Lang } from '../langs'
 import { CLIPS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import { fetchDraft } from '../connect/api'
+import { reportError } from '../errors'
 import { release } from '../http'
 import { direct } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
 import type { Graphic, Theme, ThemeId } from '../motion/types'
+import { pulse } from '../pulse'
 import { promptInstall, useCanInstall } from '../pwa/install'
 import { registerServiceWorker } from '../pwa/register'
 import { useOnline } from '../pwa/useOnline'
@@ -227,6 +229,7 @@ export function EditorPage() {
     void fetchDraft(wantedDraft).then((draft) => {
       if (!alive) return
       if (draft.status === 'ready') {
+        pulse('draft_opened')
         setSession((current) => ({ key: current.key + 1, id: null, initial: { ...blankInitial(lang, draft.theme), pending: draft.script }, notice: null, draft: wantedDraft }))
       } else {
         setSession((current) => ({ key: current.key + 1, id: null, initial: blankInitial(lang), notice: draft.status === 'gone' ? 'draftGone' : 'draftFailed', draft: wantedDraft }))
@@ -239,6 +242,8 @@ export function EditorPage() {
 
   // 편집기를 연 사람에게만 화면 파일을 브라우저에 받아 둔다 — 다음부터 인터넷이 없어도 편집기가 열린다(src/pwa).
   useEffect(() => registerServiceWorker(), [])
+  // 쓰임 숫자: 편집기를 연 횟수(누가 열었는지는 보내지 않는다 — src/pulse.ts)
+  useEffect(() => pulse('editor_open', { once: true }), [])
 
   useEffect(() => {
     if (!wanted || wanted === session.id) return
@@ -461,6 +466,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     if (!file || !file.type.startsWith('video/')) return
     run.current += 1
     toTop()
+    pulse('video_added')
     setSource({ kind: 'file', file })
     setName((current) => current || defaultName(fileMeta(file), copy.untitled))
     setRecognized(null)
@@ -485,6 +491,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const openSample = (clip: ClipId) => {
     run.current += 1
     toTop()
+    pulse('sample_opened')
     setSource({ kind: 'sample', clip })
     setRecognized(null)
     setScript(draftScript ?? SAMPLE_SCRIPTS[lang])
@@ -506,21 +513,27 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
         engine === 'server' ? await transcribeOnServer(blob, { language, onProgress }) : await transcribe(blob, { quality: engine, language, onProgress })
       if (!current()) return
       if (result.length === 0) {
+        pulse('transcribe_failed')
         setSpeech({ stage: 'failed', reason: 'empty' })
         return
       }
+      pulse('transcribe_ok')
       setRecognized(result)
       setScript(joinWords(result))
       setSpeech({ stage: 'done', count: result.length })
       touch()
     } catch (error) {
       if (!current()) return
+      pulse('transcribe_failed')
+      // 소리가 없는 영상·서버가 바쁨·너무 긴 영상은 고장이 아니다. 그 밖의 까닭은 운영자가 알 수 있게 알린다.
+      if (!(error instanceof NoAudioError) && !(error instanceof ServerBusyError) && !(error instanceof ServerTooLongError)) reportError(error)
       if (error instanceof ServerTooLongError) setSpeech({ stage: 'failed', reason: 'tooLong', maxSeconds: error.maxSeconds })
       else setSpeech({ stage: 'failed', reason: error instanceof NoAudioError ? 'noAudio' : error instanceof ServerBusyError ? 'busy' : 'error' })
     }
   }
 
   const makeGraphics = () => {
+    pulse('graphics_made')
     setGraphics(clampToDuration(direct(words), duration))
     setSelectedId(null)
     setTab('graphics')
@@ -699,14 +712,23 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       setExportState({ stage: 'blocked', reason: permit.reason })
       return
     }
+    pulse('export_started')
     try {
       const blob = await sourceBlob(source)
       const result = await exportVideo(blob, shown, theme, { onProgress: (progress) => setExportState({ stage: 'running', progress }), signal: controller.signal, watermark: permit.watermark })
       reportExportDone()
+      pulse('export_done')
       setExportState({ stage: 'done', url: URL.createObjectURL(result.blob), extension: result.extension, watermark: permit.watermark, remaining: permit.remaining })
     } catch (error) {
-      if (controller.signal.aborted) setExportState({ stage: 'idle' })
-      else setExportState({ stage: 'failed', unsupported: error instanceof ExportUnsupportedError })
+      if (controller.signal.aborted) {
+        setExportState({ stage: 'idle' })
+        return
+      }
+      // 어느 브라우저에서 왜 안 되는지 운영자가 알 수 있게: 못 하는 브라우저와 하다가 실패한 것을 따로 세고, 실패의 까닭을 알린다
+      const unsupported = error instanceof ExportUnsupportedError
+      pulse(unsupported ? 'export_unsupported' : 'export_failed')
+      if (!unsupported) reportError(error)
+      setExportState({ stage: 'failed', unsupported })
     }
   }
 

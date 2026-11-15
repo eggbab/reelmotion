@@ -39,6 +39,28 @@ const APP: Record<Lang, PageMeta> = {
   },
 }
 
+/** 화면을 그리다 오류가 났을 때의 안내(src/site/ErrorBoundary.tsx). 「내 작업」 이름은 편집기 글(src/editor/copy.ts)과 같게. */
+export const CRASH: Record<Lang, { heading: string; body: string; reload: string; home: string }> = {
+  en: {
+    heading: 'Something went wrong',
+    body: 'An error stopped this screen. Reload to open it again. Projects you edited are saved under My projects in this browser.',
+    reload: 'Reload',
+    home: 'Go to the home page',
+  },
+  ko: {
+    heading: '문제가 생겼어요',
+    body: '화면을 그리다가 오류가 났어요. 새로고침하면 다시 열려요. 편집기에서 고친 작업은 이 브라우저의 「내 작업」에 저장돼 있어요.',
+    reload: '새로고침',
+    home: '첫 화면으로',
+  },
+  ja: {
+    heading: '問題が発生しました',
+    body: '画面の表示中にエラーが起きました。再読み込みすると開き直せます。エディターで編集したプロジェクトは、このブラウザの「マイプロジェクト」に保存されています。',
+    reload: '再読み込み',
+    home: 'トップページへ',
+  },
+}
+
 export const NOT_FOUND: Record<Lang, PageMeta & { heading: string; body: string; home: string; editor: string }> = {
   en: {
     title: 'Page not found — ReelMotion',

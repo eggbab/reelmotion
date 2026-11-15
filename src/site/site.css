@@ -2606,3 +2606,123 @@
     opacity: 1;
   }
 }
+
+/* ───────── 관리자 화면: 쓰임 숫자 표 · 브라우저 오류 ───────── */
+
+/* 좁은 화면에서는 표만 가로로 밀린다(화면 전체가 밀리지 않게 상자를 기준으로 삼는다) */
+.admin-table-wrap {
+  position: relative;
+  margin: 12px 0 0;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.admin-table thead th {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-table th[scope='row'],
+.admin-table thead th:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.admin-table strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.admin-table tr.is-empty th,
+.admin-table tr.is-empty td,
+.admin-table tr.is-empty strong {
+  color: var(--dim);
+}
+
+.admin-table td.is-bad {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.site .account-card .admin-subtitle {
+  margin: 28px 0 0;
+  color: var(--text);
+  font: 600 15px/1.4 var(--font);
+}
+
+/* 표가 가로로 밀릴 때(휴대폰) 이름 칸은 붙어 있다 — 날짜를 보며 무엇의 숫자인지 알 수 있게 */
+.admin-table-wrap.is-wide th[scope='row'],
+.admin-table-wrap.is-wide thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding-right: 14px;
+  background: var(--bg);
+  box-shadow: 1px 0 0 var(--line);
+}
+
+.legal .admin-errors {
+  display: grid;
+  gap: 0;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal .admin-errors li {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal .admin-errors li::before {
+  display: none;
+}
+
+.admin-errors strong {
+  color: var(--text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.legal .admin-errors span,
+.admin-errors summary {
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.admin-errors summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.admin-stack {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 4%);
+  color: var(--text-2);
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre;
+}

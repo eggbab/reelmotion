@@ -1,4 +1,5 @@
 import { release } from '../http'
+import type { PulseEvent } from '../pulseEvents'
 
 /**
  * 관리자 화면이 앱 서버(/api/admin — server/app/app.ts)와 이야기하는 곳. 관리자가 아니면 서버가 401·403 을 준다.
@@ -71,4 +72,27 @@ export async function saveNotice(notice: Omit<AdminNotice, 'version'>): Promise<
   if (response?.ok) return { ok: true, notice: ((await response.json()) as { notice: AdminNotice }).notice }
   const error = ((await response?.json().catch(() => null)) as { error?: string } | null)?.error
   return { ok: false, error: error === 'empty' || error === 'too_long' ? error : 'failed' }
+}
+
+/** 쓰임 숫자(최근 7일)와 브라우저 오류 — 누가 했는지는 서버에도 없다(server/app/pulse.ts) */
+export type AdminPulse = {
+  days: string[]
+  events: { event: PulseEvent; counts: number[]; total: number }[]
+  exports: { agent: string; started: number; done: number; failed: number; unsupported: number }[]
+  bots: number
+}
+export type AdminError = { fingerprint: string; message: string; stack: string; page: string; agent: string; version: string; count: number; firstAt: number; lastAt: number }
+
+export async function fetchPulse(): Promise<AdminPulse | null> {
+  return okJson<AdminPulse>(fetch('/api/admin/pulse', { cache: 'no-store' }))
+}
+
+export async function fetchErrors(): Promise<AdminError[] | null> {
+  return (await okJson<{ errors: AdminError[] }>(fetch('/api/admin/errors', { cache: 'no-store' })))?.errors ?? null
+}
+
+export async function clearErrors(): Promise<boolean> {
+  const response = await fetch('/api/admin/errors', { method: 'DELETE' }).catch(() => null)
+  release(response)
+  return response?.ok === true
 }
