@@ -5,6 +5,7 @@ import type { LegalDocs } from './types'
  * 서비스가 실제로 하는 일과 맞아야 한다: 구글 계정(선택) · 영상은 올리지 않음 · 소리만 받아쓰기 서버로 · 서버 한도 10분(ASR_MAX_SECONDS) ·
  * 말로 고치기 10분에 20번 · 요금제 한도와 무료 워터마크는 결제를 붙이는 날부터(ENFORCE_PLANS, src/site/entitlements.ts).
  * 카드 결제를 붙이면 「유료 서비스」 절을 고친다(docs/operations.md 「결제 붙이기」).
+ * Claude·ChatGPT 커넥터(server/app/connect.ts): 대본에서 계획·편집기 링크(최대 7일, 링크를 아는 사람은 누구나 연다) — 「이용 방법」.
  */
 export const TERMS: LegalDocs = {
   ko: {
@@ -24,6 +25,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           '웹 브라우저에서 바로 씁니다. 만든 작업은 그 브라우저에 저장되어 「내 작업」에서 다시 열 수 있고, 구글로 로그인하면(선택) 계정에도 저장되어 다른 기기에서 열 수 있습니다.',
           '영상 파일은 이용자의 기기 안에서만 처리하며 회사 서버로 올리지 않습니다. 말을 받아 적을 때는 영상의 소리만 회사의 받아쓰기 서버로 보내고, 원하면 브라우저 안에서만 받아 적을 수도 있습니다. 자세한 내용은 {privacy}에 있습니다.',
+          'Claude·ChatGPT 에 ReelMotion 커넥터를 더하면 대본에서 그래픽 계획과 편집기로 여는 링크를 받을 수 있습니다. 링크는 최대 7일 동안 열리며, 링크를 아는 사람은 누구나 그 대본을 열 수 있으니 필요한 사람에게만 알려 주세요. 그 서비스에서 나눈 대화에는 각 회사의 약관이 적용됩니다.',
         ],
       },
       {
@@ -103,6 +105,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           'You use it in a web browser. What you make is saved in that browser and can be reopened from My projects; if you log in with Google (optional), it is also kept in your account so you can open it on other devices.',
           'Video files are processed only on your device and are never uploaded to our servers. To transcribe, only the sound of the video is sent to our speech server, or, if you prefer, transcription runs entirely in your browser. See the {privacy} for details.',
+          'If you add the ReelMotion connector to Claude or ChatGPT, you can get a graphics plan from a script and a link that opens it in the editor. The link works for up to 7 days, and anyone who has the link can open the script, so share it only with people who need it. Your conversations in those services are governed by each company’s terms.',
         ],
       },
       {
@@ -182,6 +185,7 @@ export const TERMS: LegalDocs = {
         blocks: [
           'ウェブブラウザからすぐに使えます。作ったプロジェクトはそのブラウザに保存されて「マイプロジェクト」から開き直せ、Google でログインすると(任意)アカウントにも保存されてほかの端末でも開けます。',
           '動画ファイルはお使いの端末の中だけで処理し、当社のサーバーにはアップロードしません。文字起こしでは動画の音声だけを当社の文字起こしサーバーに送ります。ご希望なら、ブラウザの中だけで文字起こしすることもできます。詳しくは{privacy}をご覧ください。',
+          'Claude・ChatGPT に ReelMotion のコネクターを追加すると、台本からグラフィックの計画と、エディターで開くリンクを受け取れます。リンクは最大7日間有効で、リンクを知っている人は誰でもその台本を開けるため、必要な人にだけ伝えてください。それらのサービスでの会話には、各社の規約が適用されます。',
         ],
       },
       {

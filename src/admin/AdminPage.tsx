@@ -78,6 +78,7 @@ function NumbersCard({ copy, lang, data }: Props & { data: AdminOverview }) {
         <li className={settings.enforced ? 'is-on' : undefined}>{settings.enforced ? copy.limitsOn : copy.limitsOff}</li>
         <li className={settings.billing ? 'is-on' : undefined}>{settings.billing ? copy.billingOn : copy.billingOff}</li>
         <li className={settings.googleLogin ? 'is-on' : undefined}>{settings.googleLogin ? copy.googleOn : copy.googleOff}</li>
+        <li className={settings.connector ? 'is-on' : undefined}>{settings.connector ? copy.connectorOn : copy.connectorOff}</li>
       </ul>
     </section>
   )

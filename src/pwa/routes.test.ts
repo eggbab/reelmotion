@@ -22,6 +22,10 @@ describe('서비스 워커가 맡는 요청', () => {
     expect(routeOf(get('https://huggingface.co/onnx-community/whisper-small/resolve/main/config.json'), ORIGIN)).toBe('pass')
     expect(routeOf(get('/favicon.svg', 'no-cors'), ORIGIN)).toBe('pass')
     expect(routeOf(get('/licenses.txt', 'navigate'), ORIGIN)).toBe('pass')
+    // 커넥터 주소(/mcp)를 브라우저로 열어 봐도 캐시에 넣지 않는다
+    expect(routeOf(get('/mcp', 'navigate'), ORIGIN)).toBe('pass')
+    expect(routeOf({ method: 'POST', url: `${ORIGIN}/mcp`, mode: 'cors' }, ORIGIN)).toBe('pass')
+    expect(routeOf(get('/mcp/', 'navigate'), ORIGIN)).toBe('pass')
   })
 })
 

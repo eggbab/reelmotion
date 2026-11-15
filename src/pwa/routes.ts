@@ -13,7 +13,7 @@ export function routeOf(request: { method: string; url: string; mode: string }, 
   const url = new URL(request.url)
   if (url.origin !== origin) return 'pass'
   const path = url.pathname
-  if (path.startsWith('/api/') || path.startsWith('/media/')) return 'pass'
+  if (path.startsWith('/api/') || path.startsWith('/media/') || path === '/mcp' || path === '/mcp/') return 'pass'
   // 받아쓰기 실행 파일(wasm, 14~27MB)은 브라우저의 보통 캐시에 맡긴다(두 번 저장하지 않게).
   if (path.startsWith('/assets/')) return path.endsWith('.wasm') ? 'pass' : 'asset'
   // 쪽 이동 가운데 파일(licenses.txt, sitemap.xml …)이 아닌 것만

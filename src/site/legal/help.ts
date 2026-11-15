@@ -88,6 +88,22 @@ export const HELP: LegalDocs = {
         ],
       },
       {
+        id: 'connect',
+        title: 'Claude·ChatGPT에서 쓰기',
+        blocks: [
+          'Claude 나 ChatGPT 에 ReelMotion 을 커넥터로 더하면, 대화하면서 대본을 다듬고 어떤 그래픽이 언제 나올지 미리 본 뒤 편집기로 여는 링크를 받을 수 있어요. 영상은 보내지 않아요 — 링크를 열어 내 브라우저에서 영상을 넣어요.',
+          '커넥터 주소: {mcp}',
+          {
+            list: [
+              'Claude: 「Customize → Connectors」에서 「Add」, 「Add custom connector」를 차례로 누르고 이름과 위 주소를 넣으세요. 로그인 방식은 「No sign-in(로그인 없음)」을 고르세요. 팀·엔터프라이즈 요금제에서는 조직 소유자가 더해 줘야 해요.',
+              'ChatGPT(웹): 「Plugins」에서 더하기(+) 단추를 누르고 「Add custom MCP server」를 고르세요. 서버 주소에 위 주소를 넣고 인증은 「No authentication(인증 없음)」을 고른 다음, 플러그인을 만들고 설치하세요.',
+            ],
+          },
+          '메뉴 이름은 Claude·ChatGPT 가 바꿀 수 있고, 화면 언어에 따라 다르게 보일 수 있어요. 요금제나 조직 설정에 따라 사용자 지정 커넥터를 쓸 수 없을 수도 있어요.',
+          '그다음 이렇게 말해 보세요: 「이 대본으로 ReelMotion 그래픽 계획을 보여 줘」, 「서울 스타일로 편집기 링크를 만들어 줘」. 도구를 써도 되는지 물으면 허락해 주세요. 링크는 7일 동안 열리고, 그동안 대본이 ReelMotion 서버에 보관됐다가 지워져요. 자세한 내용은 {privacy}에 있어요.',
+        ],
+      },
+      {
         title: '계정과 요금제',
         blocks: [
           '구글로 로그인하면 작업이 계정에도 저장돼요. {account}에서 요금제와 이번 달 내보내기 수를 보고, 로그아웃하거나 탈퇴할 수 있어요.',
@@ -190,6 +206,22 @@ export const HELP: LegalDocs = {
         ],
       },
       {
+        id: 'connect',
+        title: 'Use it from Claude or ChatGPT',
+        blocks: [
+          'Add ReelMotion to Claude or ChatGPT as a connector and you can shape your script in a chat, preview which graphics will appear and when, and get a link that opens it in the editor. No video is sent — you open the link and add your video in your own browser.',
+          'Connector address: {mcp}',
+          {
+            list: [
+              'Claude: go to Customize → Connectors, choose Add, then “Add custom connector”. Enter a name and the address above, and for sign-in choose “No sign-in”. On Team and Enterprise plans, an Owner adds it for the organization.',
+              'ChatGPT (on the web): open Plugins, press the plus button and choose “Add custom MCP server”. Enter the address above as the server URL, choose “No authentication”, then create the plugin and install it.',
+            ],
+          },
+          'Claude and ChatGPT can rename these menus, and your plan or workspace settings may not allow custom connectors.',
+          'Then try: “Show me the ReelMotion graphics plan for this script” or “Make an editor link in the Seoul style”. If it asks whether it may use the tool, allow it. The link works for 7 days; the script is kept on ReelMotion’s server for that time and then deleted. See the {privacy} for details.',
+        ],
+      },
+      {
         title: 'Account and plans',
         blocks: [
           'Log in with Google and your projects are kept in your account too. In {account} you can see your plan and how many videos you exported this month, log out, or delete your account.',
@@ -289,6 +321,22 @@ export const HELP: LegalDocs = {
             ],
           },
           'インターネットがないときは、文字起こしサーバー・話して直す・アカウントへの保存は使えません。台本を自分で入力するか、以前に一度使ってファイルをダウンロード済みの「このブラウザ」の文字起こしを使ってください。グラフィックの作成・編集・書き出しはそのまま使えます。',
+        ],
+      },
+      {
+        id: 'connect',
+        title: 'Claude・ChatGPT から使う',
+        blocks: [
+          'Claude や ChatGPT に ReelMotion をコネクターとして追加すると、会話しながら台本を整え、どのグラフィックがいつ出るかを先に確認して、エディターで開くリンクを受け取れます。動画は送りません — リンクを開いて、自分のブラウザで動画を入れます。',
+          'コネクターのアドレス: {mcp}',
+          {
+            list: [
+              'Claude: 「Customize → Connectors」で「Add」、「Add custom connector」の順に選び、名前と上のアドレスを入力します。サインイン方法は「No sign-in(サインインなし)」を選びます。Team・Enterprise プランでは、組織のオーナーが追加します。',
+              'ChatGPT(ウェブ): 「Plugins」でプラス(+)ボタンを押し、「Add custom MCP server」を選びます。サーバー URL に上のアドレスを入力し、認証は「No authentication(認証なし)」を選んで、プラグインを作成してインストールします。',
+            ],
+          },
+          'メニューの名前は Claude・ChatGPT 側で変わることがあり、表示言語によっても異なります。プランや組織の設定によっては、カスタムコネクターを使えないことがあります。',
+          'そのあと、こう話しかけてみてください: 「この台本で ReelMotion のグラフィック計画を見せて」「ソウルスタイルでエディターのリンクを作って」。ツールを使ってよいか聞かれたら、許可してください。リンクは7日間有効で、その間は台本が ReelMotion のサーバーに保管され、その後削除されます。詳しくは{privacy}をご覧ください。',
         ],
       },
       {

@@ -4,6 +4,7 @@ import type { AsrToken } from './align'
 import { decodeToMono16k } from './audio'
 import type { SpeechLanguage } from './transcribe'
 import { encodeWav } from './wav'
+import { release } from '../http'
 
 /**
  * ReelMotion 받아쓰기 서버(Qwen3-ASR, `server/asr/`). 영상이 아니라 소리만 보낸다. 서버는 받은 소리를 저장하지 않는다.
@@ -24,7 +25,10 @@ export class ServerTooLongError extends Error {
 export async function checkSpeechServer(signal?: AbortSignal): Promise<SpeechServer | null> {
   try {
     const response = await fetch('/api/asr/health', { signal, cache: 'no-store' })
-    if (response.status !== 200 && response.status !== 503) return null
+    if (response.status !== 200 && response.status !== 503) {
+      release(response)
+      return null
+    }
     const data = (await response.json()) as Partial<SpeechServer> & { engine?: string }
     if (data.engine !== 'qwen3-asr') return null
     return { ready: Boolean(data.ready), model: data.model ?? '', device: data.device ?? '', maxSeconds: data.maxSeconds ?? 600 }
@@ -61,8 +65,11 @@ export async function transcribeOnServer(
     const data = (await response.json().catch(() => ({}))) as { maxSeconds?: number }
     throw new ServerTooLongError(data.maxSeconds ?? 600)
   }
-  if (response.status === 503) throw new ServerBusyError('busy')
-  if (!response.ok) throw new Error(`speech server ${response.status}`)
+  if (!response.ok) {
+    release(response)
+    if (response.status === 503) throw new ServerBusyError('busy')
+    throw new Error(`speech server ${response.status}`)
+  }
   const data = (await response.json()) as { text: string; tokens: AsrToken[] }
   return alignTokensToWords(data.text, data.tokens)
 }

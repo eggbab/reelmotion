@@ -30,6 +30,8 @@ export type AdminCopy = {
   billingOff: string
   googleOn: string
   googleOff: string
+  connectorOn: string
+  connectorOff: string
   people: string
   search: string
   searchButton: string
@@ -105,6 +107,8 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     billingOff: '카드 결제 연결 전',
     googleOn: '구글 로그인 켜짐',
     googleOff: '구글 로그인 꺼짐(도메인·OAuth 설정 전)',
+    connectorOn: 'Claude·ChatGPT 커넥터 켜짐',
+    connectorOff: 'Claude·ChatGPT 커넥터 꺼짐(CONNECTOR=0)',
     people: '사람',
     search: '메일이나 이름',
     searchButton: '찾기',
@@ -183,6 +187,8 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     billingOff: 'Card payments not connected yet',
     googleOn: 'Google login on',
     googleOff: 'Google login off (domain and OAuth not set up)',
+    connectorOn: 'Claude and ChatGPT connector on',
+    connectorOff: 'Claude and ChatGPT connector off (CONNECTOR=0)',
     people: 'People',
     search: 'Email or name',
     searchButton: 'Search',
@@ -261,6 +267,8 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     billingOff: 'カード決済 未接続',
     googleOn: 'Google ログイン オン',
     googleOff: 'Google ログイン オフ(ドメイン・OAuth 未設定)',
+    connectorOn: 'Claude・ChatGPT コネクター オン',
+    connectorOff: 'Claude・ChatGPT コネクター オフ(CONNECTOR=0)',
     people: '会員を探す',
     search: 'メールまたは名前',
     searchButton: '探す',

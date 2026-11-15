@@ -2,7 +2,7 @@ import { joinWords } from '../captions/segment'
 import type { Word } from '../captions/types'
 import { findNumbers } from './numbers'
 import type { FoundNumber } from './numbers'
-import { clampText } from './paint'
+import { clampText } from './text'
 import type { Graphic } from './types'
 
 export type Sentence = { words: Word[]; text: string; start: number; end: number }

@@ -24,6 +24,12 @@ describe('앱 서버 설정', () => {
     expect(readConfig({ ENFORCE_PLANS: '1' }).enforcePlans).toBe(true)
   })
 
+  it('Claude·ChatGPT 커넥터는 기본으로 켜고, 0 일 때만 끈다', () => {
+    expect(readConfig({}).connector).toBe(true)
+    expect(readConfig({ CONNECTOR: '1' }).connector).toBe(true)
+    expect(readConfig({ CONNECTOR: '0' }).connector).toBe(false)
+  })
+
   it('자동 백업은 기본 7일, 0 이면 끄고, 30일(개인정보처리방침)을 넘거나 틀린 값이면 멈춘다', () => {
     expect(readConfig({}).backupDays).toBe(7)
     expect(readConfig({ BACKUP_DAYS: '0' }).backupDays).toBe(0)

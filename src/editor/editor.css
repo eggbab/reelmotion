@@ -130,6 +130,42 @@
   cursor: not-allowed;
 }
 
+/* Claude·ChatGPT 커넥터의 주소로 들어왔을 때: 영상을 기다리는 대본 */
+.ed-draft {
+  margin: 0 0 20px;
+  padding: 20px 24px;
+  border: 1px solid rgb(0 255 221 / 35%);
+  border-radius: 18px;
+  background: rgb(0 255 221 / 5%);
+}
+
+.ed-draft h2 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font: 600 17px/1.4 var(--font);
+}
+
+.ed-draft p {
+  margin: 0 0 12px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* 대본은 앞의 네 줄만 보인다 */
+.ed-draft blockquote {
+  display: -webkit-box;
+  margin: 0;
+  padding-left: 12px;
+  overflow: hidden;
+  border-left: 2px solid var(--line-strong);
+  color: var(--muted);
+  font: 400 13.5px/1.6 var(--font);
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
 /* 인터넷이 끊겼을 때 머리줄의 표시 */
 .ed-offline {
   display: inline-flex;

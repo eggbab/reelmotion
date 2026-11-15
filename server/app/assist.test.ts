@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AssistState } from '../../src/editor/assist'
 import { createApp } from './app'
 import { buildMessages, createRateLimiter, parseReply } from './assist'
@@ -86,5 +86,30 @@ describe('프롬프트·답 읽기·횟수 세기', () => {
     expect([limiter.hit('a'), limiter.hit('a'), limiter.hit('a')]).toEqual([true, true, false])
     now = 1001
     expect(limiter.hit('a')).toBe(true)
+  })
+
+  it('시간 창이 지나면 열쇠(IP)를 메모리에서 지운다 — 다음 요청을 기다리지 않는다(개인정보처리방침 「메모리에 10분까지」)', () => {
+    vi.useFakeTimers()
+    try {
+      const limiter = createRateLimiter(2, 60_000)
+      limiter.hit('ip:203.0.113.1')
+      vi.advanceTimersByTime(30_000)
+      limiter.hit('ip:203.0.113.2')
+      expect(limiter.size()).toBe(2)
+      // 61초: 첫 열쇠는 창이 지났다(그 뒤로 아무 요청이 없어도 지운다)
+      vi.advanceTimersByTime(31_000)
+      expect(limiter.size()).toBe(1)
+      // 한도에 막힌 요청은 시간을 늘리지 않는다
+      expect([limiter.hit('ip:203.0.113.2'), limiter.hit('ip:203.0.113.2')]).toEqual([true, false])
+      vi.advanceTimersByTime(60_100)
+      expect(limiter.size()).toBe(0)
+      // 비운 뒤에도 다시 쓰면 다시 지운다
+      limiter.hit('ip:203.0.113.3')
+      expect(limiter.size()).toBe(1)
+      vi.advanceTimersByTime(60_100)
+      expect(limiter.size()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

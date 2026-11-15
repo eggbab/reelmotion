@@ -1609,6 +1609,18 @@
   font-size: 15px;
 }
 
+/* 글 속의 주소(커넥터 주소) — 누르면 통째로 골라져 복사하기 쉽다 */
+.legal__code {
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 4%);
+  color: var(--mint-soft);
+  font: 500 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .legal .credits a {
   justify-self: start;
   font-size: 14px;

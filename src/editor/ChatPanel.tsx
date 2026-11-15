@@ -1,6 +1,7 @@
 import { Send, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
+import { release } from '../http'
 import type { Lang } from '../langs'
 import type { Graphic, ThemeId } from '../motion/types'
 import { compactGraphics, MAX_INSTRUCTION, validateOps } from './assist'
@@ -34,12 +35,14 @@ async function ask(instruction: string, lang: Lang, doc: ChatDoc): Promise<{ ans
   try {
     const state = { duration: doc.duration, theme: doc.theme, script: doc.script, graphics: compactGraphics(doc.graphics) }
     const response = await fetch('/api/assist/edit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ instruction, lang, state }) })
-    if (response.status === 429) return { error: 'limited' }
     if (response.status === 503) {
       const body = (await response.json().catch(() => ({}))) as { error?: string }
       return { error: body.error === 'busy' ? 'busy' : 'unavailable' }
     }
-    if (!response.ok) return { error: 'failed' }
+    if (!response.ok) {
+      release(response)
+      return { error: response.status === 429 ? 'limited' : 'failed' }
+    }
     const body = (await response.json()) as Answer
     // 서버가 검사했지만 편집기도 다시 본다(지금 작업에 없는 그래픽은 건너뛴다).
     return { answer: { reply: String(body.reply ?? ''), ops: validateOps({ ops: body.ops }, state), dropped: Number(body.dropped) || 0 } }

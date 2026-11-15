@@ -1,5 +1,6 @@
 import { parseProject } from '../editor/projects'
 import type { ProjectSource, SavedProject } from '../editor/projects'
+import { release } from '../http'
 
 /**
  * 앱 서버(/api — server/app)와 이야기하는 곳. 서버가 없으면(정적 사이트만 띄웠을 때) 계정 기능을 숨긴다.
@@ -16,7 +17,10 @@ const json = { 'content-type': 'application/json' }
 export async function fetchMe(signal?: AbortSignal): Promise<Me | null> {
   try {
     const response = await fetch('/api/me', { signal, cache: 'no-store' })
-    if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null
+    if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+      release(response)
+      return null
+    }
     const body = (await response.json()) as Me
     return body && typeof body === 'object' && 'login' in body ? body : null
   } catch {
@@ -28,28 +32,36 @@ export const loginUrl = (next: string) => `/api/auth/google?next=${encodeURIComp
 
 export async function devLogin(email: string, name: string): Promise<boolean> {
   const response = await fetch('/api/auth/dev', { method: 'POST', headers: json, body: JSON.stringify({ email, name }) })
+  release(response)
   return response.ok
 }
 
 export async function logout(): Promise<void> {
-  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
+  release(await fetch('/api/auth/logout', { method: 'POST' }).catch(() => null))
 }
 
 export async function deleteAccount(): Promise<boolean> {
   const response = await fetch('/api/account', { method: 'DELETE' }).catch(() => null)
+  release(response)
   return response?.ok ?? false
 }
 
 export async function listRemote(): Promise<RemoteSummary[]> {
   const response = await fetch('/api/projects', { cache: 'no-store' })
-  if (!response.ok) throw new Error(`projects ${response.status}`)
+  if (!response.ok) {
+    release(response)
+    throw new Error(`projects ${response.status}`)
+  }
   return ((await response.json()) as { projects: RemoteSummary[] }).projects
 }
 
 export async function getRemote(id: string): Promise<SavedProject | null> {
   const response = await fetch(`/api/projects/${encodeURIComponent(id)}`, { cache: 'no-store' })
-  if (response.status === 404) return null
-  if (!response.ok) throw new Error(`project ${response.status}`)
+  if (!response.ok) {
+    release(response)
+    if (response.status === 404) return null
+    throw new Error(`project ${response.status}`)
+  }
   return parseProject(((await response.json()) as { project: unknown }).project)
 }
 
@@ -57,6 +69,7 @@ export async function getRemote(id: string): Promise<SavedProject | null> {
 export async function putRemote(project: SavedProject): Promise<'ok' | 'stale' | 'failed'> {
   try {
     const response = await fetch(`/api/projects/${encodeURIComponent(project.id)}`, { method: 'PUT', headers: json, body: JSON.stringify(project) })
+    release(response)
     if (response.ok) return 'ok'
     return response.status === 409 ? 'stale' : 'failed'
   } catch {
@@ -70,7 +83,10 @@ export type ExportPermit = { ok: true; watermark: boolean; remaining: number | n
 export async function requestExport(duration: number): Promise<ExportPermit> {
   try {
     const response = await fetch('/api/usage/export', { method: 'POST', headers: json, body: JSON.stringify({ duration }) })
-    if (!response.headers.get('content-type')?.includes('application/json')) return { ok: true, watermark: false, remaining: null }
+    if (!response.headers.get('content-type')?.includes('application/json')) {
+      release(response)
+      return { ok: true, watermark: false, remaining: null }
+    }
     const body = (await response.json()) as { ok?: boolean; watermark?: boolean; remaining?: number | null; error?: string }
     if (response.ok && body.ok) return { ok: true, watermark: body.watermark === true, remaining: body.remaining ?? null }
     if (body.error === 'login' || body.error === 'too_long' || body.error === 'limit') return { ok: false, reason: body.error }
@@ -82,16 +98,19 @@ export async function requestExport(duration: number): Promise<ExportPermit> {
 
 /** 영상을 다 만들었을 때 알린다(이번 달 횟수를 센다). 창을 닫아도 보내지게 keepalive. */
 export function reportExportDone(): void {
-  void fetch('/api/usage/export/done', { method: 'POST', headers: json, body: '{}', keepalive: true }).catch(() => undefined)
+  void fetch('/api/usage/export/done', { method: 'POST', headers: json, body: '{}', keepalive: true }).then(release, () => undefined)
 }
 
 /** 카드 결제 화면 주소(결제사를 붙인 뒤). 준비 전이면 null. */
 export async function startCheckout(plan: string, returnUrl: string): Promise<string | null> {
   const response = await fetch('/api/billing/checkout', { method: 'POST', headers: json, body: JSON.stringify({ plan, returnUrl }) }).catch(() => null)
-  if (!response?.ok) return null
+  if (!response?.ok) {
+    release(response)
+    return null
+  }
   return ((await response.json()) as { url?: string }).url ?? null
 }
 
 export async function deleteRemote(id: string): Promise<void> {
-  await fetch(`/api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => undefined)
+  release(await fetch(`/api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => null))
 }

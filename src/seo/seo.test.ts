@@ -75,6 +75,11 @@ describe('sitemap / robots / llms', () => {
     expect(text).toContain('[Help](https://reelmotion.test/help)')
     expect(text).toContain('[Open-source licenses](https://reelmotion.test/licenses)')
     expect(llmsTxt(null)).toContain('[Editor](/app)')
+    // AI 가 커넥터를 찾을 수 있게 MCP 주소와 도구를 적는다
+    expect(text).toContain('## Connector (MCP)')
+    expect(text).toContain('https://reelmotion.test/mcp')
+    expect(text).toContain('plan_motion_graphics')
+    expect(llmsTxt(null)).toContain('/mcp')
   })
 })
 

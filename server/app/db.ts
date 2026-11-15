@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite'
  * 앱 서버의 저장소: SQLite 파일 하나(운영은 볼륨 /data/reelmotion.db — 백업은 이 파일을 복사, docs/operations.md).
  * 판을 올릴 때는 MIGRATIONS 끝에 하나를 더한다(이미 쓴 것은 고치지 않는다).
  * 저장하는 것: 계정(구글 id·메일·이름·요금제), 로그인 세션(토큰은 해시만), 로그인 중인 요청(10분), 작업(영상 제외), 월별 내보내기 수,
- * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님).
+ * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님). 커넥터 초안은 여기 두지 않는다(백업에 들어가지 않게 따로 — connect.ts).
  * 바꾸면 개인정보처리방침(src/site/legal/privacy.ts)도 함께 고친다.
  */
 const MIGRATIONS: string[] = [

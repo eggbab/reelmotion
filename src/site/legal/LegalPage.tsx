@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useSyncExternalStore } from 'react'
 import { Link } from 'react-router'
 import { useLang } from '../../lang'
 import type { Lang } from '../../langs'
@@ -18,13 +18,29 @@ function Contact({ lang }: { lang: Lang }) {
   return <span className="legal__pending">{LEGAL_UI[lang].contactPending}</span>
 }
 
-/** 문장 안의 {contact}·{terms}·{privacy}·{refund}·{account}·{pricing} 을 링크로 바꾼다. */
+const never = () => () => undefined
+
+/**
+ * Claude·ChatGPT 커넥터 주소({mcp}). 미리 그릴 때는 사이트 주소를 모르므로 /mcp 만 적고,
+ * 브라우저에서 지금 사이트 주소를 붙인다(https://도메인/mcp) — 그대로 복사해 쓸 수 있게.
+ */
+function McpAddress() {
+  const origin = useSyncExternalStore(
+    never,
+    () => window.location.origin,
+    () => '',
+  )
+  return <code className="legal__code">{`${origin}/mcp`}</code>
+}
+
+/** 문장 안의 {contact}·{terms}·{privacy}·{refund}·{account}·{pricing}·{mcp} 를 링크(주소)로 바꾼다. */
 function Rich({ text, lang }: { text: string; lang: Lang }) {
   return (
     <>
       {text.split(/(\{\w+\})/).map((part, index) => {
         const token = /^\{(\w+)\}$/.exec(part)?.[1]
         if (token === 'contact') return <Contact key={index} lang={lang} />
+        if (token === 'mcp') return <McpAddress key={index} />
         if (token === 'account') {
           return (
             <Link key={index} to={pagePath('account', lang)}>

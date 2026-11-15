@@ -20,6 +20,7 @@ import type { GoogleConfig } from './google'
  * | DISK_MIN_GB | 2 | 저장 공간이 이보다 적으면 알린다 |
  * | WATCH_SECONDS | 300 | 장애 확인 간격(초, 10 이상). 세 번 잇달아 문제면 알린다 |
  * | ADMIN_EMAILS | 문의 메일(business.ts) | 관리자 화면(/admin)을 쓸 수 있는 로그인 메일, 쉼표로 여럿 |
+ * | CONNECTOR | 1 | 0 이면 Claude·ChatGPT 커넥터(/mcp)를 끈다 — 남용될 때 쓰는 스위치. 이미 만든 링크는 기한(7일)까지 열린다 |
  */
 export type SmtpConfig = { host: string; port: number; user: string | null; pass: string | null; from: string }
 export type ServerConfig = AppConfig & {
@@ -70,6 +71,7 @@ export function readConfig(env: Record<string, string | undefined>): ServerConfi
     devLogin: flag(env.AUTH_DEV, false),
     assistUrl: env.ASSIST_URL?.trim() || null,
     enforcePlans: flag(env.ENFORCE_PLANS, false),
+    connector: flag(env.CONNECTOR, true),
     backupDays,
     alertEmail: text(env.ALERT_EMAIL) ?? BUSINESS.contactEmail,
     smtp,

@@ -6,6 +6,7 @@ import { createLlamaModel } from './assist'
 import { restoreDatabase, runAdmin } from './admin'
 import { autoBackup } from './backup'
 import { readConfig } from './config'
+import { openDraftStore } from './connect'
 import { openDb } from './db'
 import { createGoogleClient } from './google'
 import { sweep } from './sessions'
@@ -76,6 +77,8 @@ setInterval(check, config.watchMs).unref()
 
 const app = createApp({
   db,
+  // 커넥터 초안(7일 뒤 지움)은 백업에 들어가지 않게 다른 파일에 둔다.
+  drafts: openDraftStore(join(config.dataDir, 'drafts.db')),
   google: config.google ? createGoogleClient(config.google) : null,
   config,
   assist,
@@ -91,7 +94,7 @@ const app = createApp({
   },
 })
 serve({ fetch: app.fetch, hostname: config.host, port: config.port }, ({ port }) => {
-  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'} · alerts → ${config.alertEmail ?? '(nobody)'} (${mailer ? 'mail' : 'log only'}) · admin ${config.adminEmails.join(', ') || '(nobody)'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
+  console.log(`reelmotion app on :${port} · google login ${config.google ? 'on' : 'off'} · assist ${config.assistUrl ? 'on' : 'off'} · plans ${config.enforcePlans ? 'enforced' : 'beta (free)'} · billing not connected · backups ${config.backupDays > 0 ? `${config.backupDays} days` : 'off'} · alerts → ${config.alertEmail ?? '(nobody)'} (${mailer ? 'mail' : 'log only'}) · admin ${config.adminEmails.join(', ') || '(nobody)'} · connector ${config.connector === false ? 'OFF' : 'on'}${config.devLogin ? ' · DEV LOGIN ON (시험용 — 운영에서 끌 것)' : ''}`)
 })
 
 const stop = () => {

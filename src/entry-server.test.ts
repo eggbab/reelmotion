@@ -53,6 +53,24 @@ describe('빌드 때 미리 그리기', () => {
     expect(help).toContain('id="s1"')
   })
 
+  it('Claude·ChatGPT 에서 쓰기: 소개 페이지의 줄이 도움말의 그 절로 가고, 도움말에 커넥터 주소 자리가 있다', () => {
+    const ko = render('/ko')
+    expect(ko).toContain('href="/ko/help#connect"')
+    expect(ko).not.toContain('곧 나와요</span></div>')
+    expect(render('/')).toContain('href="/help#connect"')
+    expect(render('/ja')).toContain('href="/ja/help#connect"')
+    for (const path of ['/ko/help', '/help', '/ja/help']) {
+      const help = render(path)
+      expect(help, path).toContain('id="connect"')
+      // 주소는 미리 그릴 때 /mcp 만(사이트 주소는 브라우저에서 붙인다)
+      expect(help, path).toContain('<code class="legal__code">/mcp</code>')
+    }
+    expect(render('/ko/help')).toContain('Claude·ChatGPT에서 쓰기')
+    // 개인정보처리방침에 커넥터로 보낸 대본을 적었다
+    expect(render('/ko/privacy')).toContain('커넥터로 보낸 대본')
+    expect(render('/privacy')).toContain('Scripts sent through the connector')
+  })
+
   it('없는 주소는 그 언어의 404 화면', () => {
     expect(render('/ko/404')).toContain('없는 페이지예요')
     expect(render('/ja/nope/deeper')).toContain('このページは見つかりません')

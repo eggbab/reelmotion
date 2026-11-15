@@ -38,7 +38,7 @@ describe('약관·정책 글', () => {
         const doc = docs[id]
         const texts = [doc.intro, ...doc.sections.flatMap((section) => section.blocks.flatMap(allText))]
         for (const text of texts) {
-          for (const [, token] of text.matchAll(/\{(\w+)\}/g)) expect(['contact', 'terms', 'privacy', 'refund', 'account', 'pricing']).toContain(token)
+          for (const [, token] of text.matchAll(/\{(\w+)\}/g)) expect(['contact', 'terms', 'privacy', 'refund', 'account', 'pricing', 'mcp']).toContain(token)
           expect(text).not.toMatch(/[\w.+-]+@[\w-]+\.\w+/)
         }
       }

@@ -125,8 +125,4 @@ export function caseFor(theme: Theme, text: string): string {
   return theme.upper ? text.toUpperCase() : text
 }
 
-/** 그래픽 안에 들어갈 수 없을 만큼 긴 글은 줄여서 끝에 … 을 붙인다 */
-export function clampText(text: string, max: number): string {
-  const chars = [...text.trim()]
-  return chars.length > max ? `${chars.slice(0, max - 1).join('').trimEnd()}…` : text.trim()
-}
+export { clampText } from './text'

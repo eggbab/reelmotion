@@ -15,6 +15,8 @@ import { fill } from '../langs'
 import type { Lang } from '../langs'
 import { CLIPS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
+import { fetchDraft } from '../connect/api'
+import { release } from '../http'
 import { direct } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
@@ -81,6 +83,10 @@ async function sourceBlob(source: Source): Promise<Blob> {
   if (source.kind === 'file') return source.file
   if (source.kind === 'missing') throw new Error('video is not connected')
   const response = await fetch(clipUrl(source.clip))
+  if (!response.ok) {
+    release(response)
+    throw new Error(`sample video ${response.status}`)
+  }
   return response.blob()
 }
 
@@ -125,10 +131,12 @@ type Initial = {
   hasMedia: boolean
   /** 이 작업을 올린 계정(projects.ts 의 owner) */
   owner: string | null
+  /** 영상을 기다리는 대본(Claude·ChatGPT 커넥터의 ?draft= 로 들어온 것) — 영상을 넣으면 이 대본으로 그래픽을 만든다 */
+  pending: string | null
 }
 
 function blankInitial(lang: Lang, theme: ThemeId = 'neon'): Initial {
-  return { id: null, name: '', createdAt: Date.now(), source: null, script: '', recognized: null, graphics: [], theme, speechLanguage: lang, duration: 0, portrait: false, thumbnail: null, saved: false, hasMedia: false, owner: null }
+  return { id: null, name: '', createdAt: Date.now(), source: null, script: '', recognized: null, graphics: [], theme, speechLanguage: lang, duration: 0, portrait: false, thumbnail: null, saved: false, hasMedia: false, owner: null, pending: null }
 }
 
 /** 첫 화면의 떠 있는 입력 칸(?script=)과 스타일 카드(?theme=)에서 넘어온 값 */
@@ -162,6 +170,7 @@ function projectInitial(project: SavedProject, media: Blob | null): Initial {
     saved: true,
     hasMedia: media !== null,
     owner: project.owner,
+    pending: null,
   }
 }
 
@@ -186,8 +195,17 @@ async function openStored(id: string): Promise<Opened> {
   return { kind: 'ok', initial: projectInitial(project, media) }
 }
 
-type Notice = 'notFound' | 'unavailable' | null
-type Session = { key: number; id: string | null; initial: Initial; notice: Notice }
+type Notice = 'notFound' | 'unavailable' | 'draftGone' | 'draftFailed' | null
+
+/** 시작 화면 위에 보이는 한 줄 안내 */
+const NOTICE_TEXT: Record<Exclude<Notice, null>, (copy: EditorCopy) => string> = {
+  notFound: (copy) => copy.projects.notFound,
+  unavailable: (copy) => copy.projects.unavailable,
+  draftGone: (copy) => copy.draft.gone,
+  draftFailed: (copy) => copy.draft.failed,
+}
+/** draft: 이미 받아 온 초안 번호(같은 것을 다시 받지 않게) */
+type Session = { key: number; id: string | null; initial: Initial; notice: Notice; draft?: string }
 
 /**
  * 편집기. 주소의 ?project=<id> 가 이 브라우저에 저장된 작업을 가리키면 그 작업을 연다(projects.ts·store.ts).
@@ -198,8 +216,26 @@ export function EditorPage() {
   const copy = EDITOR_COPY[lang]
   const [params, setParams] = useSearchParams()
   const wanted = params.get('project')
+  const wantedDraft = wanted === null ? params.get('draft') : null
   const [session, setSession] = useState<Session>(() => ({ key: 0, id: null, initial: landingInitial(params, lang), notice: null }))
-  const loading = wanted !== null && wanted !== session.id
+  const loading = (wanted !== null && wanted !== session.id) || (wantedDraft !== null && wantedDraft !== session.draft)
+
+  // Claude·ChatGPT 커넥터가 만든 주소(?draft=): 대본과 스타일을 받아 「영상을 넣으면 그래픽을 만드는」 빈 작업으로 연다.
+  useEffect(() => {
+    if (!wantedDraft || wantedDraft === session.draft) return
+    let alive = true
+    void fetchDraft(wantedDraft).then((draft) => {
+      if (!alive) return
+      if (draft.status === 'ready') {
+        setSession((current) => ({ key: current.key + 1, id: null, initial: { ...blankInitial(lang, draft.theme), pending: draft.script }, notice: null, draft: wantedDraft }))
+      } else {
+        setSession((current) => ({ key: current.key + 1, id: null, initial: blankInitial(lang), notice: draft.status === 'gone' ? 'draftGone' : 'draftFailed', draft: wantedDraft }))
+      }
+    })
+    return () => {
+      alive = false
+    }
+  }, [wantedDraft, session.draft, lang])
 
   // 편집기를 연 사람에게만 화면 파일을 브라우저에 받아 둔다 — 다음부터 인터넷이 없어도 편집기가 열린다(src/pwa).
   useEffect(() => registerServiceWorker(), [])
@@ -300,6 +336,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const online = useOnline()
   // 다시 연 작업은 그래픽을 지웠더라도 저절로 다시 만들지 않는다.
   const [autoMade, setAutoMade] = useState(initial.saved)
+  // 영상을 기다리는 대본(커넥터 초안). 영상을 넣거나 예시를 고르면 그 대본으로 그래픽을 만들고 비운다.
+  const [draftScript, setDraftScript] = useState(initial.pending)
   // 저장은 손을 댄 뒤부터: 넣은 영상은 바로, 예시 영상은 무언가 고쳤을 때(예시를 둘러보기만 하면 목록이 어지럽지 않게).
   const [touched, setTouched] = useState(initial.saved)
   const [saveState, setSaveState] = useState<SaveState>(initial.saved ? (initial.source?.kind === 'missing' ? 'savedNoVideo' : 'saved') : 'idle')
@@ -317,7 +355,11 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   useEffect(() => {
     const controller = new AbortController()
     fetch('/api/assist/health', { signal: controller.signal, cache: 'no-store' })
-      .then((response) => (response.ok ? (response.json() as Promise<{ ready?: boolean }>) : { ready: false }))
+      .then((response) => {
+        if (response.ok) return response.json() as Promise<{ ready?: boolean }>
+        release(response)
+        return { ready: false }
+      })
       .then((body) => setAssistReady(body.ready === true))
       .catch(() => controller.signal.aborted || setAssistReady(false))
     return () => controller.abort()
@@ -339,8 +381,9 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const shown = useMemo(() => syncCaptions(graphics, words), [graphics, words])
   const selected = shown.find((g) => g.id === selectedId) ?? null
 
-  // 예시 영상이나 첫 화면에서 넘어온 대본은 영상 길이를 안 뒤 한 번 자동으로 그래픽을 만든다.
-  if (!autoMade && source?.kind === 'sample' && words.length > 0 && graphics.length === 0) {
+  // 예시 영상, 첫 화면에서 넘어온 대본, 커넥터 초안의 대본은 영상 길이를 안 뒤 한 번 자동으로 그래픽을 만든다
+  // (직접 넣은 영상은 autoMade 가 처음부터 true 라 저절로 만들지 않는다).
+  if (!autoMade && source !== null && source.kind !== 'missing' && words.length > 0 && graphics.length === 0) {
     setAutoMade(true)
     setGraphics(clampToDuration(direct(words), duration))
     setTab('graphics')
@@ -421,11 +464,13 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     setSource({ kind: 'file', file })
     setName((current) => current || defaultName(fileMeta(file), copy.untitled))
     setRecognized(null)
-    setScript('')
+    // 커넥터 초안의 대본이 기다리고 있으면 그 대본으로 그래픽을 만든다(영상 길이를 안 뒤 — 위의 자동 만들기).
+    setScript(draftScript ?? '')
     setGraphics([])
     setSpeech({ stage: 'idle' })
     setTab('transcript')
-    setAutoMade(true)
+    setAutoMade(draftScript === null)
+    setDraftScript(null)
     touch()
   }
 
@@ -442,7 +487,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     toTop()
     setSource({ kind: 'sample', clip })
     setRecognized(null)
-    setScript(SAMPLE_SCRIPTS[lang])
+    setScript(draftScript ?? SAMPLE_SCRIPTS[lang])
+    setDraftScript(null)
     setGraphics([])
     setAutoMade(false)
     setSpeech({ stage: 'idle' })
@@ -755,7 +801,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       </header>
 
       {!source ? (
-        <StartScreen copy={copy} lang={lang} notice={notice} onFile={openFile} onSample={openSample} onOpen={onOpen} onShowAll={() => setShowProjects(true)} />
+        <StartScreen copy={copy} lang={lang} notice={notice} pending={draftScript} onFile={openFile} onSample={openSample} onOpen={onOpen} onShowAll={() => setShowProjects(true)} />
       ) : (
         <div className={`ed-body${shown.length === 0 ? ' is-empty' : ''}`}>
           <section className="ed-stage">
@@ -944,13 +990,15 @@ type StartProps = {
   copy: EditorCopy
   lang: Lang
   notice: Notice
+  /** 영상을 기다리는 대본(커넥터 초안) */
+  pending: string | null
   onFile: (file: File | undefined) => void
   onSample: (clip: ClipId) => void
   onOpen: (id: string) => void
   onShowAll: () => void
 }
 
-function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }: StartProps) {
+function StartScreen({ copy, lang, notice, pending, onFile, onSample, onOpen, onShowAll }: StartProps) {
   const [over, setOver] = useState(false)
   const online = useOnline()
   const canInstall = useCanInstall()
@@ -965,7 +1013,14 @@ function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }
   }
   return (
     <main className="ed-start">
-      {notice && <p className="ed-notice">{notice === 'notFound' ? copy.projects.notFound : copy.projects.unavailable}</p>}
+      {notice && <p className="ed-notice">{NOTICE_TEXT[notice](copy)}</p>}
+      {pending !== null && (
+        <section className="ed-draft" aria-label={copy.draft.title}>
+          <h2>{copy.draft.title}</h2>
+          <p>{copy.draft.body}</p>
+          <blockquote>{pending}</blockquote>
+        </section>
+      )}
       <div
         className={`drop ${over ? 'is-over' : ''}`}
         onDragOver={(event) => {

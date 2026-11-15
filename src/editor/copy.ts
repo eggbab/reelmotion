@@ -17,6 +17,8 @@ export type EditorCopy = {
   cancel: string
   close: string
   start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string }
+  /** Claude·ChatGPT 커넥터가 만든 주소(?draft=)로 들어왔을 때 */
+  draft: { title: string; body: string; gone: string; failed: string }
   /** 인터넷이 끊겼을 때 머리줄의 표시와 그 설명 */
   offline: string
   offlineHint: string
@@ -166,6 +168,12 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       help: 'How it works',
       install: 'Install as an app',
     },
+    draft: {
+      title: 'Your script is ready',
+      body: 'Add your video and ReelMotion places the graphics for this script.',
+      gone: 'This link has expired or does not exist. Ask Claude or ChatGPT to make a new one.',
+      failed: 'Could not load the script for this link. Check your connection and reload the page.',
+    },
     offline: 'Offline',
     offlineHint: 'No internet. The speech server, chat editing and account sync are paused; editing and export still work.',
     tabs: { graphics: 'Graphics', transcript: 'Transcript', chat: 'Chat' },
@@ -309,6 +317,12 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       help: '쓰는 법 보기',
       install: '앱으로 설치',
     },
+    draft: {
+      title: '대본이 준비됐어요',
+      body: '영상을 넣으면 이 대본으로 그래픽을 만들어요.',
+      gone: '기한이 지났거나 없는 링크예요. Claude·ChatGPT 에서 다시 만들어 주세요.',
+      failed: '이 링크의 대본을 불러오지 못했어요. 인터넷을 확인하고 페이지를 새로고침해 주세요.',
+    },
     offline: '오프라인',
     offlineHint: '인터넷이 끊겼어요. 받아쓰기 서버·말로 고치기·계정 저장은 잠시 쉬고, 고치기와 내보내기는 그대로 돼요.',
     tabs: { graphics: '그래픽', transcript: '받아쓴 말', chat: '말로 고치기' },
@@ -451,6 +465,12 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       privacy: '動画はこのブラウザの外に出ません。',
       help: '使い方を見る',
       install: 'アプリとしてインストール',
+    },
+    draft: {
+      title: '台本の準備ができました',
+      body: '動画を入れると、この台本でグラフィックを作ります。',
+      gone: '期限が切れたか、存在しないリンクです。Claude・ChatGPT でもう一度作ってください。',
+      failed: 'このリンクの台本を読み込めませんでした。接続を確認して、ページを再読み込みしてください。',
     },
     offline: 'オフライン',
     offlineHint: 'インターネットにつながっていません。文字起こしサーバー・話して直す・アカウントへの保存は休止中です。編集と書き出しはそのまま使えます。',

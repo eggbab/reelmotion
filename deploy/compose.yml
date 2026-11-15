@@ -58,6 +58,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       # 관리자 화면(/ko/admin)을 쓸 수 있는 로그인 메일(쉼표로 여럿). 비우면 문의 메일(vmelabs@outlook.com).
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      # Claude·ChatGPT 커넥터(주소 /mcp). 남용될 때 0 으로 끈다 — 이미 만든 링크는 기한까지 열린다.
+      CONNECTOR: ${CONNECTOR:-1}
     volumes:
       - app-data:/data
     restart: unless-stopped

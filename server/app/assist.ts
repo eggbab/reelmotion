@@ -157,21 +157,50 @@ export function parseReply(content: string, state: AssistState): { reply: string
   return { reply, ops, dropped: Math.max(0, Math.min(total, MAX_OPS) - ops.length) }
 }
 
-/** 남용 막기: 열쇠(계정 또는 IP)마다 시간 창 안의 요청 수. 메모리에만 두고 창이 지나면 버린다(저장·기록하지 않음). */
+/**
+ * 남용 막기: 열쇠(계정 또는 IP)마다 시간 창 안의 요청 수. 메모리에만 둔다(저장·기록하지 않음).
+ * 창이 지난 열쇠는 다음 요청을 기다리지 않고 시계로 지운다 — 개인정보처리방침의 「IP 주소는 서버 메모리에 10분까지」(말로 고치기)·
+ * 「1분까지」(커넥터)가 요청이 뜸할 때도 맞도록.
+ */
 export function createRateLimiter(limit: number, windowMs: number, now: () => number = Date.now) {
   const hits = new Map<string, number[]>()
+  let timer: ReturnType<typeof setTimeout> | null = null
+
+  /** 창이 지난 것을 버리고, 남은 것 가운데 가장 먼저 끝나는 때에 다시 온다 */
+  const sweep = () => {
+    if (timer !== null) clearTimeout(timer)
+    timer = null
+    const time = now()
+    let next = Infinity
+    for (const [key, times] of hits) {
+      const recent = times.filter((at) => at > time - windowMs)
+      if (recent.length === 0) hits.delete(key)
+      else {
+        hits.set(key, recent)
+        next = Math.min(next, recent[recent.length - 1] + windowMs - time)
+      }
+    }
+    if (hits.size > 0) arm(next)
+  }
+  const arm = (delay: number) => {
+    if (timer !== null) return
+    // 시계가 요청을 붙잡아 두지 않게(unref) — 서버를 끌 때 기다리지 않는다
+    timer = setTimeout(sweep, Math.min(windowMs, Math.max(0, delay)) + 50)
+    timer.unref?.()
+  }
+
   return {
     hit(key: string): boolean {
       const time = now()
       const recent = (hits.get(key) ?? []).filter((at) => at > time - windowMs)
-      if (recent.length >= limit) {
-        hits.set(key, recent)
-        return false
-      }
-      recent.push(time)
+      const allowed = recent.length < limit
+      if (allowed) recent.push(time)
       hits.set(key, recent)
-      if (hits.size > 10_000) for (const [other, times] of hits) if (times.every((at) => at <= time - windowMs)) hits.delete(other)
-      return true
+      if (hits.size > 10_000) sweep()
+      arm(windowMs)
+      return allowed
     },
+    /** 지금 기억하고 있는 열쇠 수 */
+    size: () => hits.size,
   }
 }

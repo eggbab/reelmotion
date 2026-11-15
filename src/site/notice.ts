@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { release } from '../http'
 import type { Lang } from '../langs'
 
 /**
@@ -32,7 +33,11 @@ let request: Promise<Notice | null> | null = null
 /** 쪽을 옮겨도 한 번만 묻는다. 앱 서버가 없으면(정적 사이트만) 공지도 없다. */
 function loadNotice(): Promise<Notice | null> {
   request ??= fetch('/api/notice', { cache: 'no-store' })
-    .then(async (response) => (response.ok && response.headers.get('content-type')?.includes('json') ? (((await response.json()) as { notice?: Notice | null }).notice ?? null) : null))
+    .then(async (response) => {
+      if (response.ok && response.headers.get('content-type')?.includes('json')) return ((await response.json()) as { notice?: Notice | null }).notice ?? null
+      release(response)
+      return null
+    })
     .catch(() => null)
   return request
 }

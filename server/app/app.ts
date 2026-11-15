@@ -17,6 +17,8 @@ import { buildMessages, createRateLimiter, parseReply, RESPONSE_SCHEMA } from '.
 import type { AssistModel } from './assist'
 import { BACKUP_FILE, effectivePlan, listBackups, overview, searchUsers, setPlan } from './admin-data'
 import type { BillingProvider } from './billing'
+import { createConnector, openDraftStore } from './connect'
+import type { DraftStore } from './connect'
 import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
 import type { GoogleClaims, GoogleClient } from './google'
@@ -36,6 +38,8 @@ export type AppConfig = {
   devLogin: boolean
   /** 요금제 한도(길이·횟수·워터마크)를 지킨다. 베타 동안은 끄고, 결제를 붙이는 날 켠다. */
   enforcePlans?: boolean
+  /** Claude·ChatGPT 커넥터(/mcp)를 켠다(기본). 남용될 때 끄는 스위치 — 이미 만든 링크는 기한까지 열린다. */
+  connector?: boolean
 }
 
 type Env = { Variables: { user: UserRow | null; token: string | null } }
@@ -51,6 +55,8 @@ export type AppDeps = {
   watch?: { status(): WatchStatus } | null
   /** 관리자 화면(/admin) */
   admin?: AdminDeps | null
+  /** 커넥터 초안을 두는 곳(connect.ts). 주지 않으면 메모리에만(시험). */
+  drafts?: DraftStore
 }
 
 /** 관리자: ADMIN_EMAILS 의 메일로 로그인한 사람(구글은 확인된 메일만 받는다 — google.ts). */
@@ -76,6 +82,11 @@ export function publicUser(user: UserRow, now: number) {
   return { id: user.id, email: user.email, name: user.name, plan: effectivePlan(user, now), planUntil: user.plan_until, createdAt: user.created_at }
 }
 
+/** 방문자의 주소(웹 서버가 X-Forwarded-For 로 알려 준다 — deploy/Caddyfile). 남용 막기의 열쇠로만 쓰고 저장·기록하지 않는다. */
+function visitorOf(c: Context): string {
+  return c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+}
+
 function sameSite(origin: string, c: Context, config: AppConfig): boolean {
   if (config.siteOrigin) return origin === config.siteOrigin
   try {
@@ -97,7 +108,7 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null, admin = null }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null, admin = null, drafts = openDraftStore(':memory:') }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
   const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
   let assistWaiting = 0
@@ -113,7 +124,8 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
 
   app.use('*', async (c, next) => {
     // 결제사 알림(webhook)은 다른 곳에서 오므로 Origin 대신 결제사 서명으로 확인한다(billing.ts).
-    if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && c.req.path !== '/api/billing/webhook') {
+    // 커넥터(/api/mcp)는 Claude·ChatGPT 의 서버가 부르고 쿠키·계정을 보지 않으므로 확인하지 않는다(connect.ts).
+    if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && c.req.path !== '/api/billing/webhook' && c.req.path !== '/api/mcp') {
       const origin = c.req.header('origin')
       if (!origin || !sameSite(origin, c, config)) return c.json({ error: 'bad_origin' }, 403)
     }
@@ -308,7 +320,7 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     if (!instruction || instruction.length > MAX_INSTRUCTION || !state) return c.json({ error: 'bad_request' }, 400)
     // 로그인했으면 계정, 아니면 IP 로 센다(IP 는 메모리에서 10분 안에 사라진다).
     const user = c.get('user')
-    const key = user ? `u:${user.id}` : `ip:${c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'}`
+    const key = user ? `u:${user.id}` : `ip:${visitorOf(c)}`
     if (!assistLimiter.hit(key)) return c.json({ error: 'rate_limited' }, 429)
     if (assistWaiting >= ASSIST_WAITING) return c.json({ error: 'busy' }, 503)
     assistWaiting += 1
@@ -322,6 +334,16 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     } finally {
       assistWaiting -= 1
     }
+  })
+
+  // ── Claude·ChatGPT 커넥터(MCP)와 그 초안 ──
+  const connector = createConnector({ db: drafts, now, siteOrigin: config.siteOrigin, enabled: config.connector ?? true })
+  app.all('/mcp', (c) => connector.handle(c.req.raw, visitorOf(c)))
+
+  /** 「편집기로 열기」 주소(?draft=)가 가리키는 대본·스타일. 7일이 지났거나 없으면 404. */
+  app.get('/drafts/:id', (c) => {
+    const draft = connector.readDraft(c.req.param('id'))
+    return draft ? c.json({ draft }) : c.json({ error: 'not_found' }, 404)
   })
 
   // ── 공지 — 누구나 읽고, 관리자만 바꾼다 ──
@@ -363,7 +385,7 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
       ...overview(db, now()),
       backups: listBackups(admin?.backupDir ?? null),
       alerts: { email: admin?.alerts.email ?? null, mail: admin?.alerts.mail ?? false },
-      settings: { enforced: config.enforcePlans === true, billing: billing !== null, googleLogin: google !== null },
+      settings: { enforced: config.enforcePlans === true, billing: billing !== null, googleLogin: google !== null, connector: config.connector ?? true },
     }),
   )
 

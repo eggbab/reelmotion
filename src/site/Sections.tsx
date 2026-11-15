@@ -382,10 +382,14 @@ export function Anywhere({ copy }: { copy: SiteCopy }) {
                   </span>
                 </a>
               ) : (
-                <div>
+                // Claude·ChatGPT 커넥터: 도움말의 그 절(주소와 더하는 순서)
+                <a href={`${pagePath('help', lang)}#connect`}>
                   <span>{row.name}</span>
-                  <span className="muted">{row.state}</span>
-                </div>
+                  <span className="anywhere__state">
+                    {row.state}
+                    <Arrow size={16} aria-hidden="true" />
+                  </span>
+                </a>
               )}
             </li>
           ))}

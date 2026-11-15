@@ -83,7 +83,7 @@ describe('관리자 화면 API', () => {
     ])
     expect(overview.alerts).toEqual({ email: 'vmelabs@outlook.com', mail: true })
     expect(overview.status).toEqual({ checkedAt: NOW, checks: [{ id: 'disk', ok: true, detail: '50.0 GB free', since: NOW }] })
-    expect(overview.settings).toEqual({ enforced: false, billing: false, googleLogin: false })
+    expect(overview.settings).toEqual({ enforced: false, billing: false, googleLogin: false, connector: true })
   })
 
   it('사람 찾기와 요금제 바꾸기(관리 명령과 같은 규칙)', async () => {
