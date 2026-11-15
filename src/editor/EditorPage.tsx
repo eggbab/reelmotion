@@ -21,6 +21,7 @@ import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
 import type { Graphic, Theme, ThemeId } from '../motion/types'
 import { Logo, LangPicker } from '../site/Chrome'
+import { NoticeBar } from '../site/NoticeBar'
 import { pageMeta } from '../site/meta'
 import { pagePath } from '../site/routes'
 import { usePageMeta } from '../site/usePageMeta'
@@ -687,6 +688,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   return (
     <div className="editor">
+      <NoticeBar lang={lang} />
       <header className="ed-top">
         <Link to={pagePath('home', lang)} className="ed-logo" aria-label={copy.home}>
           <Logo />

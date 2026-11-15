@@ -12,6 +12,8 @@ import { EditorLink } from './EditorLink'
 import { LICENSES_UI } from './legal/credits'
 import { LEGAL_DOCS, LEGAL_PAGES, LEGAL_UI } from './legal/docs'
 import { pagePath } from './routes'
+import { NoticeLine } from './NoticeBar'
+import { useNotice } from './notice'
 
 export function Logo() {
   return (
@@ -47,6 +49,7 @@ export function Header({ copy }: { copy: SiteCopy }) {
   // 다른 쪽(약관 등)에서도 첫 화면의 그 구역으로 간다. 첫 화면에서는 같은 문서 안에서 움직인다.
   const home = pagePath('home', lang)
   const section = (id: string) => `${home}#${id}`
+  const notice = useNotice(lang)
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -67,10 +70,15 @@ export function Header({ copy }: { copy: SiteCopy }) {
       <a className="skip" href="#main">
         {copy.nav.skip}
       </a>
-      <p className="announce">
-        <span>{copy.announce.text}</span>
-        <span className="announce__badge">{copy.announce.badge}</span>
-      </p>
+      {/* 관리자가 쓴 공지가 있으면 베타 안내 대신 그것을(화면을 이어받은 뒤에 바뀐다 — notice.ts). */}
+      {notice ? (
+        <NoticeLine notice={notice} lang={lang} className="announce" />
+      ) : (
+        <p className="announce">
+          <span>{copy.announce.text}</span>
+          <span className="announce__badge">{copy.announce.badge}</span>
+        </p>
+      )}
       <nav className="nav" aria-label={copy.nav.menu}>
         <Link to={home} className="nav__logo">
           <Logo />

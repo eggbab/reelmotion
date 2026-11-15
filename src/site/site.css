@@ -2105,6 +2105,82 @@
   }
 }
 
+.admin-notice {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.admin-check,
+.admin-levels label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.admin-check input,
+.admin-levels input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mint);
+}
+
+.admin-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-levels legend {
+  float: left;
+  margin-right: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.admin-field {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-field textarea {
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #0b0b0f;
+  color: var(--text);
+  font: 400 14px/1.5 var(--font);
+  resize: vertical;
+}
+
+.admin-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-notice__actions small {
+  color: var(--muted);
+}
+
+.account .admin-notice .btn-mint {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 /* 말로 고치기 구역의 단추 */
 .chat__cta {
   margin-top: 28px;

@@ -324,8 +324,38 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     }
   })
 
+  // ── 공지 — 누구나 읽고, 관리자만 바꾼다 ──
+  type NoticeRow = { active: number; level: string; text_ko: string; text_en: string; text_ja: string; updated_at: number }
+  const readNotice = () => db.prepare('select * from notice where id = 1').get() as NoticeRow
+  const noticeText = (row: NoticeRow) => ({ ko: row.text_ko, en: row.text_en, ja: row.text_ja })
+
+  app.get('/notice', (c) => {
+    const row = readNotice()
+    const text = noticeText(row)
+    const visible = row.active === 1 && Object.values(text).some((value) => value !== '')
+    c.header('cache-control', 'no-store')
+    return c.json({ notice: visible ? { version: row.updated_at, level: row.level, text } : null })
+  })
+
   // ── 관리자 화면(/admin) — 관리자만 ──
   app.use('/admin/*', requireAdmin)
+
+  app.get('/admin/notice', (c) => {
+    const row = readNotice()
+    return c.json({ notice: { active: row.active === 1, level: row.level, text: noticeText(row), version: row.updated_at } })
+  })
+
+  /** 공지 저장. 저장할 때마다 판(version)이 바뀌어, 닫았던 사람에게도 다시 보인다. 언어마다 300자까지. */
+  app.put('/admin/notice', async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { active?: unknown; level?: unknown; text?: Record<string, unknown> } | null
+    if (!body || typeof body !== 'object' || typeof body.active !== 'boolean' || (body.level !== 'info' && body.level !== 'warning')) return c.json({ error: 'bad_request' }, 400)
+    const text = Object.fromEntries((['ko', 'en', 'ja'] as const).map((lang) => [lang, typeof body.text?.[lang] === 'string' ? (body.text[lang] as string).replace(/\s+/g, ' ').trim() : ''])) as Record<Lang, string>
+    if (Object.values(text).some((value) => value.length > 300)) return c.json({ error: 'too_long' }, 400)
+    if (body.active && Object.values(text).every((value) => value === '')) return c.json({ error: 'empty' }, 400)
+    db.prepare('update notice set active = ?, level = ?, text_ko = ?, text_en = ?, text_ja = ?, updated_at = ? where id = 1').run(body.active ? 1 : 0, body.level, text.ko, text.en, text.ja, now())
+    const row = readNotice()
+    return c.json({ notice: { active: row.active === 1, level: row.level, text: noticeText(row), version: row.updated_at } })
+  })
 
   app.get('/admin/overview', (c) =>
     c.json({

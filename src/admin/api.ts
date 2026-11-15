@@ -44,3 +44,17 @@ export async function sendTestAlert(): Promise<{ ok: true } | { ok: false; reaso
 }
 
 export const backupUrl = (name: string) => `/api/admin/backups/${encodeURIComponent(name)}`
+
+export type AdminNotice = { active: boolean; level: 'info' | 'warning'; text: Record<'ko' | 'en' | 'ja', string>; version: number }
+
+export async function fetchAdminNotice(): Promise<AdminNotice | null> {
+  const response = await fetch('/api/admin/notice', { cache: 'no-store' }).catch(() => null)
+  return response?.ok ? ((await response.json()) as { notice: AdminNotice }).notice : null
+}
+
+export async function saveNotice(notice: Omit<AdminNotice, 'version'>): Promise<{ ok: true; notice: AdminNotice } | { ok: false; error: 'empty' | 'too_long' | 'failed' }> {
+  const response = await fetch('/api/admin/notice', { method: 'PUT', headers: json, body: JSON.stringify(notice) }).catch(() => null)
+  if (response?.ok) return { ok: true, notice: ((await response.json()) as { notice: AdminNotice }).notice }
+  const error = ((await response?.json().catch(() => null)) as { error?: string } | null)?.error
+  return { ok: false, error: error === 'empty' || error === 'too_long' ? error : 'failed' }
+}

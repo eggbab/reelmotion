@@ -142,3 +142,50 @@ describe('관리자 화면 API', () => {
     expect((await none.request('/api/admin/test-alert', { method: 'POST', cookie: boss3, body: '{}' })).status).toBe(503)
   })
 })
+
+describe('공지', () => {
+  it('처음에는 없고, 관리자가 켜면 모두에게 보이며, 끄면 사라진다', async () => {
+    const { request, login } = setup()
+    const publicNotice = async () => ((await (await request('/api/notice')).json()) as { notice: unknown }).notice
+    expect(await publicNotice()).toBeNull()
+    expect((await request('/api/notice')).headers.get('cache-control')).toBe('no-store')
+    const boss = await login('boss@example.com')
+    const put = (body: unknown) => request('/api/admin/notice', { method: 'PUT', cookie: boss, body: JSON.stringify(body) })
+    const saved = await put({ active: true, level: 'warning', text: { ko: '  11월 20일 새벽 2시~3시 점검이 있어요. ', en: 'Maintenance on Nov 20, 2–3 AM KST.', ja: '' } })
+    expect(saved.status).toBe(200)
+    const shown = (await publicNotice()) as { version: number; level: string; text: Record<string, string> }
+    expect(shown).toEqual({ version: expect.any(Number), level: 'warning', text: { ko: '11월 20일 새벽 2시~3시 점검이 있어요.', en: 'Maintenance on Nov 20, 2–3 AM KST.', ja: '' } })
+    // 관리자 화면은 꺼진 공지도 고칠 수 있게 그대로 받는다
+    await put({ active: false, level: 'warning', text: { ko: '지난 공지', en: '', ja: '' } })
+    expect(await publicNotice()).toBeNull()
+    const admin = (await (await request('/api/admin/notice', { cookie: boss })).json()) as { notice: { active: boolean; text: { ko: string } } }
+    expect(admin.notice).toMatchObject({ active: false, text: { ko: '지난 공지' } })
+  })
+
+  it('다시 저장하면 판(version)이 바뀐다 — 닫았던 사람에게도 다시 보이게', async () => {
+    const { request, login } = setup()
+    const boss = await login('boss@example.com')
+    const put = (body: unknown) => request('/api/admin/notice', { method: 'PUT', cookie: boss, body: JSON.stringify(body) })
+    await put({ active: true, level: 'info', text: { ko: '새 스타일이 나왔어요', en: '', ja: '' } })
+    const first = ((await (await request('/api/notice')).json()) as { notice: { version: number } }).notice.version
+    await login('someone@example.com') // 시각이 흐른다
+    await put({ active: true, level: 'info', text: { ko: '새 스타일이 나왔어요', en: '', ja: '' } })
+    const second = ((await (await request('/api/notice')).json()) as { notice: { version: number } }).notice.version
+    expect(second).toBeGreaterThan(first)
+  })
+
+  it('관리자만 바꿀 수 있고, 형식이 틀리면 400', async () => {
+    const { request, login } = setup()
+    const member = await login('mina@example.com')
+    const body = JSON.stringify({ active: true, level: 'info', text: { ko: '공지', en: '', ja: '' } })
+    expect((await request('/api/admin/notice', { method: 'PUT', cookie: member, body })).status).toBe(403)
+    expect((await request('/api/admin/notice', { method: 'PUT', body })).status).toBe(401)
+    const boss = await login('boss@example.com')
+    const put = (value: unknown) => request('/api/admin/notice', { method: 'PUT', cookie: boss, body: JSON.stringify(value) })
+    expect((await put({ active: true, level: 'info', text: { ko: '', en: ' ', ja: '' } })).status).toBe(400)
+    expect(await (await put({ active: true, level: 'info', text: { ko: '', en: ' ', ja: '' } })).json()).toEqual({ error: 'empty' })
+    expect((await put({ active: true, level: 'loud', text: { ko: '공지', en: '', ja: '' } })).status).toBe(400)
+    expect(await (await put({ active: true, level: 'info', text: { ko: '가'.repeat(301), en: '', ja: '' } })).json()).toEqual({ error: 'too_long' })
+    expect((await put('nope')).status).toBe(400)
+  })
+})

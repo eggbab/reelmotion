@@ -79,3 +79,69 @@ textarea {
   font: 700 14px/1 var(--font);
   text-decoration: none;
 }
+
+/* 공지(관리자 화면에서 쓴 글 — src/site/notice.ts). 사이트에서는 맨 위 띠 자리에, 편집기에서는 맨 위에. */
+.notice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 32px;
+  margin: 0;
+  padding: 6px 44px;
+  background: #f3f2ef;
+  color: #0b0a09;
+  font: 500 12.5px/1.45 var(--font);
+  text-align: center;
+}
+
+/* 사이트 맨 위 띠(.announce — site.css 가 뒤에 읽힌다)의 높이·줄바꿈·여백을 공지에 맞게 다시 */
+.notice.announce {
+  height: auto;
+  padding: 6px 44px;
+  font: 500 12.5px/1.45 var(--font);
+  white-space: normal;
+  overflow: visible;
+}
+
+.notice.is-warning {
+  background: #ffd166;
+  color: #1a1205;
+}
+
+.notice__label {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #0b0a09;
+  color: var(--mint);
+  font: 700 10px/1 var(--font);
+  letter-spacing: 0.08em;
+}
+
+.notice.is-warning .notice__label {
+  color: #ffd166;
+}
+
+.notice__close {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.notice__close:hover,
+.notice__close:focus-visible {
+  background: rgb(0 0 0 / 8%);
+}

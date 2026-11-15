@@ -9,6 +9,7 @@ import type { LegalDocs } from './types'
  * - 접속 기록: 웹(deploy/Caddyfile)은 접속 기록을 쓰지 않고 오류 기록에서 IP·머리글을 지운다. 앞단(운영 PC 의 공개 주소)도
  *   접속 기록을 남기지 않게 둔다(docs/operations.md).
  * - 기기에 저장: 「내 작업」(IndexedDB `reelmotion` — 작업과 넣은 영상, src/editor/store.ts), 언어 선택(localStorage `reelmotion.lang`),
+ *   닫은 공지의 판 번호(localStorage `reelmotion.notice.closed` — src/site/notice.ts),
  *   브라우저 안 받아쓰기 모델 파일(브라우저 캐시). 쿠키는 로그인했을 때 로그인 유지 하나(rm_session, 30일 — server/app/sessions.ts).
  * - 계정(server/app, 2026-11-15): 구글 로그인(고유번호·메일·이름), 로그인한 사람의 작업(영상 제외)을 서버 SQLite 에. 탈퇴하면 바로 지운다.
  * - 말로 고치기(server/app/assist.ts): 적은 말과 작업의 글을 우리 서버의 AI 가 읽고 버린다. 로그인하지 않았으면 남용 막기로 IP 를 메모리에 10분까지.
@@ -77,7 +78,7 @@ export const PRIVACY: LegalDocs = {
           {
             list: [
               '만든 작업: 대본, 받아 적은 글, 그래픽, 스타일, 작은 미리보기 그림과 넣은 영상 파일을 브라우저 저장소(IndexedDB)에 저장해 「내 작업」에서 다시 열 수 있게 합니다. 회사로 보내지 않으며, 「내 작업」에서 지우면 함께 지워집니다.',
-              '고른 화면 언어: 브라우저 저장소(localStorage)에 기억합니다. 회사로 보내지 않습니다.',
+              '고른 화면 언어와 닫은 공지: 브라우저 저장소(localStorage)에 기억합니다. 회사로 보내지 않습니다.',
               '브라우저 안 받아쓰기를 쓰면: 받아쓰기 모델 파일을 브라우저 캐시에 저장해 다음에는 다시 내려받지 않습니다.',
             ],
           },
@@ -190,7 +191,7 @@ export const PRIVACY: LegalDocs = {
           {
             list: [
               'Your projects: the script, transcript, graphics, style, a small preview image and the video you added are saved in your browser’s storage (IndexedDB) so you can reopen them from My projects. They are not sent to us, and deleting a project in My projects removes them.',
-              'Your language choice: remembered in your browser’s local storage. It is not sent to us.',
+              'Your language choice and the notices you dismissed: remembered in your browser’s local storage. They are not sent to us.',
               'If you transcribe in your browser: the speech model files are saved in your browser’s cache so they are not downloaded again.',
             ],
           },
@@ -303,7 +304,7 @@ export const PRIVACY: LegalDocs = {
           {
             list: [
               '作ったプロジェクト: 台本、文字起こし、グラフィックス、スタイル、小さなプレビュー画像と入れた動画ファイルを、ブラウザのストレージ(IndexedDB)に保存し、「マイプロジェクト」から開き直せるようにします。当社には送らず、「マイプロジェクト」で削除するとあわせて消えます。',
-              '選んだ表示言語: ブラウザのストレージ(localStorage)に記憶します。当社には送りません。',
+              '選んだ表示言語と閉じたお知らせ: ブラウザのストレージ(localStorage)に記憶します。当社には送りません。',
               'ブラウザ内の文字起こしを使う場合: 文字起こしモデルのファイルをブラウザのキャッシュに保存し、次からは再ダウンロードしません。',
             ],
           },

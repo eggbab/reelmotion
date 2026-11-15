@@ -61,6 +61,18 @@ export type AdminCopy = {
   testNotSetUp: string
   testFailed: string
   account: string
+  notice: string
+  noticeBody: string
+  noticeOn: string
+  noticeLevel: string
+  levelInfo: string
+  levelWarning: string
+  noticeLangs: Record<'ko' | 'en' | 'ja', string>
+  noticeHint: string
+  noticeSave: string
+  noticeSaved: string
+  noticeErrors: Record<'empty' | 'too_long' | 'failed', string>
+  noticeUpdated: string
 }
 
 export const ADMIN_COPY: Record<Lang, AdminCopy> = {
@@ -129,6 +141,18 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     testNotSetUp: '보내는 메일 계정이 없어 보낼 수 없어요.',
     testFailed: '보내지 못했어요: {message}',
     account: '관리자 화면',
+    notice: '공지',
+    noticeBody: '사이트 맨 위와 편집기 위에 보여요. 사람마다 닫을 수 있고, 다시 저장하면 닫았던 사람에게도 다시 보여요.',
+    noticeOn: '공지 보이기',
+    noticeLevel: '모양',
+    levelInfo: '알림',
+    levelWarning: '주의(노란색)',
+    noticeLangs: { ko: '한국어', en: 'English', ja: '日本語' },
+    noticeHint: '언어마다 300자까지. 비워 둔 언어에는 영어 → 한국어 → 일본어 순으로 적힌 글이 보여요.',
+    noticeSave: '공지 저장',
+    noticeSaved: '저장했어요.',
+    noticeErrors: { empty: '공지를 보이려면 한 언어 이상 글을 적어 주세요.', too_long: '언어마다 300자까지 적을 수 있어요.', failed: '저장하지 못했어요. 다시 시도해 주세요.' },
+    noticeUpdated: '마지막 저장: {time}',
   },
   en: {
     title: 'Admin',
@@ -195,6 +219,18 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     testNotSetUp: 'There is no sending mail account, so nothing can be sent.',
     testFailed: 'Could not send: {message}',
     account: 'Admin',
+    notice: 'Notice',
+    noticeBody: 'Shown at the top of the site and the editor. Each visitor can dismiss it; saving again shows it again to everyone.',
+    noticeOn: 'Show the notice',
+    noticeLevel: 'Style',
+    levelInfo: 'Info',
+    levelWarning: 'Warning (yellow)',
+    noticeLangs: { ko: '한국어', en: 'English', ja: '日本語' },
+    noticeHint: 'Up to 300 characters per language. A language left empty shows the English, Korean or Japanese text, in that order.',
+    noticeSave: 'Save notice',
+    noticeSaved: 'Saved.',
+    noticeErrors: { empty: 'Write the notice in at least one language to show it.', too_long: 'Each language can have up to 300 characters.', failed: 'Could not save. Please try again.' },
+    noticeUpdated: 'Last saved: {time}',
   },
   ja: {
     title: '管理画面',
@@ -261,5 +297,17 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     testNotSetUp: '送信用のメールアカウントがないため送れません。',
     testFailed: '送れませんでした: {message}',
     account: '管理画面',
+    notice: 'お知らせ',
+    noticeBody: 'サイトとエディターの一番上に表示されます。見た人はそれぞれ閉じられ、保存し直すと閉じた人にも再び表示されます。',
+    noticeOn: 'お知らせを表示する',
+    noticeLevel: '見た目',
+    levelInfo: 'お知らせ',
+    levelWarning: '注意(黄色)',
+    noticeLangs: { ko: '한국어', en: 'English', ja: '日本語' },
+    noticeHint: '言語ごとに300文字まで。空の言語には、英語 → 韓国語 → 日本語の順で書かれた文が表示されます。',
+    noticeSave: 'お知らせを保存',
+    noticeSaved: '保存しました。',
+    noticeErrors: { empty: 'お知らせを表示するには、1つ以上の言語で文を書いてください。', too_long: '言語ごとに300文字まで書けます。', failed: '保存できませんでした。もう一度お試しください。' },
+    noticeUpdated: '最後の保存: {time}',
   },
 }

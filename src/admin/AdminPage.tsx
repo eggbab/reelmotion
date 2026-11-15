@@ -16,6 +16,7 @@ import { backupUrl, changePlan, fetchOverview, findUsers, sendTestAlert } from '
 import type { AdminOverview, AdminUser } from './api'
 import { ADMIN_COPY } from './copy'
 import type { AdminCopy } from './copy'
+import { NoticeCard } from './NoticeCard'
 
 const LOCALE: Record<Lang, string> = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' }
 const clock = (ms: number, lang: Lang) => new Date(ms).toLocaleString(LOCALE[lang], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -281,13 +282,14 @@ function AdminBoard({ copy, lang }: Props) {
       <StatusCard copy={copy} lang={lang} status={data.status} />
       <NumbersCard copy={copy} lang={lang} data={data} />
       <PeopleCard copy={copy} lang={lang} recent={data.recent} onChanged={reload} />
+      <NoticeCard copy={copy} lang={lang} />
       <BackupsCard copy={copy} lang={lang} backups={data.backups} />
       <AlertsCard copy={copy} lang={lang} alerts={data.alerts} />
     </>
   )
 }
 
-/** 관리자 화면: 서버 상태·숫자·사람(요금제 바꾸기)·백업·장애 알림. 관리자 메일(ADMIN_EMAILS)로 로그인한 사람만. */
+/** 관리자 화면: 서버 상태·숫자·사람(요금제 바꾸기)·공지·백업·장애 알림. 관리자 메일(ADMIN_EMAILS)로 로그인한 사람만. */
 export function AdminPage() {
   const { lang } = useLang()
   const site = SITE_COPY[lang]
