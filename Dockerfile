@@ -16,6 +16,9 @@ FROM deps AS web-build
 # 도메인을 정하면 넘긴다(docker compose 는 deploy/.env 의 SITE_ORIGIN). 비어 있으면 바른 주소·언어별 주소·공유 그림·사이트 지도를 빼고 만든다.
 ARG SITE_ORIGIN=
 ENV SITE_ORIGIN=${SITE_ORIGIN}
+# 1 이면 서비스 워커(편집기를 인터넷 없이 여는 기능)를 끄는 판으로 만든다 — 문제가 생겼을 때만(docs/operations.md 「앱으로 설치·오프라인」).
+ARG SW_DISABLE=
+ENV SW_DISABLE=${SW_DISABLE}
 RUN npm run build
 
 FROM deps AS app-build

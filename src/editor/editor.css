@@ -130,6 +130,20 @@
   cursor: not-allowed;
 }
 
+/* 인터넷이 끊겼을 때 머리줄의 표시 */
+.ed-offline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 209 102 / 45%);
+  border-radius: var(--radius-pill);
+  color: #ffd166;
+  font: 600 12px/1 var(--font);
+  white-space: nowrap;
+}
+
 /* 시작 화면 */
 .ed-start {
   width: min(960px, calc(100% - 32px));
@@ -171,6 +185,13 @@
 
 .drop small a {
   color: var(--mint-soft);
+}
+
+/* 「앱으로 설치」: 옆의 링크와 같은 모양의 단추 */
+.drop small .btn-text {
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
 }
 
 .ed-start__label {
@@ -1337,8 +1358,13 @@
   }
 
   .ed-save,
-  .ed-projects span {
+  .ed-projects span,
+  .ed-offline span {
     display: none;
+  }
+
+  .ed-offline {
+    padding: 0 8px;
   }
 }
 

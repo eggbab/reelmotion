@@ -16,7 +16,10 @@ export type EditorCopy = {
   exportsLeft: string
   cancel: string
   close: string
-  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string }
+  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string }
+  /** 인터넷이 끊겼을 때 머리줄의 표시와 그 설명 */
+  offline: string
+  offlineHint: string
   tabs: { graphics: string; transcript: string; chat: string }
   style: string
   themes: Record<ThemeId, string>
@@ -161,7 +164,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       samples: 'Or try a sample clip',
       privacy: 'Your video stays in this browser.',
       help: 'How it works',
+      install: 'Install as an app',
     },
+    offline: 'Offline',
+    offlineHint: 'No internet. The speech server, chat editing and account sync are paused; editing and export still work.',
     tabs: { graphics: 'Graphics', transcript: 'Transcript', chat: 'Chat' },
     style: 'Style',
     themes: { clean: 'Clean', neon: 'Neon', bold: 'Bold', editorial: 'Editorial', seoul: 'Seoul', tokyo: 'Tokyo' },
@@ -301,7 +307,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       samples: '또는 예시 영상으로 해 보기',
       privacy: '영상은 이 브라우저 밖으로 나가지 않아요.',
       help: '쓰는 법 보기',
+      install: '앱으로 설치',
     },
+    offline: '오프라인',
+    offlineHint: '인터넷이 끊겼어요. 받아쓰기 서버·말로 고치기·계정 저장은 잠시 쉬고, 고치기와 내보내기는 그대로 돼요.',
     tabs: { graphics: '그래픽', transcript: '받아쓴 말', chat: '말로 고치기' },
     style: '스타일',
     themes: { clean: '클린', neon: '네온', bold: '볼드', editorial: '에디토리얼', seoul: '서울', tokyo: '도쿄' },
@@ -441,7 +450,10 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       samples: 'またはサンプル動画で試す',
       privacy: '動画はこのブラウザの外に出ません。',
       help: '使い方を見る',
+      install: 'アプリとしてインストール',
     },
+    offline: 'オフライン',
+    offlineHint: 'インターネットにつながっていません。文字起こしサーバー・話して直す・アカウントへの保存は休止中です。編集と書き出しはそのまま使えます。',
     tabs: { graphics: 'グラフィック', transcript: '書き起こし', chat: '話して直す' },
     style: 'スタイル',
     themes: { clean: 'クリーン', neon: 'ネオン', bold: 'ボールド', editorial: 'エディトリアル', seoul: 'ソウル', tokyo: '東京' },

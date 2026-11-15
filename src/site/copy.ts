@@ -29,7 +29,8 @@ export type SiteCopy = {
   lanes: { eyebrow: string; title: string; body: string; cta: string; lanes: string[] }
   statement: { eyebrow: string; text: string }
   chat: { badge: string; title: string; body: string; you: string; bot: string; input: string; cta: string }
-  anywhere: { title: string; rows: { name: string; state: string; open: boolean }[] }
+  /** to: 누르면 가는 곳 — editor(편집기) · install(크롬·엣지는 설치 창, 아니면 도움말의 설치 순서) · null(아직 없음) */
+  anywhere: { title: string; rows: { name: string; state: string; to: 'editor' | 'install' | null }[] }
   features: { title: string; body: string; items: { title: string; body: string }[] }
   pricing: {
     eyebrow: string
@@ -148,10 +149,10 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
     anywhere: {
       title: 'Available wherever you create.',
       rows: [
-        { name: 'Web editor', state: 'Open', open: true },
-        { name: 'Mac & Windows app', state: 'Coming soon', open: false },
-        { name: 'iPhone & Android', state: 'Coming soon', open: false },
-        { name: 'Claude & ChatGPT', state: 'Coming soon', open: false },
+        { name: 'Web editor', state: 'Open', to: 'editor' },
+        { name: 'Mac & Windows app', state: 'Install from your browser', to: 'install' },
+        { name: 'iPhone & Android', state: 'Add to your home screen', to: 'install' },
+        { name: 'Claude & ChatGPT', state: 'Coming soon', to: null },
       ],
     },
     features: {
@@ -292,10 +293,10 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
     anywhere: {
       title: '어디서 만들든 쓸 수 있어요.',
       rows: [
-        { name: '웹 편집기', state: '열기', open: true },
-        { name: '맥 · 윈도우 앱', state: '곧 나와요', open: false },
-        { name: '아이폰 · 안드로이드', state: '곧 나와요', open: false },
-        { name: 'Claude · ChatGPT', state: '곧 나와요', open: false },
+        { name: '웹 편집기', state: '열기', to: 'editor' },
+        { name: '맥 · 윈도우 앱', state: '브라우저에서 설치', to: 'install' },
+        { name: '아이폰 · 안드로이드', state: '홈 화면에 추가', to: 'install' },
+        { name: 'Claude · ChatGPT', state: '곧 나와요', to: null },
       ],
     },
     features: {
@@ -436,10 +437,10 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
     anywhere: {
       title: 'どこで作っても使えます。',
       rows: [
-        { name: 'ウェブ エディター', state: '開く', open: true },
-        { name: 'Mac・Windows アプリ', state: '近日公開', open: false },
-        { name: 'iPhone・Android', state: '近日公開', open: false },
-        { name: 'Claude・ChatGPT', state: '近日公開', open: false },
+        { name: 'ウェブ エディター', state: '開く', to: 'editor' },
+        { name: 'Mac・Windows アプリ', state: 'ブラウザからインストール', to: 'install' },
+        { name: 'iPhone・Android', state: 'ホーム画面に追加', to: 'install' },
+        { name: 'Claude・ChatGPT', state: '近日公開', to: null },
       ],
     },
     features: {

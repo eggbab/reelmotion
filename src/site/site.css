@@ -1216,6 +1216,16 @@
   background: rgb(255 255 255 / 3%);
 }
 
+/* 줄 오른쪽의 할 일(「브라우저에서 설치 →」) */
+.anywhere__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: right;
+}
+
 .muted {
   color: var(--dim);
   font-size: 14px;

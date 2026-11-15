@@ -3,7 +3,8 @@
 //   2) vite build --ssr        → dist-ssr/entry-server.js(같은 화면을 서버에서 그리는 코드)
 //   3) node scripts/prerender.mjs → dist/ko/terms/index.html … 404.html, robots.txt, llms.txt, (도메인을 알면) sitemap.xml
 // 도메인은 아직 정하지 않았다. 정하면 SITE_ORIGIN=https://도메인 npm run build (Docker: --build-arg SITE_ORIGIN=…).
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -33,7 +34,23 @@ await write('robots.txt', entry.robotsTxt(origin))
 await write('llms.txt', entry.llmsTxt(origin))
 if (origin) await write('sitemap.xml', entry.sitemapXml(origin))
 
-console.log(`미리 그린 HTML ${plan.length}개${origin ? ` · 도메인 ${origin}` : ''}`)
+// 서비스 워커(dist/sw.js — src/pwa/sw.ts 를 묶은 것): 맨 앞에 판 이름과 미리 받을 파일을 붙인다.
+// 판 이름은 그 파일들과 편집기 껍데기의 내용에서 나오므로, 무엇이든 바뀌면 방문자의 브라우저가 새 판을 받는다.
+// SW_DISABLE=1 이면 스스로 캐시를 지우고 등록을 푸는 판으로 바꾼다(문제가 생겼을 때 — docs/operations.md).
+const workerBody = await readFile(join(dist, 'sw.js'), 'utf8')
+let worker = '꺼짐(SW_DISABLE=1)'
+if (process.env.SW_DISABLE === '1') {
+  await write('sw.js', entry.KILL_SWITCH)
+} else {
+  const precache = entry.precacheList(await readdir(join(dist, 'assets')))
+  const hash = createHash('sha256').update(JSON.stringify(precache)).update(workerBody.replace(/^self\.__RM_VERSION__=.*\n/, ''))
+  for (const shell of entry.SHELLS) hash.update(await readFile(join(dist, shell.slice(1), 'index.html'), 'utf8'))
+  const version = hash.digest('hex').slice(0, 12)
+  await write('sw.js', entry.stampWorker(workerBody, version, precache))
+  worker = `판 ${version}, 미리 받을 파일 ${precache.length}개`
+}
+
+console.log(`미리 그린 HTML ${plan.length}개${origin ? ` · 도메인 ${origin}` : ''} · 서비스 워커 ${worker}`)
 if (!origin) {
   console.warn('⚠ SITE_ORIGIN 이 비어 있어 바른 주소(canonical)·언어별 주소(hreflang)·공유 그림(og:image)·sitemap.xml 을 넣지 않았습니다. 도메인을 정하면 SITE_ORIGIN=https://… 로 다시 빌드하세요.')
 }

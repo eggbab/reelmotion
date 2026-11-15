@@ -9,7 +9,8 @@ export type LegalPageId = 'terms' | 'privacy' | 'refund'
  */
 export type LegalBlock = string | { list: string[] } | { formula: string[] } | { facts: [string, string][] } | 'agencies'
 
-export type LegalSection = { title: string; blocks: LegalBlock[] }
+/** id 를 주면 그 이름으로 바로 갈 수 있다(/help#install). 없으면 번호(s1, s2 …). */
+export type LegalSection = { title: string; blocks: LegalBlock[]; id?: string }
 
 export type LegalDoc = {
   title: string

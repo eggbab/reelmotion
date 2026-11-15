@@ -68,7 +68,7 @@
 ## 아직 안 되는 것 (다음 할 일, 이 순서 — 전체 목록은 `docs/service-scope.md`)
 1. 운영 배포 — 도메인(사용자 결정, 「일단 냅둬」)이 정해지면 `docs/operations.md` 순서대로. 실제 GTX 1070 Ti 에서 받아쓰기 서버 확인.
 2. ~~요금제 한도·사용량·워터마크·결제 연결 자리·관리 명령·백업·자동 백업·되살리기~~(2026-11-15). ~~장애 알림~~(2026-11-15, 받는 곳 vmelabs@outlook.com — 사용자 지시, 보내는 메일 계정은 `deploy/.env`). ~~관리자 화면 `/ko/admin`~~(ADMIN_EMAILS, 기본 vmelabs@outlook.com). ~~공지~~(관리자 화면에서 쓰고 사이트·편집기 위에, 닫은 판은 localStorage). 남은 것: 결제사 연결(사용자가 카드로).
-3. 데스크톱 앱, 공지 쪽.
+3. ~~앱으로 설치·오프라인~~(2026-11-15, 브라우저가 설치하는 웹 앱 — `src/pwa/`, `docs/operations.md` 「앱으로 설치·오프라인」). 앱 장터에 올리는 앱은 만들지 않았다.
 
 ## 기술 스택과 명령
 - Vite 8 · React 19 · TypeScript 7 · Vitest · oxlint · motion(스크롤 연동) · mediabunny(내보내기) · @huggingface/transformers(받아쓰기). 패키지 관리자는 npm 만.
@@ -81,6 +81,7 @@
 - `src/captions/` — 낱말 시간 나누기·자막 줄 나누기(엔진의 자막 그래픽이 쓴다). `src/speech/` — 받아쓰기.
 - `src/site/` — 소개 페이지. `routes.ts`(주소 ↔ 쪽·언어) · `meta.ts`(쪽 제목·설명) · `legal/`(약관·정책 글과 화면) · `NotFoundPage.tsx`. `src/seo/` — 미리 그리는 HTML 의 머리 정보·사이트 지도·robots·llms.txt. `src/entry-server.tsx` — 빌드 때 서버에서 화면 그리기.
 - `src/editor/` — 편집기. `src/export/` — 내보내기. `src/media/` — 예시 영상 목록. `src/account/` — 로그인 상태·계정 쪽·작업 동기화.
+- `src/pwa/` — 앱으로 설치·오프라인. `sw.ts`(서비스 워커, 따로 묶는다 — `src/pwa/vite.config.ts`, 형 검사 `tsconfig.sw.json`) · `routes.ts`(무엇을 캐시하나 — 시험 있음) · `register.ts`(편집기를 열 때 등록) · `install.ts`(설치 단추) · `useOnline.ts`. **서비스 워커는 쪽(HTML)을 네트워크 먼저, `/assets/` 를 캐시 먼저로만 다룬다 — API·영상·다른 사이트는 손대지 않는다.** 새 판은 창이 닫힌 뒤에 넘겨받는다(`skipWaiting` 을 넣지 않는다).
 - `server/app/` — 앱 서버(테스트는 같은 `npm test`, 형 검사는 `tsconfig.server.json`). 화면 코드와 함께 쓰는 것(작업 형식 `src/editor/projects.ts`, 주소 `src/site/routes.ts`)은 그대로 가져다 쓰고 빌드 때 한 파일로 묶는다(`server/app/vite.config.ts`). 그래서 함께 쓰는 파일에는 브라우저 전용 코드를 넣지 않는다(예: 언어 기억은 `src/langStorage.ts` 로 뺐다).
 - 쪽을 더할 때: `routes.ts` 의 `PageId`, `meta.ts`, `App.tsx` 의 `AppRoutes` 를 함께 고친다. 미리 그린 HTML 과 브라우저 화면이 같아야 한다(언어는 주소에서만 읽고, 그리는 중에 `window`·저장소를 읽지 않는다 — `src/entry-server.test.ts` 가 모든 쪽을 그려 본다).
 - 스타일을 더하거나 고칠 때는 `themes.ts` 표만 고친다. 그리기 코드에 스타일별 분기를 두지 않는다.

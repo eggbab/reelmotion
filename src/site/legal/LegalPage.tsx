@@ -158,7 +158,7 @@ export function LegalPage({ page }: { page: LegalPageId | 'help' }) {
             <Rich text={doc.intro} lang={lang} />
           </p>
           {doc.sections.map((section, index) => (
-            <section key={section.title} id={`s${index + 1}`} aria-labelledby={`s${index + 1}-title`}>
+            <section key={section.title} id={section.id ?? `s${index + 1}`} aria-labelledby={`s${index + 1}-title`}>
               <h2 id={`s${index + 1}-title`}>
                 <span className="legal__num">{index + 1}.</span> {section.title}
               </h2>

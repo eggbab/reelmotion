@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { useLang } from '../lang'
 import { fill } from '../langs'
+import { canPromptInstall, promptInstall } from '../pwa/install'
 import type { Lang } from '../langs'
 import { posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
@@ -349,6 +350,9 @@ export function Chat({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
 /* ───────── 어디서든 ───────── */
 
 export function Anywhere({ copy }: { copy: SiteCopy }) {
+  const { lang } = useLang()
+  // 도움말의 「앱으로 설치하기」 절. 보통 링크라 그 절까지 내려간다(브라우저가 # 을 따라간다).
+  const installHelp = `${pagePath('help', lang)}#install`
   return (
     <section className="anywhere">
       <div className="container narrow">
@@ -356,11 +360,27 @@ export function Anywhere({ copy }: { copy: SiteCopy }) {
         <ul>
           {copy.anywhere.rows.map((row) => (
             <li key={row.name}>
-              {row.open ? (
+              {row.to === 'editor' ? (
                 <EditorLink>
                   <span>{row.name}</span>
                   <Arrow size={16} aria-hidden="true" />
                 </EditorLink>
+              ) : row.to === 'install' ? (
+                // 크롬·엣지가 설치할 수 있다고 알려 준 때에는 바로 설치 창을, 아니면 도움말의 순서를 보인다(src/pwa/install.ts).
+                <a
+                  href={installHelp}
+                  onClick={(event) => {
+                    if (!canPromptInstall()) return
+                    event.preventDefault()
+                    void promptInstall()
+                  }}
+                >
+                  <span>{row.name}</span>
+                  <span className="anywhere__state">
+                    {row.state}
+                    <Arrow size={16} aria-hidden="true" />
+                  </span>
+                </a>
               ) : (
                 <div>
                   <span>{row.name}</span>

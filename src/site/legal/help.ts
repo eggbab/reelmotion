@@ -72,6 +72,22 @@ export const HELP: LegalDocs = {
         blocks: ['고칠 때마다 이 브라우저에 저장돼요. 「내 작업」에서 다시 열거나 지울 수 있어요. 구글로 로그인하면 계정에도 저장돼 다른 기기에서도 열려요(영상은 그 기기에서 다시 골라요). 브라우저 데이터를 지우면 이 브라우저의 작업은 지워지니 다 만든 영상은 내보내 두세요. 자세한 내용은 {privacy}에 있어요.'],
       },
       {
+        id: 'install',
+        title: '앱으로 설치하기',
+        blocks: [
+          'ReelMotion 을 앱처럼 설치하면 주소창 없는 자기 창으로 열려요. 설치는 쓰는 브라우저가 해 주며, 앱 장터에서 받는 앱은 아니에요. 설치하지 않아도, 편집기를 한 번 열어 본 뒤에는 인터넷이 없어도 편집기가 열려요.',
+          {
+            list: [
+              '컴퓨터의 크롬·엣지: 주소창 오른쪽에 나오는 설치 아이콘을 누르거나, 브라우저 메뉴에서 설치 항목을 고르세요.',
+              '맥의 사파리: 메뉴 막대의 「파일」에서 「Dock에 추가」를 고르세요.',
+              '아이폰·아이패드: 사파리의 공유 단추를 누르고 「홈 화면에 추가」를 고르세요.',
+              '안드로이드: 크롬 메뉴에서 「홈 화면에 추가」나 「앱 설치」를 고르세요.',
+            ],
+          },
+          '인터넷이 없을 때는 받아쓰기 서버·말로 고치기·계정 저장을 쓸 수 없어요. 대본을 직접 적거나, 전에 한 번 써서 내려받아 둔 「이 브라우저」 받아쓰기를 쓰세요. 그래픽 만들기·고치기·내보내기는 그대로 돼요.',
+        ],
+      },
+      {
         title: '계정과 요금제',
         blocks: [
           '구글로 로그인하면 작업이 계정에도 저장돼요. {account}에서 요금제와 이번 달 내보내기 수를 보고, 로그아웃하거나 탈퇴할 수 있어요.',
@@ -158,6 +174,22 @@ export const HELP: LegalDocs = {
         blocks: ['Your work is saved in this browser as you go. Reopen or delete it from “My projects”. Log in with Google and it is kept in your account too, so it opens on your other devices (choose the video again there). Clearing browser data removes this browser’s copy, so export the videos you finish. See the {privacy} for details.'],
       },
       {
+        id: 'install',
+        title: 'Install as an app',
+        blocks: [
+          'Install ReelMotion like an app and it opens in its own window, without the address bar. Your browser does the installing; it is not an app from an app store. Installed or not, once you have opened the editor it opens again even without the internet.',
+          {
+            list: [
+              'Chrome or Edge on a computer: press the install icon at the right of the address bar, or choose the install item in the browser menu.',
+              'Safari on a Mac: choose “Add to Dock” in the File menu.',
+              'iPhone or iPad: in Safari, press the Share button and choose “Add to Home Screen”.',
+              'Android: in Chrome’s menu, choose “Add to Home screen” or “Install app”.',
+            ],
+          },
+          'Without the internet, the speech server, chat editing and saving to your account are unavailable. You can type the script yourself, or transcribe in “This browser” if you have used it before and its files are already downloaded. Making graphics, editing and exporting work as usual.',
+        ],
+      },
+      {
         title: 'Account and plans',
         blocks: [
           'Log in with Google and your projects are kept in your account too. In {account} you can see your plan and how many videos you exported this month, log out, or delete your account.',
@@ -242,6 +274,22 @@ export const HELP: LegalDocs = {
       {
         title: 'マイプロジェクト',
         blocks: ['直すたびにこのブラウザに保存されます。「マイプロジェクト」から開き直したり削除したりできます。Google でログインするとアカウントにも保存され、ほかの端末でも開けます(動画はその端末で選び直します)。ブラウザのデータを消すとこのブラウザの分は消えるため、完成した動画は書き出しておいてください。詳しくは{privacy}をご覧ください。'],
+      },
+      {
+        id: 'install',
+        title: 'アプリとしてインストール',
+        blocks: [
+          'ReelMotion をアプリのようにインストールすると、アドレスバーのない専用ウィンドウで開きます。インストールはお使いのブラウザが行うもので、アプリストアのアプリではありません。インストールしなくても、エディターを一度開いたあとは、インターネットがなくてもエディターを開けます。',
+          {
+            list: [
+              'パソコンの Chrome・Edge: アドレスバーの右に出るインストールアイコンを押すか、ブラウザのメニューからインストールの項目を選びます。',
+              'Mac の Safari: メニューバーの「ファイル」から「Dock に追加」を選びます。',
+              'iPhone・iPad: Safari の共有ボタンを押して「ホーム画面に追加」を選びます。',
+              'Android: Chrome のメニューから「ホーム画面に追加」または「アプリをインストール」を選びます。',
+            ],
+          },
+          'インターネットがないときは、文字起こしサーバー・話して直す・アカウントへの保存は使えません。台本を自分で入力するか、以前に一度使ってファイルをダウンロード済みの「このブラウザ」の文字起こしを使ってください。グラフィックの作成・編集・書き出しはそのまま使えます。',
+        ],
       },
       {
         title: 'アカウントとプラン',

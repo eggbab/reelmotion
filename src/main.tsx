@@ -6,7 +6,11 @@ import { BrowserRouter } from 'react-router'
 import { AppRoutes } from './App.tsx'
 import './index.css'
 import './site/site.css'
+import { watchInstall } from './pwa/install'
 import { renderKey } from './site/routes'
+
+// 「앱으로 설치」 사건은 화면보다 먼저 올 수 있어 여기서부터 듣는다(src/pwa/install.ts).
+watchInstall()
 
 const root = document.getElementById('root')!
 const app = (

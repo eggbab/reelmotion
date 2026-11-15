@@ -1,4 +1,4 @@
-import { Download, FolderOpen, Pause, Play, Upload, X } from 'lucide-react'
+import { Download, FolderOpen, Pause, Play, Upload, WifiOff, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -20,6 +20,9 @@ import { loadFontsForGraphics } from '../motion/fonts'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
 import type { Graphic, Theme, ThemeId } from '../motion/types'
+import { promptInstall, useCanInstall } from '../pwa/install'
+import { registerServiceWorker } from '../pwa/register'
+import { useOnline } from '../pwa/useOnline'
 import { Logo, LangPicker } from '../site/Chrome'
 import { NoticeBar } from '../site/NoticeBar'
 import { pageMeta } from '../site/meta'
@@ -41,7 +44,7 @@ import type { ChatDoc, ChatEntry } from './ChatPanel'
 import { ProjectGrid, ProjectsDialog } from './ProjectsDialog'
 import { PROJECT_VERSION, canStoreMedia, defaultName, formatMegabytes, newProjectId, nextSerial, safeFileName } from './projects'
 import type { ProjectSource, SavedProject } from './projects'
-import { StorageUnavailableError, deleteProject, getMedia, getProject, putMedia, putProject, storageEstimate } from './store'
+import { StorageUnavailableError, deleteProject, getMedia, getProject, keepStorage, putMedia, putProject, storageEstimate } from './store'
 import { Timeline } from './Timeline'
 import { useProjectList } from './useProjectList'
 import './editor.css'
@@ -198,6 +201,9 @@ export function EditorPage() {
   const [session, setSession] = useState<Session>(() => ({ key: 0, id: null, initial: landingInitial(params, lang), notice: null }))
   const loading = wanted !== null && wanted !== session.id
 
+  // 편집기를 연 사람에게만 화면 파일을 브라우저에 받아 둔다 — 다음부터 인터넷이 없어도 편집기가 열린다(src/pwa).
+  useEffect(() => registerServiceWorker(), [])
+
   useEffect(() => {
     if (!wanted || wanted === session.id) return
     let alive = true
@@ -291,6 +297,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const [engineChosen, setEngineChosen] = useState(false)
   const [server, setServer] = useState<SpeechServer | null>(null)
   const [exportState, setExportState] = useState<ExportState>({ stage: 'idle' })
+  const online = useOnline()
   // 다시 연 작업은 그래픽을 지웠더라도 저절로 다시 만들지 않는다.
   const [autoMade, setAutoMade] = useState(initial.saved)
   // 저장은 손을 댄 뒤부터: 넣은 영상은 바로, 예시 영상은 무언가 고쳤을 때(예시를 둘러보기만 하면 목록이 어지럽지 않게).
@@ -533,6 +540,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       if (user && ownerRef.current === null) ownerRef.current = user.id
       record = { ...record, owner: ownerRef.current }
       await putProject({ ...record, id, hasMedia: file !== null && mediaRef.current === 'saved' })
+      keepStorage()
       if (isNew && mounted.current) onSavedRef.current(id)
       if (file && mediaRef.current === 'none') {
         mediaRef.current = 'saving'
@@ -721,6 +729,12 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
           </span>
         )}
         <div className="ed-top__side">
+          {!online && (
+            <span className="ed-offline" title={copy.offlineHint} role="status">
+              <WifiOff size={14} aria-hidden="true" />
+              <span>{copy.offline}</span>
+            </span>
+          )}
           <button type="button" className="btn-outline ed-projects" onClick={() => setShowProjects(true)} aria-label={copy.projects.open} title={copy.projects.open}>
             <FolderOpen size={16} aria-hidden="true" />
             <span>{copy.projects.open}</span>
@@ -938,6 +952,10 @@ type StartProps = {
 
 function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }: StartProps) {
   const [over, setOver] = useState(false)
+  const online = useOnline()
+  const canInstall = useCanInstall()
+  // 브라우저가 「이어져 있다」고 해도 실제로는 끊겨 있을 수 있다(인터넷 없는 와이파이 등) — 예시 그림을 못 받으면 예시를 숨긴다.
+  const [samplesFailed, setSamplesFailed] = useState(false)
   const { state } = useProjectList()
   const recent = state.status === 'ready' ? state.items.slice(0, 4) : []
   const onDrop = (event: DragEvent) => {
@@ -966,6 +984,15 @@ function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }
         </label>
         <small>
           {copy.start.drop} · {copy.start.privacy} · <Link to={pagePath('help', lang)}>{copy.start.help}</Link>
+          {/* 크롬·엣지가 설치할 수 있다고 알려 줄 때만(다른 브라우저의 순서는 도움말에 있다) */}
+          {canInstall && (
+            <>
+              {' · '}
+              <button type="button" className="btn-text" onClick={() => void promptInstall()}>
+                {copy.start.install}
+              </button>
+            </>
+          )}
         </small>
       </div>
       {recent.length > 0 && (
@@ -979,16 +1006,21 @@ function StartScreen({ copy, lang, notice, onFile, onSample, onOpen, onShowAll }
           <ProjectGrid items={recent} copy={copy} lang={lang} currentId={null} onOpen={onOpen} />
         </>
       )}
-      <p className="ed-start__label">{copy.start.samples}</p>
-      <ul className="samples">
-        {(Object.keys(CLIPS) as ClipId[]).map((clip) => (
-          <li key={clip}>
-            <button type="button" onClick={() => onSample(clip)} className={CLIPS[clip].portrait ? 'is-tall' : undefined}>
-              <img src={posterUrl(clip)} alt="" loading="lazy" />
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* 예시 영상은 서버에서 받아 오므로 인터넷이 없으면 보이지 않는다 */}
+      {online && !samplesFailed && (
+        <>
+          <p className="ed-start__label">{copy.start.samples}</p>
+          <ul className="samples">
+            {(Object.keys(CLIPS) as ClipId[]).map((clip) => (
+              <li key={clip}>
+                <button type="button" onClick={() => onSample(clip)} className={CLIPS[clip].portrait ? 'is-tall' : undefined}>
+                  <img src={posterUrl(clip)} alt="" loading="lazy" onError={() => setSamplesFailed(true)} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </main>
   )
 }

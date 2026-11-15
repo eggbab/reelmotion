@@ -37,6 +37,22 @@ describe('빌드 때 미리 그리기', () => {
     expect(render('/ja')).toContain('無料プランはどうなりますか?')
   })
 
+  it('앱으로 설치: 소개 페이지의 줄이 도움말의 설치 순서로 가고, 도움말에 그 절이 있다', () => {
+    const ko = render('/ko')
+    expect(ko).toContain('href="/ko/help#install"')
+    expect(ko).toContain('브라우저에서 설치')
+    expect(ko).toContain('홈 화면에 추가')
+    expect(render('/')).toContain('href="/help#install"')
+    expect(render('/ja')).toContain('href="/ja/help#install"')
+    const help = render('/ko/help')
+    expect(help).toContain('id="install"')
+    expect(help).toContain('앱으로 설치하기')
+    expect(render('/help')).toContain('id="install"')
+    expect(render('/ja/help')).toContain('id="install"')
+    // 이름을 준 절이 아니면 번호로 된 id 그대로
+    expect(help).toContain('id="s1"')
+  })
+
   it('없는 주소는 그 언어의 404 화면', () => {
     expect(render('/ko/404')).toContain('없는 페이지예요')
     expect(render('/ja/nope/deeper')).toContain('このページは見つかりません')

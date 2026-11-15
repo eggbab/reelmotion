@@ -11,6 +11,8 @@ services:
       args:
         # 사이트 주소(https://도메인). 정하기 전에는 비워 둔다 — scripts/prerender.mjs
         SITE_ORIGIN: ${SITE_ORIGIN:-}
+        # 1 이면 서비스 워커를 끄는 판으로 빌드한다(문제가 생겼을 때만 — docs/operations.md 「앱으로 설치·오프라인」)
+        SW_DISABLE: ${SW_DISABLE:-}
     image: reelmotion-web
     ports:
       - "127.0.0.1:${WEB_PORT:-8080}:80"

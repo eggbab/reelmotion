@@ -102,6 +102,22 @@ export async function deleteProject(id: string): Promise<void> {
   })
 }
 
+let askedToKeep = false
+
+/**
+ * 저장한 작업이 브라우저의 자리 정리로 지워지지 않게 「오래 두기」를 청한다(한 번만). 들어줄지는 브라우저가 정한다 —
+ * 크롬·엣지는 묻지 않고 정하고(앱으로 설치했거나 자주 쓰면 들어준다), 파이어폭스는 이용자에게 물어본다.
+ */
+export function keepStorage(): void {
+  if (askedToKeep) return
+  askedToKeep = true
+  try {
+    void navigator.storage?.persist?.().catch(() => false)
+  } catch {
+    // 이 기능이 없는 브라우저
+  }
+}
+
 /** 저장소 남은 공간(브라우저가 알려 줄 때만). */
 export async function storageEstimate(): Promise<{ quota?: number; usage?: number } | null> {
   try {
