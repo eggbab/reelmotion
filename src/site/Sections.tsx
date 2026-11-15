@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from 'motion/react'
 import type { MotionValue } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { Link } from 'react-router'
 import { fill } from '../langs'
 import type { Lang } from '../langs'
 import { posterUrl } from '../media/clips'
@@ -17,6 +16,7 @@ import { demo } from './demos'
 import type { Demo, DemoId } from './demos'
 import { MotionStage } from './MotionStage'
 import { PLANS, formatWon } from './plans'
+import { EditorLink } from './EditorLink'
 
 /* ───────── 만들 수 있는 것 ───────── */
 
@@ -117,19 +117,19 @@ export function StylesCarousel({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
     <section className="styles" id="styles">
       <div className="styles__head container-wide">
         <h2>{copy.styles.title}</h2>
-        <Link to="/app" className="link-quiet">
+        <EditorLink className="link-quiet">
           {copy.styles.all} ↗
-        </Link>
+        </EditorLink>
       </div>
       <ul className="styles__track" ref={track}>
         {demos.map(({ theme, demo: d }) => {
           const look = themeById(theme)
           return (
             <li key={theme} className="style-card">
-              <Link to={`/app?theme=${theme}`} aria-label={`${copy.styles.names[theme]} — ${copy.styles.about[theme]}`}>
+              <EditorLink search={`?theme=${theme}`} aria-label={`${copy.styles.names[theme]} — ${copy.styles.about[theme]}`}>
                 <MotionStage clip={d.clip} graphics={d.graphics} theme={theme} label={copy.styles.about[theme]} />
                 <span className="badge">{copy.styles.regions[look.region]}</span>
-              </Link>
+              </EditorLink>
               <h3>{copy.styles.names[theme]}</h3>
               <p>{copy.styles.about[theme]}</p>
             </li>
@@ -190,10 +190,10 @@ export function Formats({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
       <div className="formats__rows">
         {row(ROW_A, false)}
         {row(ROW_B, true)}
-        <Link to="/app" className="btn-dark">
+        <EditorLink className="btn-dark">
           <span className="dot" />
           {copy.formats.cta}
-        </Link>
+        </EditorLink>
       </div>
     </section>
   )
@@ -259,9 +259,9 @@ export function Lanes({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
           <p className="eyebrow">{copy.lanes.eyebrow}</p>
           <h2>{copy.lanes.title}</h2>
           <p className="lead-sm">{copy.lanes.body}</p>
-          <Link to="/app" className="btn-mint">
+          <EditorLink className="btn-mint">
             {copy.lanes.cta} ↗
-          </Link>
+          </EditorLink>
         </div>
         <div className="lanes__board">
           {copy.lanes.lanes.map((name, i) => (
@@ -352,10 +352,10 @@ export function Anywhere({ copy }: { copy: SiteCopy }) {
           {copy.anywhere.rows.map((row) => (
             <li key={row.name}>
               {row.open ? (
-                <Link to="/app">
+                <EditorLink>
                   <span>{row.name}</span>
                   <Arrow size={16} aria-hidden="true" />
-                </Link>
+                </EditorLink>
               ) : (
                 <div>
                   <span>{row.name}</span>
@@ -429,9 +429,9 @@ export function Pricing({ copy }: { copy: SiteCopy }) {
               <li>{plan.watermark ? p.watermark : p.noWatermark}</li>
             </ul>
             {plan.available && (
-              <Link to="/app" className="btn-mint">
+              <EditorLink className="btn-mint">
                 {p.cta}
-              </Link>
+              </EditorLink>
             )}
           </li>
         ))}

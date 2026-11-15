@@ -1,6 +1,6 @@
 # ReelMotion 운영 안내
 
-지금 상태(2026-11-15): **배포 전.** 도메인·문의 메일은 사용자가 나중에 정한다. 아래는 정해지면 그대로 따라 할 순서와, 이 작업 공간에서 실제로 확인한 것이다.
+지금 상태(2026-11-15): **배포 전.** 도메인·문의 메일은 사용자가 나중에 정한다(정하면 아래 「도메인·문의 메일을 정하면」). 아래는 정해지면 그대로 따라 할 순서와, 이 작업 공간에서 실제로 확인한 것이다.
 
 ## 무엇이 돌아가나
 | 이름 | 하는 일 | 만드는 곳 |
@@ -26,6 +26,17 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
 - 웹은 `127.0.0.1:8080` 에서만 받는다. 공개 주소(https)는 운영 PC 의 기존 공개 설정에서 이 포트로 넘긴다. 넘길 때 요청 크기 25MB 이상, 기다리는 시간 15분 이상으로 둔다(CPU 로 긴 소리를 받아 적을 때).
 - 처음 띄울 때 모델(약 3.5GB)을 `asr-models` 볼륨으로 내려받는다. 몇 분 걸리고, 그동안 `/api/asr/health` 는 503 이다.
 
+## 도메인·문의 메일을 정하면 (사용자 결정 대기)
+1. `deploy/.env` 에 `SITE_ORIGIN=https://도메인`(끝에 / 없이)을 적는다. 빌드할 때 쪽마다 바른 주소·언어별 주소(영어·한국어·일본어)·공유 그림 주소가 들어가고 `sitemap.xml` 이 생긴다(`scripts/prerender.mjs`). 비어 있으면 빌드 끝에 경고가 나온다.
+2. `src/site/business.ts` 의 `contactEmail` 에 문의 메일을 넣는다. 약관·개인정보처리방침·환불 규정의 문의 자리와 바닥글에 나온다.
+3. `docker compose up -d --build`(그래픽 카드면 위 두 번째 명령)로 다시 빌드한다.
+4. 앞단(운영 PC 의 home-edge Caddy)에 이 주소 블록을 더할 때 마트마트 블록처럼 **`log { output discard }`** 를 넣는다 — 개인정보처리방침에 「접속 기록을 남기지 않는다」고 적었다. 요청 크기 25MB 이상, 기다리는 시간 15분 이상. 앞단에 CDN·터널 같은 바깥 회사를 끼우면 개인정보처리방침의 「처리 위탁·국외 이전」을 먼저 고친다.
+
+## 기록(로그)
+- 웹(Caddy)은 접속 기록을 쓰지 않는다. 오류 기록에는 요청 정보가 붙는데, 그중 IP 주소·포트·머리글을 지우게 했다(`deploy/Caddyfile` 맨 위). 2026-11-15 확인: 일부러 오류를 낸 요청(`X-Forwarded-For` 포함)의 기록에 IP 가 0번 나왔다.
+- 받아쓰기 서버는 접속 기록을 끄고(`access_log=False`), 실패했을 때 오류 내용만 남긴다(소리·IP 없음).
+- 두 컨테이너 모두 기록 파일을 10MB × 3개로 묶었다(`compose.yml` 의 `logging`).
+
 ## 그래픽 카드 확인 (실제 카드에서는 아직 안 해 봤다)
 ```bash
 docker compose -f compose.yml -f compose.gpu.yml exec asr python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
@@ -40,6 +51,8 @@ docker compose -f compose.yml -f compose.gpu.yml exec asr python -c "import torc
 - 웹의 머리글(COOP/COEP·보안 머리글)과 `/assets` 오래 보관 머리글, `/app` 주소가 나온다.
 - 받아쓰기 서버 메모리: CPU bfloat16 약 0.8GB(float32 였으면 약 7.3GB — 처음에 7GB 제한에 걸려 계속 다시 시작했다). 4GB 제한을 두었다.
 - 이 작업 공간은 HTTPS 를 다시 서명하는 프록시 뒤라 빌드에 `--secret id=extra_ca,src=<인증서>` 를 넘겼다. 운영 PC 에서는 넘기지 않는다.
+- 쪽 주소(2026-11-15, 시험 도메인으로 빌드): `/` `/ko` `/ko/` `/ja/terms` `/privacy` `/app` `/ko/app` 200, 없는 주소 `/nope` `/ko/nope` `/ja/a/b` 는 그 언어의 404 쪽을 404 상태로. 404 쪽에도 같은 보안 머리글. 크롬에서 미리 그린 화면을 다시 그리지 않고 이어받는 것(9개 주소), 첫 화면·편집기 언어 옮기기(7가지), 언어 고르기, 바닥글·머리 메뉴 이동을 확인했다.
+- 브라우저 안 받아쓰기의 실행 파일(onnxruntime)이 jsDelivr 가 아니라 우리 서버(`/assets/ort-wasm-*`)에서 오는 것, 바깥으로 나가는 곳이 Hugging Face(`huggingface.co`, `us.aws.cdn.hf.co`)뿐인 것을 확인했다(영어 24초 음성, 43초).
 
 ## 받아쓰기 서버 설정(환경 변수)
 | 이름 | 기본 | 뜻 |

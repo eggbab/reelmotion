@@ -15,6 +15,21 @@
   overflow-wrap: anywhere;
 }
 
+/*
+ * 일본어는 빈칸이 없어 keep-all(한국어용: 빈칸에서만 줄을 나눔)이면 쉼표·마침표에서만 줄이 나뉘어 줄 끝이 크게 빈다.
+ * 일본어는 글자 사이에서 나누되 작은 가나·문장부호가 줄 앞에 오지 않게(strict), 크롬은 구절 단위(auto-phrase)로 나눈다.
+ */
+.site:lang(ja) {
+  word-break: normal;
+  line-break: strict;
+}
+
+@supports (word-break: auto-phrase) {
+  .site:lang(ja) {
+    word-break: auto-phrase;
+  }
+}
+
 .site h2 {
   margin: 0;
   font: 700 clamp(32px, 4.2vw, 52px) / 1.12 var(--font);
@@ -1392,6 +1407,263 @@
   animation: rise 0.3s var(--ease) both;
 }
 
+/* 약관·정책(이용약관·개인정보처리방침·환불 규정). 글 너비는 질문 구역과 같은 760px. */
+.legal {
+  position: relative;
+  overflow: hidden;
+  padding: 184px 0 160px;
+}
+
+.legal__inner {
+  position: relative;
+  z-index: 1;
+  width: min(760px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.legal h1 {
+  margin: 0;
+  font: 700 clamp(40px, 6vw, 72px) / 1.05 var(--font);
+  letter-spacing: -0.04em;
+}
+
+.legal__meta {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font: 400 14px/1.5 var(--font);
+}
+
+.legal__note {
+  margin: 24px 0 0;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 2.4%);
+  color: var(--text-2);
+  font: 400 14px/1.6 var(--font);
+}
+
+.site .legal__intro {
+  margin: 40px 0 0;
+  color: var(--text-2);
+  font: 400 18px/1.7 var(--font);
+}
+
+.legal section {
+  margin-top: 48px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 104px;
+}
+
+.site .legal h2 {
+  margin: 0 0 16px;
+  font: 600 21px/1.4 var(--font);
+  letter-spacing: -0.01em;
+}
+
+.legal__num {
+  color: var(--mint-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.legal p,
+.legal li,
+.legal dd {
+  color: var(--text-2);
+  font: 400 16px/1.75 var(--font);
+}
+
+.legal p {
+  margin: 0 0 14px;
+}
+
+.legal ul {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.legal li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 20px;
+}
+
+.legal li::before {
+  content: '';
+  position: absolute;
+  top: 0.72em;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+}
+
+.legal strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.legal a {
+  color: var(--mint-soft);
+  text-decoration: underline;
+  text-decoration-color: rgb(154 255 235 / 40%);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s var(--ease);
+}
+
+.legal a:hover {
+  text-decoration-color: currentColor;
+}
+
+.legal__pending {
+  color: var(--muted);
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.legal__formula {
+  margin: 0 0 14px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.site .legal__formula p {
+  margin: 4px 0;
+  color: var(--text);
+  font: 600 15px/1.6 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+.legal__facts {
+  margin: 0 0 14px;
+  border-top: 1px solid var(--line);
+}
+
+.legal__facts > div {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal__facts dt {
+  color: var(--muted);
+  font: 500 14px/1.75 var(--font);
+}
+
+.legal__facts dd {
+  margin: 0;
+}
+
+.legal .legal__agencies li {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+
+.legal__agencies span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* 없는 주소 */
+.notfound {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 150px 24px 120px;
+  text-align: center;
+}
+
+.notfound__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+}
+
+.site .notfound__code {
+  position: relative;
+  display: inline-block;
+  margin: 0 0 8px;
+  background: linear-gradient(180deg, var(--text) 30%, rgb(243 242 239 / 16%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font: 700 clamp(120px, 22vw, 240px) / 0.9 var(--font);
+  letter-spacing: -0.06em;
+  animation: word-in 0.9s var(--ease) both;
+}
+
+/* 첫 화면 제목의 낱말처럼 민트 띠가 한 번 훑고 지나간다 */
+.notfound__code::after {
+  content: '';
+  position: absolute;
+  inset: 10% -2%;
+  border-radius: 10px;
+  background: var(--mint);
+  box-shadow: 0 0 40px rgb(0 255 221 / 60%);
+  animation: band-sweep 0.75s var(--ease) both;
+}
+
+.notfound h1 {
+  margin: 0;
+  font: 700 clamp(32px, 4.2vw, 52px) / 1.12 var(--font);
+  letter-spacing: -0.03em;
+}
+
+.site .notfound__inner > p:not(.notfound__code) {
+  max-width: 420px;
+  margin: 18px auto 0;
+  color: var(--muted);
+  font: 400 16px/1.5 var(--font);
+}
+
+.notfound__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+@media (max-width: 560px) {
+  .legal {
+    padding-top: 150px;
+  }
+
+  .site .legal__intro {
+    font-size: 17px;
+  }
+
+  .legal__facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site .notfound__code,
+  .notfound__code::after {
+    animation: none;
+  }
+
+  .notfound__code::after {
+    display: none;
+  }
+}
+
 /* 바닥(밝은 바탕) */
 .site-footer {
   position: relative;
@@ -1469,8 +1741,10 @@
 
 .site-footer__bottom {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 12px 24px;
   margin-top: 64px;
   padding: 18px 0;
   border-top: 1px solid rgb(0 0 0 / 8%);
@@ -1481,6 +1755,24 @@
 
 .site-footer__bottom p {
   margin: 0;
+}
+
+/* 약관 링크: 개인정보처리방침은 굵게(다른 링크와 구별되게 — 한국 사이트의 관례) */
+.site-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.site-footer .site-footer__legal a {
+  color: #6b6863;
+  font: 400 12px/1.4 var(--font);
+  letter-spacing: 0.02em;
+}
+
+.site-footer .site-footer__legal a.is-strong {
+  color: #0b0a09;
+  font-weight: 700;
 }
 
 .site-footer__mark {

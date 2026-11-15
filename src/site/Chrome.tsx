@@ -7,6 +7,9 @@ import { LANGS } from '../langs'
 import type { Lang } from '../langs'
 import { BUSINESS } from './business'
 import type { SiteCopy } from './copy'
+import { EditorLink } from './EditorLink'
+import { LEGAL_DOCS, LEGAL_PAGES, LEGAL_UI } from './legal/docs'
+import { pagePath } from './routes'
 
 export function Logo() {
   return (
@@ -38,6 +41,10 @@ export function LangPicker({ label, className }: { label: string; className?: st
 }
 
 export function Header({ copy }: { copy: SiteCopy }) {
+  const { lang } = useLang()
+  // 다른 쪽(약관 등)에서도 첫 화면의 그 구역으로 간다. 첫 화면에서는 같은 문서 안에서 움직인다.
+  const home = pagePath('home', lang)
+  const section = (id: string) => `${home}#${id}`
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -47,10 +54,10 @@ export function Header({ copy }: { copy: SiteCopy }) {
   }, [])
   const links = (
     <>
-      <a href="#product">{copy.nav.product}</a>
-      <a href="#styles">{copy.nav.styles}</a>
-      <a href="#pricing">{copy.nav.pricing}</a>
-      <a href="#faq">{copy.nav.faq}</a>
+      <a href={section('product')}>{copy.nav.product}</a>
+      <a href={section('styles')}>{copy.nav.styles}</a>
+      <a href={section('pricing')}>{copy.nav.pricing}</a>
+      <a href={section('faq')}>{copy.nav.faq}</a>
     </>
   )
   return (
@@ -63,15 +70,13 @@ export function Header({ copy }: { copy: SiteCopy }) {
         <span className="announce__badge">{copy.announce.badge}</span>
       </p>
       <nav className="nav" aria-label={copy.nav.menu}>
-        <Link to="/" className="nav__logo">
+        <Link to={home} className="nav__logo">
           <Logo />
         </Link>
         <div className="nav__links">{links}</div>
         <div className="nav__side">
           <LangPicker label={copy.nav.language} />
-          <Link to="/app" className="btn-ghost">
-            {copy.nav.start} →
-          </Link>
+          <EditorLink className="btn-ghost">{copy.nav.start} →</EditorLink>
           <details className="nav__menu">
             <summary aria-label={copy.nav.menu}>
               <Menu size={18} />
@@ -87,6 +92,7 @@ export function Header({ copy }: { copy: SiteCopy }) {
 /** 첫 화면을 지나면 화면 아래에 떠 있는 입력 칸. 적은 말을 편집기로 넘겨 그래픽을 만든다. */
 export function FloatingBar({ copy }: { copy: SiteCopy }) {
   const navigate = useNavigate()
+  const { lang } = useLang()
   const [text, setText] = useState('')
   const [shown, setShown] = useState(false)
   const [turn, setTurn] = useState(0)
@@ -107,7 +113,8 @@ export function FloatingBar({ copy }: { copy: SiteCopy }) {
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const script = text.trim()
-    navigate(script ? `/app?script=${encodeURIComponent(script)}` : '/app')
+    const app = pagePath('app', lang)
+    navigate(script ? `${app}?script=${encodeURIComponent(script)}` : app)
   }
   const placeholder = copy.floating.placeholders[turn % copy.floating.placeholders.length]
   return (
@@ -124,7 +131,9 @@ export function FloatingBar({ copy }: { copy: SiteCopy }) {
 }
 
 export function Footer({ copy }: { copy: SiteCopy }) {
+  const { lang } = useLang()
   const f = copy.footer
+  const home = pagePath('home', lang)
   return (
     <footer className="site-footer" data-page-end>
       <div className="site-footer__inner">
@@ -134,16 +143,16 @@ export function Footer({ copy }: { copy: SiteCopy }) {
             <p className="label">{f.product}</p>
             <ul>
               <li>
-                <Link to="/app">{f.links.editor}</Link>
+                <EditorLink>{f.links.editor}</EditorLink>
               </li>
               <li>
-                <a href="#styles">{f.links.styles}</a>
+                <a href={`${home}#styles`}>{f.links.styles}</a>
               </li>
               <li>
-                <a href="#pricing">{f.links.pricing}</a>
+                <a href={`${home}#pricing`}>{f.links.pricing}</a>
               </li>
               <li>
-                <a href="#faq">{f.links.faq}</a>
+                <a href={`${home}#faq`}>{f.links.faq}</a>
               </li>
             </ul>
           </div>
@@ -170,11 +179,30 @@ export function Footer({ copy }: { copy: SiteCopy }) {
                 <dt>{f.business.address}</dt>
                 <dd>{BUSINESS.address}</dd>
               </div>
+              <div>
+                <dt>{f.business.hosting}</dt>
+                <dd>{BUSINESS.hosting}</dd>
+              </div>
+              {BUSINESS.contactEmail && (
+                <div>
+                  <dt>{f.business.contact}</dt>
+                  <dd>
+                    <a href={`mailto:${BUSINESS.contactEmail}`}>{BUSINESS.contactEmail}</a>
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         </div>
         <div className="site-footer__bottom">
           <p>{f.rights}</p>
+          <nav className="site-footer__legal" aria-label={LEGAL_UI[lang].eyebrow}>
+            {LEGAL_PAGES.map((page) => (
+              <Link key={page} to={pagePath(page, lang)} className={page === 'privacy' ? 'is-strong' : undefined}>
+                {LEGAL_DOCS[page][lang].title}
+              </Link>
+            ))}
+          </nav>
           <LangPicker label={copy.nav.language} className="lang-picker--light" />
         </div>
       </div>

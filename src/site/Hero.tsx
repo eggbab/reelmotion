@@ -1,12 +1,12 @@
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
 import { clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import type { Lang } from '../langs'
 import type { SiteCopy } from './copy'
 import { demo } from './demos'
 import { MotionStage } from './MotionStage'
+import { EditorLink } from './EditorLink'
 
 const WALL: ClipId[] = ['studio', 'shorts-a', 'podcast-a', 'teacher', 'podcast-b', 'shorts-b', 'explainer', 'podcast-c', 'studio', 'podcast-a', 'shorts-a', 'teacher']
 
@@ -71,9 +71,9 @@ export function Hero({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
             {copy.hero.after}
           </h1>
           <p>{copy.hero.body}</p>
-          <Link to="/app" className="btn-mint" data-hero-cta>
+          <EditorLink className="btn-mint" data-hero-cta>
             {copy.hero.cta}
-          </Link>
+          </EditorLink>
         </motion.div>
       </div>
     </section>

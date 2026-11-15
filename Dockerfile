@@ -8,6 +8,9 @@ RUN --mount=type=secret,id=extra_ca,required=false \
     if [ -s /run/secrets/extra_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/extra_ca; fi && \
     npm ci --no-audit --no-fund
 COPY . .
+# 도메인을 정하면 넘긴다(docker compose 는 deploy/.env 의 SITE_ORIGIN). 비어 있으면 바른 주소·언어별 주소·공유 그림·사이트 지도를 빼고 만든다.
+ARG SITE_ORIGIN=
+ENV SITE_ORIGIN=${SITE_ORIGIN}
 RUN npm run build
 
 FROM caddy:2.10-alpine

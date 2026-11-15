@@ -2,11 +2,24 @@
 {
 	admin off
 	auto_https off
+	# 접속 기록은 남기지 않는다(Caddy 는 log 지시어가 없으면 접속 기록을 쓰지 않는다).
+	# 오류 기록에는 요청 정보가 함께 적히므로, 방문자를 알아볼 수 있는 값(IP 주소·포트·머리글)을 지운다.
+	# 개인정보처리방침의 「접속 기록을 남기지 않는다」와 맞춘다(src/site/legal/privacy.ts).
+	log {
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip delete
+				request>remote_port delete
+				request>client_ip delete
+				request>headers delete
+			}
+		}
+	}
 }
 
-:80 {
-	encode zstd gzip
-
+# 모든 응답(404 쪽 포함)에 붙이는 머리글. 오류 응답은 앞에서 붙인 머리글이 지워지므로 handle_errors 에서도 다시 붙인다.
+(headers) {
 	header {
 		# 브라우저 안 받아쓰기가 여러 CPU 를 쓰려면 이 둘이 필요하다(vite.config.ts 의 isolationHeaders 와 같게).
 		Cross-Origin-Opener-Policy "same-origin"
@@ -16,6 +29,12 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 		-Server
 	}
+}
+
+:80 {
+	encode zstd gzip
+
+	import headers
 
 	# 받아쓰기 서버(server/asr). 소리 10분 ≈ 19MB 라 25MB 까지 받고, CPU 로 돌 때를 생각해 오래 기다린다.
 	handle /api/asr/* {
@@ -30,12 +49,29 @@
 		}
 	}
 
+	# 이름에 내용 지문이 든 파일은 오래 두고, 나머지(HTML 등)는 매번 새 판인지 확인한다.
+	# HTML 을 오래 두면 새로 배포한 뒤 지워진 옛 파일을 찾다가 화면이 깨진다.
 	@hashed path /assets/*
 	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	@fresh not path /assets/*
+	header @fresh Cache-Control "no-cache"
 
+	# 쪽마다 미리 그린 HTML 이 있다(/ko → /ko/index.html). 없는 파일은 아래 404 로 간다.
 	handle {
 		root * /srv
-		try_files {path} {path}/index.html /index.html
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	# 없는 주소: 미리 그려 둔 404 쪽을 404 상태로 보낸다. 언어는 주소 앞말을 따른다(src/site/routes.ts 의 langOfPath).
+	handle_errors 404 {
+		import headers
+		root * /srv
+		@ko path /ko /ko/*
+		@ja path /ja /ja/*
+		rewrite @ko /ko/404.html
+		rewrite @ja /ja/404.html
+		rewrite * /404.html
 		file_server
 	}
 }

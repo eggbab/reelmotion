@@ -1,19 +1,17 @@
-import { useEffect } from 'react'
 import { useLang } from '../lang'
 import { FloatingBar, Footer, Header } from './Chrome'
 import { SITE_COPY } from './copy'
 import { Hero } from './Hero'
+import { pageMeta } from './meta'
 import { Anywhere, Chat, Faq, Features, Formats, Lanes, Make, Pricing, Statement, StylesCarousel } from './Sections'
 import { Steps } from './Steps'
+import { usePageMeta, useSiteBody } from './usePageMeta'
 
 export function LandingPage() {
   const { lang } = useLang()
   const copy = SITE_COPY[lang]
-  useEffect(() => {
-    document.title = `ReelMotion — ${copy.hero.before}${copy.hero.words[0]}${copy.hero.after}`
-    document.body.classList.add('site-body')
-    return () => document.body.classList.remove('site-body')
-  }, [copy])
+  usePageMeta(pageMeta('home', lang))
+  useSiteBody()
   return (
     <div className="site">
       <Header copy={copy} />

@@ -1,5 +1,15 @@
-import { pipeline } from '@huggingface/transformers'
+import { env, pipeline } from '@huggingface/transformers'
+import asyncifyMjs from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url'
+import asyncifyWasm from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url'
+import plainMjs from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url'
+import plainWasm from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url'
+import { pickRuntimeFiles } from './runtime'
 import type { SpeechChunk } from './words'
+
+// 실행 파일을 jsDelivr 대신 이 사이트에서 받는다(runtime.ts). 바깥으로 나가는 곳은 모델 파일을 주는 Hugging Face 뿐이다.
+const runtime = pickRuntimeFiles(navigator.userAgent, (navigator as Navigator & { vendor?: string }).vendor ?? '', 'gpu' in navigator)
+const wasm = env.backends.onnx.wasm
+if (wasm) wasm.wasmPaths = runtime === 'plain' ? { mjs: plainMjs, wasm: plainWasm } : { mjs: asyncifyMjs, wasm: asyncifyWasm }
 
 export type WorkerRequest = { audio: Float32Array; model: string; dtype: 'q8' | 'q4'; language: string | null }
 

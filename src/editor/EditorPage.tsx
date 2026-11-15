@@ -15,6 +15,8 @@ import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
 import type { Graphic, ThemeId } from '../motion/types'
 import { Logo, LangPicker } from '../site/Chrome'
+import { pageMeta } from '../site/meta'
+import { usePageMeta } from '../site/usePageMeta'
 import { NoAudioError } from '../speech/audio'
 import { retime } from '../speech/retime'
 import { ServerBusyError, ServerTooLongError, checkSpeechServer, transcribeOnServer } from '../speech/server'
@@ -260,9 +262,7 @@ export function EditorPage() {
     setExportState({ stage: 'idle' })
   }
 
-  useEffect(() => {
-    document.title = `ReelMotion — ${copy.untitled}`
-  }, [copy])
+  usePageMeta(pageMeta('app', lang))
 
   const fileName = source?.kind === 'file' ? source.file.name : source ? `sample-${source.clip}` : copy.untitled
   const isSample = source?.kind === 'sample'

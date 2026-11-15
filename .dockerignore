@@ -4,3 +4,4 @@ dist
 server
 docs
 *.log
+dist-ssr

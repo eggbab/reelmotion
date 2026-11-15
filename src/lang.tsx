@@ -1,27 +1,22 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { detectLang } from './langs'
+import { useNavigate } from 'react-router'
+import { saveLang } from './langs'
 import type { Lang } from './langs'
-
-const STORAGE_KEY = 'reelmotion.lang'
+import { pagePath } from './site/routes'
+import type { PageId } from './site/routes'
 
 type LangContextValue = { lang: Lang; setLang: (lang: Lang) => void }
 
 const LangContext = createContext<LangContextValue | null>(null)
 
-function initialLang(): Lang {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'en' || saved === 'ko' || saved === 'ja') return saved
-  } catch {
-    // 저장소를 못 쓰는 브라우저(사생활 보호 창 등)에서는 브라우저 언어를 따른다.
-  }
-  return detectLang(navigator.languages)
-}
-
-/** 화면 언어를 소개 페이지와 편집 화면이 함께 쓴다. 고른 언어는 이 브라우저에 기억한다. */
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(initialLang)
+/**
+ * 화면 언어는 주소가 정한다(/ 영어 · /ko 한국어 · /ja 일본어 — src/site/routes.ts). 그래서 미리 그린 HTML 과
+ * 브라우저가 그리는 화면이 같다. 언어를 고르면 그 선택을 기억하고 같은 쪽의 그 언어 주소로 옮긴다.
+ * 기억한 언어는 첫 화면·편집기로 들어올 때 index.html 의 스크립트가 쓴다.
+ */
+export function LangProvider({ lang, page, children }: { lang: Lang; page: PageId; children: ReactNode }) {
+  const navigate = useNavigate()
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -31,15 +26,11 @@ export function LangProvider({ children }: { children: ReactNode }) {
     () => ({
       lang,
       setLang: (next) => {
-        setLangState(next)
-        try {
-          localStorage.setItem(STORAGE_KEY, next)
-        } catch {
-          // 기억하지 못해도 이번 방문에는 바뀐다.
-        }
+        saveLang(next)
+        if (next !== lang) navigate(pagePath(page, next))
       },
     }),
-    [lang],
+    [lang, page, navigate],
   )
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>
 }

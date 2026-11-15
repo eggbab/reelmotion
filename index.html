@@ -2,9 +2,36 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0e0e13" />
     <title>ReelMotion</title>
+    <script>
+      // 첫 화면(/)과 편집기(/app)로 들어오면, 고른 언어(없으면 브라우저 언어)가 한국어·일본어일 때 그 언어 주소로 옮긴다.
+      // 화면을 그리기 전에 옮겨 깜빡이지 않는다. 검색 로봇(영어 브라우저)은 영어 주소에 머문다. 시험: src/langs.test.ts
+      ;(function () {
+        try {
+          var path = location.pathname.replace(/\/+$/, '') || '/'
+          if (path !== '/' && path !== '/app') return
+          var lang = null
+          try {
+            lang = localStorage.getItem('reelmotion.lang')
+          } catch (e) {}
+          if (!lang) {
+            var tags = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']
+            for (var i = 0; i < tags.length; i++) {
+              var base = String(tags[i]).toLowerCase().split('-')[0]
+              if (base === 'en' || base === 'ko' || base === 'ja') {
+                lang = base
+                break
+              }
+            }
+          }
+          if (lang === 'ko' || lang === 'ja') location.replace('/' + lang + (path === '/' ? '' : '/app') + location.search + location.hash)
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -53,7 +53,7 @@ export type SiteCopy = {
     product: string
     company: string
     links: { editor: string; styles: string; pricing: string; faq: string }
-    business: { name: string; representative: string; registration: string; mailOrder: string; address: string }
+    business: { name: string; representative: string; registration: string; mailOrder: string; address: string; hosting: string; contact: string }
     rights: string
   }
   floating: { label: string; placeholders: string[]; button: string }
@@ -194,7 +194,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       product: 'PRODUCT',
       company: 'COMPANY',
       links: { editor: 'Editor', styles: 'Style packs', pricing: 'Pricing', faq: 'FAQ' },
-      business: { name: 'Company', representative: 'Representative', registration: 'Business registration', mailOrder: 'Mail-order registration', address: 'Address' },
+      business: { name: 'Company', representative: 'Representative', registration: 'Business registration', mailOrder: 'Mail-order registration', address: 'Address', hosting: 'Hosting provider', contact: 'Contact' },
       rights: '© 2026 브이미랩스. All rights reserved.',
     },
     floating: { label: 'Type a line to turn into graphics', placeholders: ['TYPE A LINE YOU WILL SAY', 'TRY: WE GREW 42% THIS YEAR', 'TRY: FIRST, PLAN. SECOND, SHIP.'], button: 'Try it' },
@@ -333,7 +333,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       product: '제품',
       company: '회사',
       links: { editor: '편집기', styles: '스타일 묶음', pricing: '요금', faq: '자주 묻는 질문' },
-      business: { name: '상호', representative: '대표', registration: '사업자등록번호', mailOrder: '통신판매업 신고번호', address: '주소' },
+      business: { name: '상호', representative: '대표', registration: '사업자등록번호', mailOrder: '통신판매업 신고번호', address: '주소', hosting: '호스팅 제공자', contact: '문의' },
       rights: '© 2026 브이미랩스. 모든 권리 보유.',
     },
     floating: { label: '그래픽으로 바꿀 말을 적어 보세요', placeholders: ['말할 문장을 적어 보세요', '예: 올해 매출이 42% 늘었어요', '예: 첫째, 계획. 둘째, 출시.'], button: '써 보기' },
@@ -472,7 +472,7 @@ export const SITE_COPY: Record<Lang, SiteCopy> = {
       product: '製品',
       company: '会社',
       links: { editor: 'エディター', styles: 'スタイルパック', pricing: '料金', faq: 'よくある質問' },
-      business: { name: '商号', representative: '代表', registration: '事業者登録番号', mailOrder: '通信販売業届出番号', address: '住所' },
+      business: { name: '商号', representative: '代表', registration: '事業者登録番号', mailOrder: '通信販売業届出番号', address: '住所', hosting: 'ホスティング事業者', contact: 'お問い合わせ' },
       rights: '© 2026 브이미랩스. All rights reserved.',
     },
     floating: { label: 'グラフィックにしたい言葉を入力', placeholders: ['話す文章を入力してください', '例: 今年の売上は42%伸びました', '例: まず計画。次にリリース。'], button: '試す' },
