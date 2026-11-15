@@ -1,0 +1,417 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`평범한 대본 24개로 재는 자동 배치 > 무엇이 나오는지 그대로 적어 둔다 — 규칙을 바꾸면 여기서 달라진 것을 보고 좋아졌는지 판단한다 1`] = `
+{
+  "en-cooking": [
+    {
+      "kind": "title",
+      "text": "This is the easiest pasta you will ever make.",
+    },
+  ],
+  "en-finance": [
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "I saved",
+      "prefix": "$",
+      "suffix": "",
+      "value": 10000,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "of every paycheck",
+      "prefix": "",
+      "suffix": "%",
+      "value": 20,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "I cut my subscriptions",
+      "prefix": "9 → ",
+      "suffix": "",
+      "value": 3,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "nights a week",
+      "prefix": "",
+      "suffix": "",
+      "value": 5,
+    },
+  ],
+  "en-interview": [
+    {
+      "kind": "lowerThird",
+      "name": "Daniel Kim",
+      "role": "product designer at a small startup",
+    },
+    {
+      "kind": "title",
+      "text": "I've been designing apps for eight years.",
+    },
+  ],
+  "en-motivation": [
+    {
+      "kind": "title",
+      "text": "Nobody is coming to save you.",
+    },
+    {
+      "author": "Maya Angelou",
+      "kind": "quote",
+      "text": "nothing will work unless you do",
+    },
+  ],
+  "en-news": [
+    {
+      "kind": "title",
+      "text": "The city council voted last night to expand the bike lane…",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "miles of protected lanes",
+      "prefix": "",
+      "suffix": "",
+      "value": 40,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "cost",
+      "prefix": "$",
+      "suffix": "M",
+      "value": 85,
+    },
+  ],
+  "en-review": [
+    {
+      "kind": "title",
+      "text": "So I've been using this standing desk for about three…",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "",
+      "prefix": "$",
+      "suffix": "",
+      "value": 349,
+    },
+  ],
+  "en-tips": [
+    {
+      "kind": "title",
+      "text": "If you want to learn a language faster",
+    },
+    {
+      "items": [
+        "listening to real conversations every day",
+        "try to speak, even if you make mistakes",
+        "write a few sentences before bed",
+      ],
+      "kind": "list",
+      "title": "",
+    },
+  ],
+  "en-vlog": [
+    {
+      "kind": "title",
+      "text": "Good morning everyone.",
+    },
+  ],
+  "ja-cooking": [
+    {
+      "kind": "title",
+      "text": "今日は五分でできる卵チャーハンを作ります。",
+    },
+  ],
+  "ja-interview": [
+    {
+      "kind": "lowerThird",
+      "name": "田中美咲",
+      "role": "パン屋経営",
+    },
+    {
+      "kind": "title",
+      "text": "会社を辞めてお店を始めて三年になります。",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "お客さん",
+      "prefix": "",
+      "suffix": "人",
+      "value": 200,
+    },
+  ],
+  "ja-money": [
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "手取り",
+      "prefix": "",
+      "suffix": "万円",
+      "value": 25,
+    },
+    {
+      "items": [
+        {
+          "label": "家賃と固定費",
+          "value": 11,
+        },
+        {
+          "label": "生活費",
+          "value": 6,
+        },
+        {
+          "label": "貯金",
+          "value": 8,
+        },
+      ],
+      "kind": "bars",
+      "title": "",
+      "unit": "万円",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "一年後",
+      "prefix": "",
+      "suffix": "万円",
+      "value": 96,
+    },
+  ],
+  "ja-motivation": [
+    {
+      "kind": "title",
+      "text": "成功する人は才能があるわけではありません。",
+    },
+    {
+      "author": "イチロー",
+      "kind": "quote",
+      "text": "小さいことを積み重ねるのが、とんでもないところへ行くただひとつの道",
+    },
+  ],
+  "ja-news": [
+    {
+      "decimals": 2,
+      "kind": "stat",
+      "label": "日本銀行は政策金利を引き上げました",
+      "prefix": "",
+      "suffix": "%",
+      "value": 0.25,
+    },
+    {
+      "decimals": 2,
+      "kind": "stat",
+      "label": "金利",
+      "prefix": "",
+      "suffix": "%",
+      "value": 0.75,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "物価の上昇率",
+      "prefix": "",
+      "suffix": "%台",
+      "value": 2,
+    },
+  ],
+  "ja-review": [
+    {
+      "kind": "title",
+      "text": "このロボット掃除機を二か月使ってみました。",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "バッテリー",
+      "prefix": "",
+      "suffix": "分",
+      "value": 120,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "値段",
+      "prefix": "",
+      "suffix": "円",
+      "value": 39800,
+    },
+  ],
+  "ja-tips": [
+    {
+      "items": [
+        "過去問から始めてください",
+        "間違えた問題だけをノートにまとめます",
+        "試験の一週間前は新しいことをやらないでください",
+      ],
+      "kind": "list",
+      "title": "資格試験に一発で受かるコツを話します",
+    },
+  ],
+  "ja-vlog": [
+    {
+      "kind": "title",
+      "text": "おはようございます。",
+    },
+    {
+      "items": [
+        "白湯を一杯飲んで、ストレッチをします",
+        "三十分くらい本を読みます",
+      ],
+      "kind": "list",
+      "title": "最近、朝活を始めたんです",
+    },
+  ],
+  "ko-cooking": [
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "계란 볶음밥",
+      "prefix": "",
+      "suffix": "분",
+      "value": 5,
+    },
+  ],
+  "ko-interview": [
+    {
+      "kind": "lowerThird",
+      "name": "이서연",
+      "role": "카페 운영",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "가게를 연 지",
+      "prefix": "",
+      "suffix": "년",
+      "value": 3,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "단골손님",
+      "prefix": "",
+      "suffix": "명",
+      "value": 200,
+    },
+  ],
+  "ko-money": [
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "월급",
+      "prefix": "",
+      "suffix": "만 원",
+      "value": 300,
+    },
+    {
+      "items": [
+        {
+          "label": "고정비",
+          "value": 120,
+        },
+        {
+          "label": "생활비",
+          "value": 80,
+        },
+        {
+          "label": "저축",
+          "value": 85,
+        },
+      ],
+      "kind": "bars",
+      "title": "",
+      "unit": "만 원",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "비상금",
+      "prefix": "",
+      "suffix": "만 원",
+      "value": 15,
+    },
+  ],
+  "ko-motivation": [
+    {
+      "kind": "title",
+      "text": "성공한 사람들은 재능이 뛰어난 게 아니에요.",
+    },
+    {
+      "author": "스티브 잡스",
+      "kind": "quote",
+      "text": "계속 갈망하고 우직하게 나아가라",
+    },
+  ],
+  "ko-news": [
+    {
+      "decimals": 2,
+      "kind": "stat",
+      "label": "한국은행이 기준금리를 내렸습니다",
+      "prefix": "",
+      "suffix": "%p",
+      "value": 0.25,
+    },
+    {
+      "decimals": 2,
+      "kind": "stat",
+      "label": "기준금리",
+      "prefix": "",
+      "suffix": "%",
+      "value": 2.75,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "물가",
+      "prefix": "",
+      "suffix": "%대",
+      "value": 2,
+    },
+  ],
+  "ko-review": [
+    {
+      "kind": "title",
+      "text": "이 무선 이어폰 한 달 써 봤는데요.",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "배터리",
+      "prefix": "",
+      "suffix": "시간",
+      "value": 8,
+    },
+    {
+      "decimals": 1,
+      "kind": "stat",
+      "label": "가격",
+      "prefix": "",
+      "suffix": "만 원",
+      "value": 12.9,
+    },
+  ],
+  "ko-tips": [
+    {
+      "items": [
+        "계획을 너무 빡빡하게 세우지 마세요",
+        "오십 분 공부하고 십 분은 꼭 쉬세요",
+        "잠은 최소 여섯 시간은 자야 해요",
+      ],
+      "kind": "list",
+      "title": "시험 기간에 꼭 지켜야 할 게 있어요",
+    },
+  ],
+  "ko-vlog": [
+    {
+      "kind": "title",
+      "text": "오늘은 아침 여섯 시에 일어났어요.",
+    },
+  ],
+}
+`;

@@ -37,10 +37,10 @@ export const HELP: LegalDocs = {
           {
             list: [
               '자기소개: 이름표',
-              '숫자 하나: 올라가는 숫자(%면 고리)',
-              '숫자 여럿: 막대 차트',
-              '「첫째·둘째」: 목록',
-              '따옴표 안의 말: 인용',
+              '숫자 하나: 올라가는 숫자(%면 고리). 「100에서 500으로」처럼 바뀐 숫자는 「100 → 500」',
+              '같은 단위의 숫자를 쉼표로 나란히: 막대 차트',
+              '「첫째·둘째」나 「먼저·그다음·마지막으로」: 목록',
+              '따옴표 안의 말, 「○○는 이렇게 말했죠」 다음 말: 인용',
               '첫 문장: 제목, 말 전체: 자막',
             ],
           },
@@ -155,10 +155,10 @@ export const HELP: LegalDocs = {
           {
             list: [
               'Introducing yourself: a name tag',
-              'One number: a counter (a ring for %)',
-              'Several numbers: a bar chart',
-              '“First, second”: a checklist',
-              'Words in quotes: a quote',
+              'One number: a counter (a ring for %). A change such as “from 100 to 500” shows as “100 → 500”',
+              'Numbers in the same unit, listed with commas: a bar chart',
+              '“First, second” or “Start by, then, finally”: a checklist',
+              'Words in quotes, or “As Maya Angelou said, …”: a quote',
               'First sentence: a title, everything said: captions',
             ],
           },
@@ -273,10 +273,10 @@ export const HELP: LegalDocs = {
           {
             list: [
               '自己紹介: 名前テロップ',
-              '数字ひとつ: カウンター(% ならリング)',
-              '数字がいくつか: 棒グラフ',
-              '「まず・次に」: チェックリスト',
-              'かぎかっこの中の言葉: 引用',
+              '数字ひとつ: カウンター(% ならリング)。「100から500に」のような変化は「100 → 500」',
+              '同じ単位の数字を読点で並べる: 棒グラフ',
+              '「まず・次に・最後に」: チェックリスト',
+              'かぎかっこの中の言葉、「○○はこう言いました」の次の言葉: 引用',
               '最初の文: タイトル、話した内容すべて: 字幕',
             ],
           },

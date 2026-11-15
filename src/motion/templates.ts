@@ -3,7 +3,10 @@ import { layoutLines } from '../captions/layout'
 import { activeWordIndex, cueAt, wordsToCues } from '../captions/segment'
 import { OUT_SECONDS, clamp01, envelope, inCubic, lerp, outBack, outCubic, outExpo, outQuart } from './ease'
 import type { Frame } from './paint'
-import { caseFor, drawText, fillPanel, fontString, needsShadow, roundRect, textColor, wrapText } from './paint'
+import { caseFor, drawText, fillPanel, fitLine, fitLines, fontString, needsShadow, roundRect, textColor } from './paint'
+import { formatNumber } from './text'
+
+export { formatNumber }
 import type {
   BarsGraphic,
   CalloutGraphic,
@@ -35,7 +38,7 @@ export function drawTitle(f: Frame, g: TitleGraphic, t: number, theme: Theme) {
   ctx.font = fontString(theme.display, size, theme.displayWeight, theme.displayItalic)
   ctx.textBaseline = 'alphabetic'
   const text = caseFor(theme, g.text)
-  const lines = wrapText(ctx, text, maxWidth).slice(0, 3)
+  const lines = fitLines(ctx, text, maxWidth, 3)
   const space = ctx.measureText(' ').width
   const solid = theme.panel === 'solid'
   const padX = size * 0.32
@@ -156,17 +159,11 @@ export function drawLowerThird(f: Frame, g: LowerThirdGraphic, t: number, theme:
 
 /* ───────────── 숫자 ───────────── */
 
-export function formatNumber(value: number, decimals: number): string {
-  const fixed = value.toFixed(decimals)
-  const [whole, part] = fixed.split('.')
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  return part ? `${grouped}.${part}` : grouped
-}
 
 export function drawStat(f: Frame, g: StatGraphic, t: number, theme: Theme) {
   const { ctx, w, h, u, portrait } = f
   const { local, exit } = envelope(g.start, g.end, t)
-  const ring = g.suffix.trim() === '%' && g.value > 0 && g.value <= 100
+  const ring = g.suffix.trim() === '%' && g.prefix === '' && g.value > 0 && g.value <= 100
   const numberSize = (ring ? 8.6 : 11.5) * u
   const labelSize = 2.7 * u
   const cx = portrait ? w / 2 : w * 0.74
@@ -184,12 +181,13 @@ export function drawStat(f: Frame, g: StatGraphic, t: number, theme: Theme) {
   ctx.translate(cx, cy)
   ctx.scale(lerp(0.86, 1, grow), lerp(0.86, 1, grow))
 
-  ctx.font = fontString(theme.font, labelSize, theme.bodyWeight)
-  const label = caseFor(theme, g.label)
-  const labelLines = wrapText(ctx, label, 26 * u).slice(0, 2)
-  const labelWidth = Math.max(0, ...labelLines.map((line) => ctx.measureText(line).width))
   ctx.font = fontString(theme.display, numberSize, theme.strongWeight, false)
   const finalWidth = ctx.measureText(`${g.prefix}${formatNumber(g.value, g.decimals)}${g.suffix}`).width
+  ctx.font = fontString(theme.font, labelSize, theme.bodyWeight)
+  const label = caseFor(theme, g.label)
+  // 설명은 숫자 폭만큼(최소 26u, 최대 40u) 쓰고 세 줄까지. 넘치면 … 으로 알린다.
+  const labelLines = label ? fitLines(ctx, label, Math.max(26 * u, Math.min(ring ? 0 : finalWidth, 40 * u)), 3) : []
+  const labelWidth = Math.max(0, ...labelLines.map((line) => ctx.measureText(line).width))
 
   const bodyHeight = ring ? radius * 2 : numberSize * 1.05
   const cardW = Math.max(ring ? radius * 2 : finalWidth, labelWidth) + 6 * u
@@ -246,16 +244,20 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
   const shadow = needsShadow(theme)
   if (g.title) {
     ctx.font = fontString(theme.font, titleSize, theme.strongWeight)
-    drawText(f, caseFor(theme, g.title), x + pad, y + pad + titleSize, titleSize, ink, theme.outline, shadow)
+    drawText(f, fitLine(ctx, caseFor(theme, g.title), width - pad * 2), x + pad, y + pad + titleSize, titleSize, ink, theme.outline, shadow)
   }
 
   items.forEach((item, i) => {
     const rowTop = y + pad + titleBlock + i * rowH
     const grow = outCubic((local - 0.3 - i * 0.12) / 0.9)
-    ctx.font = fontString(theme.font, labelSize, theme.bodyWeight)
-    drawText(f, caseFor(theme, item.label), x + pad, rowTop + labelSize * 1.1, labelSize, theme.panel === 'none' ? theme.onVideo : theme.muted, [], shadow)
-    const trackY = rowTop + labelSize * 1.6
     const trackW = width - pad * 2
+    const decimals = Number.isInteger(item.value) ? 0 : 1
+    ctx.font = fontString(theme.font, labelSize, theme.strongWeight)
+    const valueWidth = ctx.measureText(`${formatNumber(item.value, decimals)}${g.unit}`).width
+    ctx.font = fontString(theme.font, labelSize, theme.bodyWeight)
+    // 이름표는 오른쪽의 값과 겹치지 않는 폭에 한 줄로(넘치면 …)
+    drawText(f, fitLine(ctx, caseFor(theme, item.label), trackW - valueWidth - 2 * u), x + pad, rowTop + labelSize * 1.1, labelSize, theme.panel === 'none' ? theme.onVideo : theme.muted, [], shadow)
+    const trackY = rowTop + labelSize * 1.6
     const barH = 2.2 * u
     ctx.fillStyle = theme.panel === 'solid' ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.12)'
     roundRect(ctx, x + pad, trackY, trackW, barH, barH / 2)
@@ -265,7 +267,7 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
     ctx.fill()
     ctx.textAlign = 'right'
     ctx.font = fontString(theme.font, labelSize, theme.strongWeight)
-    drawText(f, `${formatNumber(item.value * grow, Number.isInteger(item.value) ? 0 : 1)}${g.unit}`, x + width - pad, rowTop + labelSize * 1.1, labelSize, ink, [], shadow)
+    drawText(f, `${formatNumber(item.value * grow, decimals)}${g.unit}`, x + width - pad, rowTop + labelSize * 1.1, labelSize, ink, [], shadow)
     ctx.textAlign = 'left'
   })
   ctx.restore()
@@ -276,15 +278,22 @@ export function drawBars(f: Frame, g: BarsGraphic, t: number, theme: Theme) {
 export function drawList(f: Frame, g: ListGraphic, t: number, theme: Theme) {
   const { ctx, w, h, u, portrait } = f
   const { local, exit } = envelope(g.start, g.end, t)
-  const items = g.items.slice(0, 5)
   const width = portrait ? w * 0.84 : Math.min(w * 0.42, 48 * u)
   const titleSize = 3 * u
   const itemSize = 2.8 * u
-  const rowH = itemSize * 2.1
+  const lineH = itemSize * 1.3
+  const titleLineH = titleSize * 1.25
   const pad = 3 * u
   ctx.save()
+  // 항목과 머리글은 두 줄까지 그린다(넘치면 … 으로 알린다). 예전에는 첫 줄만 그리고 나머지를 버려,
+  // 「계획을 너무 빡빡하게 세우지 마세요」가 「…세우지」에서 끊겼다.
   ctx.font = fontString(theme.font, itemSize, theme.bodyWeight)
-  const height = pad * 2 + (g.title ? titleSize * 1.9 : 0) + rowH * items.length
+  const rows = g.items.slice(0, 5).map((item) => fitLines(ctx, caseFor(theme, item), width - pad * 2 - itemSize * 1.8, 2))
+  const rowHeight = (lines: string[]) => itemSize * 2.1 + (lines.length - 1) * lineH
+  ctx.font = fontString(theme.font, titleSize, theme.strongWeight)
+  const titleLines = g.title ? fitLines(ctx, caseFor(theme, g.title), width - pad * 2, 2) : []
+  const titleBlock = titleLines.length > 0 ? titleSize * 1.9 + (titleLines.length - 1) * titleLineH : 0
+  const height = pad * 2 + titleBlock + rows.reduce((sum, lines) => sum + rowHeight(lines), 0)
   const x = portrait ? (w - width) / 2 : w * 0.06
   const y = portrait ? h * 0.24 : (h - height) / 2
 
@@ -292,21 +301,23 @@ export function drawList(f: Frame, g: ListGraphic, t: number, theme: Theme) {
   fillPanel(f, theme, x, y, width * outQuart(local / 0.45), height)
   const ink = textColor(theme)
   const shadow = needsShadow(theme)
-  if (g.title) {
+  titleLines.forEach((line, i) => {
     ctx.font = fontString(theme.font, titleSize, theme.strongWeight)
-    drawText(f, caseFor(theme, g.title), x + pad, y + pad + titleSize, titleSize, ink, theme.outline, shadow)
-  }
-  items.forEach((item, i) => {
+    drawText(f, line, x + pad, y + pad + titleSize + i * titleLineH, titleSize, ink, theme.outline, shadow)
+  })
+  let rowY = y + pad + titleBlock
+  rows.forEach((lines, i) => {
+    const top = rowY
+    rowY += rowHeight(lines)
     const at = g.itemTimes?.[i] ?? g.start + 0.5 + i * 0.6
     const appear = (t - at) / 0.4
     if (appear <= 0) return
-    const rowY = y + pad + (g.title ? titleSize * 1.9 : 0) + i * rowH
     const slide = (1 - outCubic(appear)) * -3 * u
     ctx.save()
     ctx.globalAlpha *= clamp01(appear * 1.5)
     const dot = outBack(appear, 2.4)
     const cx = x + pad + itemSize * 0.55 + slide
-    const cy = rowY + itemSize * 0.75
+    const cy = top + itemSize * 0.75
     ctx.fillStyle = theme.accent
     ctx.beginPath()
     ctx.arc(cx, cy, itemSize * 0.55 * dot, 0, Math.PI * 2)
@@ -321,8 +332,9 @@ export function drawList(f: Frame, g: ListGraphic, t: number, theme: Theme) {
     ctx.lineTo(cx + itemSize * 0.26, cy - itemSize * 0.18)
     ctx.stroke()
     ctx.font = fontString(theme.font, itemSize, theme.bodyWeight)
-    const text = wrapText(ctx, caseFor(theme, item), width - pad * 2 - itemSize * 1.8)[0] ?? ''
-    drawText(f, text, x + pad + itemSize * 1.6 + slide, cy + itemSize * 0.36, itemSize, ink, theme.outline.length ? [theme.outline[0]] : [], shadow)
+    lines.forEach((line, k) => {
+      drawText(f, line, x + pad + itemSize * 1.6 + slide, cy + itemSize * 0.36 + k * lineH, itemSize, ink, theme.outline.length ? [theme.outline[0]] : [], shadow)
+    })
     ctx.restore()
   })
   ctx.restore()
@@ -393,7 +405,7 @@ export function drawQuote(f: Frame, g: QuoteGraphic, t: number, theme: Theme) {
   const maxWidth = w * (portrait ? 0.78 : 0.56)
   ctx.save()
   ctx.font = fontString(theme.display, size, theme.displayWeight, theme.displayItalic)
-  const lines = wrapText(ctx, caseFor(theme, `${g.text}`), maxWidth).slice(0, 4)
+  const lines = fitLines(ctx, caseFor(theme, `${g.text}`), maxWidth, 4)
   const lineH = size * 1.22
   const authorSize = 2.3 * u
   const height = lines.length * lineH + (g.author ? authorSize * 2.6 : 0) + 8 * u

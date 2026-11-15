@@ -50,6 +50,30 @@ export function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   return lines
 }
 
+/**
+ * 줄을 나누되 maxLines 를 넘으면 마지막 줄 끝을 … 로 줄인다.
+ * 예전에는 넘친 줄을 그냥 버려서 「세우지 마세요」의 「마세요」가 사라지는 식으로 뜻이 바뀌었다.
+ */
+export function fitLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines: number): string[] {
+  const lines = wrapText(ctx, text, maxWidth)
+  if (lines.length <= maxLines) return lines
+  const kept = lines.slice(0, maxLines)
+  kept[maxLines - 1] = fitLine(ctx, `${kept[maxLines - 1]}…`, maxWidth, true)
+  return kept
+}
+
+/** 한 줄에 맞춘다: 넘치면 끝을 … 로 줄인다 */
+export function fitLine(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis = false): string {
+  if (!ellipsis && ctx.measureText(text).width <= maxWidth) return text
+  let chars = [...text.replace(/…$/, '')]
+  let out = `${chars.join('').trimEnd()}…`
+  while (chars.length > 1 && ctx.measureText(out).width > maxWidth) {
+    chars = chars.slice(0, -1)
+    out = `${chars.join('').trimEnd()}…`
+  }
+  return out
+}
+
 export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
   ctx.roundRect(x, y, Math.max(0, w), Math.max(0, h), Math.max(0, Math.min(r, w / 2, h / 2)))

@@ -4,6 +4,7 @@ import { EDITOR_COPY } from '../editor/copy'
 import { clampToDuration } from '../editor/graphics'
 import type { Lang } from '../langs'
 import { direct } from '../motion/direct'
+import { scriptOf } from '../motion/text'
 import type { GraphicKind } from '../motion/types'
 import { pagePath } from '../site/routes'
 
@@ -15,17 +16,11 @@ export const MAX_SCRIPT = 6000
 export const MIN_SECONDS = 3
 export const MAX_SECONDS = 30 * 60
 
-const KANA = /[\p{Script=Hiragana}\p{Script=Katakana}]/u
-const HANGUL = /\p{Script=Hangul}/u
-const HAN = /\p{Script=Han}/u
 const CJK = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Han}]/gu
 
 /** 글자를 보고 말한 언어를 어림한다: 가나나 한자가 있으면 일본어, 한글이 있으면 한국어, 아니면 영어 */
 export function guessLang(script: string): Lang {
-  if (KANA.test(script)) return 'ja'
-  if (HANGUL.test(script)) return 'ko'
-  if (HAN.test(script)) return 'ja'
-  return 'en'
+  return scriptOf(script)
 }
 
 /**

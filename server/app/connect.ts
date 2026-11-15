@@ -38,7 +38,7 @@ const INSTRUCTIONS = [
   'ReelMotion places motion graphics (titles, name tags, counters, charts, checklists, quotes and captions) on talking videos.',
   'These tools work with the script text only. The video itself is added and edited in the user’s browser at the link from open_in_editor and is never uploaded, so do not ask the user to send a video here.',
   'Typical flow: call plan_motion_graphics with what is said in the video to preview the graphics the editor will place, adjust the script with the user if they want different graphics, then call open_in_editor and give the user the link. In the editor they add their video, fix anything, and export an MP4.',
-  'How graphics are chosen: a self-introduction becomes a name tag, one number becomes a counter, several numbers become a chart, “First… Second…” becomes a checklist, quoted words become a quote, the first sentence becomes the title, and the whole script becomes captions.',
+  'How graphics are chosen: a self-introduction becomes a name tag, one number becomes a counter (a change such as “from 9 to 3” shows as “9 → 3”), numbers in the same unit listed with commas become a chart, “First… Second…” or “Start by… Then… Finally…” becomes a checklist, quoted words or “As NAME said, …” become a quote, the first sentence becomes the title, and the whole script becomes captions.',
   'Supported spoken languages: English, Korean and Japanese.',
 ].join(' ')
 
