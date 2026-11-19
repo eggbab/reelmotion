@@ -48,6 +48,30 @@ describe('direct', () => {
     }
   })
 
+  it('글로 적은 수도 숫자로 읽는다 — 퍼센트·돈·배수, 기간(첫 문장이 아니면), 큰 수. 「세 가지 습관」 같은 제목은 그대로', () => {
+    const en = direct(timed('Here is the result.\nSales grew thirty percent this year.\nThen it is a twelve hour shift.'))
+    expect(byKind(en, 'stat').map((g) => [g.value, g.suffix])).toEqual([
+      [30, '%'],
+      [12, ''],
+    ])
+    const ko = direct(timed('오늘 이야기는 간단해요.\n속도가 두 배 빨라졌어요.\n그리고 삼십 분 정도 책을 읽어요.'))
+    expect(byKind(ko, 'stat').map((g) => [g.value, g.suffix, g.label])).toEqual([
+      [2, '배', '속도가 빨라졌어요'],
+      [30, '분', '책을 읽어요'],
+    ])
+    const ja = direct(timed('今日の話です。\n売上が三割伸びました。\n値段は五千円でした。'))
+    expect(byKind(ja, 'stat').map((g) => [g.value, g.suffix])).toEqual([
+      [3, '割'],
+      [5000, '円'],
+    ])
+    // 첫 문장의 작은 개수·기간은 제목으로 남는다
+    for (const script of ['Three habits for better sleep.\nLet me show you.', '잠이 잘 오는 세 가지 습관.\n같이 봐요.', 'このロボット掃除機を二か月使ってみました。\n正直、便利です。']) {
+      const graphics = direct(timed(script))
+      expect(kinds(graphics), script).toContain('title')
+      expect(byKind(graphics, 'stat'), script).toEqual([])
+    }
+  })
+
   it('숫자 하나는 큰 숫자로, 여러 개는 막대 차트로 만든다', () => {
     const graphics = direct(timed('Intro line here.\nOur revenue grew 42% last year.\nApple 30%, Banana 50%, Cherry 20%.', 30))
     const [stat] = byKind(graphics, 'stat')

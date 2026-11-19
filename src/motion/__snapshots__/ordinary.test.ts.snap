@@ -94,6 +94,14 @@ exports[`평범한 대본 24개로 재는 자동 배치 > 무엇이 나오는지
     {
       "decimals": 0,
       "kind": "stat",
+      "label": "seconds",
+      "prefix": "",
+      "suffix": "",
+      "value": 10,
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
       "label": "",
       "prefix": "$",
       "suffix": "",
@@ -119,6 +127,14 @@ exports[`평범한 대본 24개로 재는 자동 배치 > 무엇이 나오는지
     {
       "kind": "title",
       "text": "Good morning everyone.",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "hour shift",
+      "prefix": "",
+      "suffix": "",
+      "value": 12,
     },
   ],
   "ja-cooking": [
@@ -411,6 +427,14 @@ exports[`평범한 대본 24개로 재는 자동 배치 > 무엇이 나오는지
     {
       "kind": "title",
       "text": "오늘은 아침 여섯 시에 일어났어요.",
+    },
+    {
+      "decimals": 0,
+      "kind": "stat",
+      "label": "책을 읽어요",
+      "prefix": "",
+      "suffix": "분",
+      "value": 30,
     },
   ],
 }

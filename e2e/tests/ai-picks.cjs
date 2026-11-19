@@ -9,7 +9,7 @@ const VLOG = [
   'Today I am taking you along for a day in my life as a nurse.',
   'I start my shift at seven, so I am up by five thirty.',
   'Coffee first, always.',
-  'Then it is a twelve hour shift on the ward.',
+  'Then it is a long shift on the ward.',
   'Honestly, every day is a little different, and I love that.',
 ].join('\n')
 

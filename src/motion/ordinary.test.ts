@@ -20,9 +20,9 @@ const all = Object.entries(ORDINARY_SCRIPTS).map(([name, script]) => ({ name, sc
 const length = (text: string) => [...text].length
 
 describe('평범한 대본 24개로 재는 자동 배치', () => {
-  it('제목·자막 말고도 그래픽이 나오는 대본이 20개 이상이다(처음 쟀을 때 15개)', () => {
+  it('제목·자막 말고도 그래픽이 나오는 대본이 22개 이상이다(처음 쟀을 때 15개, 글로 적은 수를 읽고 22개 — 2026-11-19)', () => {
     const rich = all.filter(({ graphics }) => graphics.some((graphic) => graphic.kind !== 'title'))
-    expect(rich.length, `그래픽이 없는 대본: ${all.filter((item) => !rich.includes(item)).map((item) => item.name).join(', ')}`).toBeGreaterThanOrEqual(20)
+    expect(rich.length, `그래픽이 없는 대본: ${all.filter((item) => !rich.includes(item)).map((item) => item.name).join(', ')}`).toBeGreaterThanOrEqual(22)
   })
 
   it('숫자 설명에 다른 숫자·깨진 조각이 없고, 화면에 들어가는 길이다', () => {

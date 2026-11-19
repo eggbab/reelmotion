@@ -173,8 +173,17 @@ function koStatLabel(sentence: string, n: FoundNumber): string {
     const phrase = fitWords(words.map((word, i) => (i === words.length - 1 ? koClean(word) : word)), 18)
     if (phrase && !KO_STOP_NOUN.has(phrase)) return words.length === 1 ? stripParticle(phrase) : phrase
   }
-  return subject ? '' : koPredicateNoun(sentence, n.index + n.raw.length)
+  const predicate = subject ? '' : koPredicateNoun(sentence, n.index + n.raw.length)
+  if (predicate) return predicate
+  // 기간(30분 정도 책을 읽어요 · 하루 12시간 일해요): 그동안 하는 일 — 숫자 뒤의 짧은 풀이말을 그대로 쓴다
+  if (KO_DURATION.test(n.suffix)) {
+    const doing = after.replace(KO_APPROX_AFTER, '').replace(/^\s*(동안|만에|째)(?=\s|$)/, '').replace(SENTENCE_END, '').trim()
+    if (doing && !hasDigit(doing) && chars(doing) <= 14 && !/[,，]/.test(doing)) return doing
+  }
+  return ''
 }
+
+const KO_DURATION = /^(초|분|시간|일|주|주일|개월|년|년간)$/
 
 function koItemLabel(sentence: string, n: FoundNumber): string {
   const words = koBeforeWords(clauseOf(sentence, n).before)
@@ -192,7 +201,7 @@ function jaTokens(text: string): Token[] {
 }
 
 const JA_PARTICLE = new Set('は が を に で と も へ や の から まで より って には では とは にも でも とも'.split(' '))
-const JA_LEAD = /^(これだけで|それだけで|これで|それで|そして|しかし|ただし|ただ|一方で|一方|でも|また|さらに|つまり|実は|正直|ちなみに|なお|なので|だから|すると|そのため|そのうち|このうち|今では|今は|今日は|最近は|現在は|現在|最初は|まずは|まず)[、,]?/
+const JA_LEAD = /^(これだけで|それだけで|これで|それで|それから|そのあと|その後|そして|しかし|ただし|ただ|一方で|一方|でも|また|さらに|つまり|実は|正直|ちなみに|なお|なので|だから|すると|そのため|そのうち|このうち|今では|今は|今日は|最近は|現在は|現在|最初は|まずは|まず|次に|最後に)[、,]?/
 const JA_TRAIL = /(約|およそ|ほぼ|毎日|毎月|毎年|毎週|年間|月間|月に|年に|週に|一日に|一日|1日|最大|最低|最高|合計|平均|わずか|たった|もう|すでに|なんと|実に|計|月|年)$/
 const JA_APPROX_AFTER = new Set('くらい ぐらい ほど 程度 以上 以下 近く 余り 前後'.split(' '))
 const JA_STOP = new Set('これ それ あれ ここ そこ こう そう いる ある する なる です ます した して ください 私 僕 俺 今 今日 最近 現在 時 中 こと もの ため よう うち'.split(' '))
@@ -296,8 +305,19 @@ function jaStatLabel(sentence: string, n: FoundNumber): string {
   }
   const phrase = head.replace(/(には|では|とは|からは|までは|は|が|を|に|で|と|も|へ|の)+$/u, '')
   if (phrase && !hasDigit(phrase) && chars(phrase) <= 14 && !JA_STOP.has(phrase)) return phrase
-  return jaPredicateNoun(sentence, n.index + n.raw.length)
+  const predicate = jaPredicateNoun(sentence, n.index + n.raw.length)
+  if (predicate) return predicate
+  // 期間(30分くらい本を読みます · 12時間働きます): その間にすること — 数字の後ろの短い述語をそのまま使う
+  if (JA_DURATION.test(n.suffix)) {
+    let at = 0
+    while (JA_APPROX_AFTER.has(afterTokens[at]?.text ?? '') || ['間', 'も', 'ずつ'].includes(afterTokens[at]?.text ?? '')) at += 1
+    const doing = afterTokens.slice(at).map((token) => token.text).join('').replace(SENTENCE_END, '')
+    if (doing && !hasDigit(doing) && chars(doing) <= 14 && !/^(は|が|を|に|で|の|と|も|です|だ|でし)/.test(doing)) return doing
+  }
+  return ''
 }
+
+const JA_DURATION = /^(秒|分|時間|日|日間|週間|か月|ヶ月|カ月|ケ月|年|年間)$/
 
 function jaItemLabel(sentence: string, n: FoundNumber): string {
   return jaAdjacentNoun(jaBefore(clauseOf(sentence, n).before), ['は', 'が', 'を', 'も', 'の', 'で', 'に', 'と', 'や'])

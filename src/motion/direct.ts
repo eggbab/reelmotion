@@ -3,6 +3,7 @@ import type { Word } from '../captions/types'
 import { hasBatchim, looksBareNoun } from './korean'
 import { itemLabel, statLabel } from './label'
 import { findNumbers } from './numbers'
+import { spellNumbers } from './spelled'
 import type { FoundNumber } from './numbers'
 import { clampText, fitText, fitTitle, formatNumber, joinJapanese, scriptOf } from './text'
 import type { Graphic } from './types'
@@ -324,9 +325,11 @@ export function direct(words: Word[]): Graphic[] {
       used.add(i)
       return
     }
-    const numbers = findNumbers(sentence.text)
+    // 글로 적은 수도 숫자로 읽는다(spelled.ts — 「thirty percent」「삼십 분」「三割」). 첫 문장(제목 자리)의 작은 기간은 그대로 둔다.
+    const text = spellNumbers(sentence.text, i === 0 || (i === 1 && introAt.has(0)))
+    const numbers = findNumbers(text)
     if (numbers.length === 0) return
-    const change = findChange(sentence.text, numbers)
+    const change = findChange(text, numbers)
     if (change) {
       const { from, to } = change
       graphics.push({
@@ -338,7 +341,7 @@ export function direct(words: Word[]): Graphic[] {
         prefix: `${from.prefix}${formatNumber(from.value, from.decimals)} → ${to.prefix === from.prefix ? '' : to.prefix}`,
         suffix: to.suffix,
         decimals: to.decimals,
-        label: statLabel(sentence.text, from),
+        label: statLabel(text, from),
       })
       used.add(i)
       return
@@ -347,11 +350,11 @@ export function direct(words: Word[]): Graphic[] {
     const groups = new Map<string, FoundNumber[]>()
     for (const n of numbers) groups.set(`${n.prefix}|${n.suffix}`, [...(groups.get(`${n.prefix}|${n.suffix}`) ?? []), n])
     const biggest = [...groups.values()].sort((a, b) => b.length - a.length)[0]
-    const labeled = biggest.map((n) => ({ n, label: itemLabel(sentence.text, n) })).filter((item) => item.label !== '')
+    const labeled = biggest.map((n) => ({ n, label: itemLabel(text, n) })).filter((item) => item.label !== '')
     const distinct = new Set(labeled.map((item) => item.label)).size === labeled.length
     // 이름표가 붙은 숫자가 둘 이상이고, 쉼표·and 로 나란히 놓였을 때만 차트로 만든다
     // (「3명이 … 그들 중 1명」「40 miles … over 3 years」는 견줄 수 있는 숫자가 아니다).
-    if (labeled.length >= 2 && distinct && parallel(sentence.text, biggest)) {
+    if (labeled.length >= 2 && distinct && parallel(text, biggest)) {
       graphics.push({
         id: id(),
         kind: 'bars',
@@ -372,7 +375,7 @@ export function direct(words: Word[]): Graphic[] {
         prefix: n.prefix,
         suffix: n.suffix,
         decimals: n.decimals,
-        label: statLabel(sentence.text, n),
+        label: statLabel(text, n),
       })
     }
     used.add(i)
