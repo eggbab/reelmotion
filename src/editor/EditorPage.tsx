@@ -8,6 +8,7 @@ import { ACCOUNT_COPY } from '../account/copy'
 import { currentUser, sessionReady, useSession } from '../account/session'
 import { pushLocalProjects } from '../account/sync'
 import { joinWords, scriptToWords } from '../captions/segment'
+import { toSrt, toVtt } from '../captions/subtitles'
 import type { Word } from '../captions/types'
 import { ExportUnsupportedError, exportVideo } from '../export/exportVideo'
 import { useLang } from '../lang'
@@ -600,6 +601,20 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     }
   }
 
+  /** 자막 파일(SRT·VTT)을 이 브라우저 안에서 만들어 내려받는다. 한 덩어리의 글자 수는 화면 자막과 같게(가로 30 · 세로 16) */
+  const downloadSubtitles = (format: 'srt' | 'vtt') => {
+    const maxChars = portrait ? 16 : 30
+    // SRT 는 앞에 BOM 을 붙인다 — 윈도우의 오래된 프로그램이 한글·일본어를 깨뜨리지 않게
+    const text = format === 'srt' ? `\uFEFF${toSrt(words, maxChars)}` : toVtt(words, maxChars)
+    const url = URL.createObjectURL(new Blob([text], { type: format === 'srt' ? 'application/x-subrip;charset=utf-8' : 'text/vtt;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${safeFileName(displayName, 'reelmotion')}.${format}`
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    pulse('subtitles_downloaded')
+  }
+
   const makeGraphics = () => {
     pulse('graphics_made')
     setAiPicks({ stage: 'idle' })
@@ -1096,6 +1111,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                 hasGraphics={graphics.length > 0}
                 canMake={words.length > 0}
                 onMake={makeGraphics}
+                canSubtitle={words.length > 0}
+                onSubtitles={downloadSubtitles}
               />
             ) : tab === 'chat' ? (
               <ChatPanel
@@ -1303,6 +1320,9 @@ type TranscriptProps = {
   hasGraphics: boolean
   canMake: boolean
   onMake: () => void
+  /** 받아쓴 말(또는 대본)이 있어 자막 파일을 만들 수 있다 */
+  canSubtitle: boolean
+  onSubtitles: (format: 'srt' | 'vtt') => void
 }
 
 function TranscriptPanel(p: TranscriptProps) {
@@ -1372,6 +1392,20 @@ function TranscriptPanel(p: TranscriptProps) {
         {p.hasGraphics ? t.remake : t.make}
       </button>
       {p.hasGraphics && <small className="hint">{t.remakeHint}</small>}
+      {p.canSubtitle && (
+        <div className="subtitle-files">
+          <span>{t.subtitles}</span>
+          <div className="row-wrap">
+            {(['srt', 'vtt'] as const).map((format) => (
+              <button key={format} type="button" className="pill" onClick={() => p.onSubtitles(format)}>
+                <Download size={12} aria-hidden="true" />
+                {format.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <small className="hint">{t.subtitlesHint}</small>
+        </div>
+      )}
     </div>
   )
 }

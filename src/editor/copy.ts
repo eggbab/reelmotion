@@ -55,6 +55,9 @@ export type EditorCopy = {
     make: string
     remake: string
     remakeHint: string
+    /** 자막 파일(SRT·VTT) 내려받기 — src/captions/subtitles.ts */
+    subtitles: string
+    subtitlesHint: string
   }
   graphics: {
     empty: string
@@ -233,6 +236,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       make: 'Make graphics',
       remake: 'Make graphics again',
       remakeHint: 'This replaces the current graphics.',
+      subtitles: 'Subtitle file',
+      subtitlesHint: 'For YouTube or Instagram. Split at the same places as the captions in your video.',
     },
     graphics: {
       empty: 'No graphics yet. Write down the speech and press “Make graphics”, or add one yourself.',
@@ -403,6 +408,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       make: '그래픽 만들기',
       remake: '그래픽 다시 만들기',
       remakeHint: '지금 있는 그래픽을 바꿔요.',
+      subtitles: '자막 파일',
+      subtitlesHint: '유튜브·인스타그램에 올릴 자막 파일이에요. 영상에 넣은 자막과 같은 곳에서 나눠요.',
     },
     graphics: {
       empty: '아직 그래픽이 없어요. 말을 받아 적고 「그래픽 만들기」를 누르거나 직접 더해 보세요.',
@@ -573,6 +580,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       make: 'グラフィックを作る',
       remake: 'グラフィックを作り直す',
       remakeHint: 'いまのグラフィックを置き換えます。',
+      subtitles: '字幕ファイル',
+      subtitlesHint: 'YouTube や Instagram に上げる字幕ファイルです。動画に入れた字幕と同じところで分けます。',
     },
     graphics: {
       empty: 'まだグラフィックがありません。声を書き起こして「グラフィックを作る」を押すか、自分で追加してください。',

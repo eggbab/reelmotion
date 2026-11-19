@@ -68,7 +68,10 @@ export const HELP: LegalDocs = {
       },
       {
         title: '내보내기',
-        blocks: ['「내보내기」를 누르면 브라우저 안에서 MP4(H.264)로 만들어 내려받아요. 소리는 그대로 남아요. 컴퓨터의 최신 크롬·엣지·사파리를 권해요.'],
+        blocks: [
+          '「내보내기」를 누르면 브라우저 안에서 MP4(H.264)로 만들어 내려받아요. 소리는 그대로 남아요. 컴퓨터의 최신 크롬·엣지·사파리를 권해요.',
+          '유튜브·인스타그램에 자막을 따로 올리려면 「받아쓴 말」 탭 아래 「자막 파일」의 SRT·VTT 를 눌러요. 영상에 넣은 자막과 같은 곳에서 나눠요.',
+        ],
       },
       {
         title: '내 작업',
@@ -189,7 +192,10 @@ export const HELP: LegalDocs = {
       },
       {
         title: 'Export',
-        blocks: ['Press “Export” and an MP4 (H.264) is made inside your browser and downloaded, with the original sound. A recent Chrome, Edge or Safari on a computer is recommended.'],
+        blocks: [
+          'Press “Export” and an MP4 (H.264) is made inside your browser and downloaded, with the original sound. A recent Chrome, Edge or Safari on a computer is recommended.',
+          'To upload captions separately to YouTube or Instagram, press SRT or VTT under “Subtitle file” at the bottom of the Transcript tab. They are split at the same places as the captions in your video.',
+        ],
       },
       {
         title: 'My projects',
@@ -310,7 +316,10 @@ export const HELP: LegalDocs = {
       },
       {
         title: '書き出し',
-        blocks: ['「書き出し」を押すと、ブラウザの中で MP4(H.264)を作ってダウンロードします。音声はそのまま残ります。パソコンの最新の Chrome・Edge・Safari をおすすめします。'],
+        blocks: [
+          '「書き出し」を押すと、ブラウザの中で MP4(H.264)を作ってダウンロードします。音声はそのまま残ります。パソコンの最新の Chrome・Edge・Safari をおすすめします。',
+          'YouTube や Instagram に字幕を別に上げるときは、「書き起こし」タブの下の「字幕ファイル」から SRT・VTT を押します。動画に入れた字幕と同じところで分けます。',
+        ],
       },
       {
         title: 'マイプロジェクト',

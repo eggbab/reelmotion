@@ -12,6 +12,7 @@ export const CLIENT_EVENTS = [
   'transcribe_ok',
   'transcribe_failed',
   'graphics_made',
+  'subtitles_downloaded',
   'export_started',
   'export_done',
   'export_failed',
