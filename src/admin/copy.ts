@@ -1,5 +1,6 @@
 import type { Lang } from '../langs'
 import type { PulseEvent } from '../pulseEvents'
+import { ADMIN_HEAD } from './head'
 
 /** 관리자 화면(/admin) 글. 운영자가 보는 곳이라 짧게. */
 export type AdminCopy = {
@@ -121,8 +122,7 @@ export type AdminCopy = {
 
 export const ADMIN_COPY: Record<Lang, AdminCopy> = {
   ko: {
-    title: '관리자 화면',
-    description: 'ReelMotion 운영: 서버 상태, 가입자, 요금제, 백업, 알림.',
+    ...ADMIN_HEAD.ko,
     loading: '불러오는 중…',
     off: '지금은 앱 서버에 닿지 않아요.',
     needLogin: '관리자 메일로 로그인하세요.',
@@ -266,8 +266,7 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     },
   },
   en: {
-    title: 'Admin',
-    description: 'Running ReelMotion: server status, members, plans, backups and alerts.',
+    ...ADMIN_HEAD.en,
     loading: 'Loading…',
     off: 'The app server cannot be reached right now.',
     needLogin: 'Log in with an admin email.',
@@ -411,8 +410,7 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
     },
   },
   ja: {
-    title: '管理画面',
-    description: 'ReelMotion の運営: サーバーの状態、会員、プラン、バックアップ、アラート。',
+    ...ADMIN_HEAD.ja,
     loading: '読み込み中…',
     off: '今はアプリサーバーにつながりません。',
     needLogin: '管理者のメールでログインしてください。',

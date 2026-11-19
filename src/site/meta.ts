@@ -1,5 +1,5 @@
 import { ACCOUNT_COPY } from '../account/copy'
-import { ADMIN_COPY } from '../admin/copy'
+import { ADMIN_HEAD } from '../admin/head'
 import type { Lang } from '../langs'
 import { CONTACT_COPY } from './contact/copy'
 import { DOC_HEADS } from './legal/heads'
@@ -92,7 +92,7 @@ export function pageMeta(page: PageId, lang: Lang): PageMeta {
   if (page === 'app') return APP[lang]
   if (page === 'contact') return { title: `${CONTACT_COPY[lang].title} — ReelMotion`, description: CONTACT_COPY[lang].description }
   if (page === 'account') return { title: `${ACCOUNT_COPY[lang].title} — ReelMotion`, description: ACCOUNT_COPY[lang].loginBody }
-  if (page === 'admin') return { title: `${ADMIN_COPY[lang].title} — ReelMotion`, description: ADMIN_COPY[lang].description }
+  if (page === 'admin') return { title: `${ADMIN_HEAD[lang].title} — ReelMotion`, description: ADMIN_HEAD[lang].description }
   // 약관·정책·도움말·라이선스: 글 전체는 그 쪽을 열 때만 받으므로 제목·설명은 작은 파일(heads.ts)에서
   const head = DOC_HEADS[page][lang]
   return { title: `${head.title} — ReelMotion`, description: head.description }

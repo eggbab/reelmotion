@@ -1,6 +1,5 @@
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router'
-import { AccountPage } from './account/AccountPage'
 import { LangProvider } from './lang'
 import { ContactPage } from './site/contact/ContactPage'
 import { LandingPage } from './site/LandingPage'
@@ -11,8 +10,9 @@ import { langOfPath, matchPage } from './site/routes'
 
 // 편집기는 내보내기·받아쓰기 도구를 담고 있어 무겁다. 소개 페이지를 여는 사람은 내려받지 않게 따로 나눈다.
 const EditorPage = lazy(() => import('./editor/EditorPage').then((module) => ({ default: module.EditorPage })))
-// 관리자 화면도 운영자만 쓰므로 따로 나눈다.
+// 관리자 화면도 운영자만 쓰므로 따로 나눈다. 내 계정도 들어오는 사람만 받는다(둘 다 미리 그리지 않는 쪽이라 이어받기가 없다).
 const AdminPage = lazy(() => import('./admin/AdminPage').then((module) => ({ default: module.AdminPage })))
+const AccountPage = lazy(() => import('./account/AccountPage').then((module) => ({ default: module.AccountPage })))
 // 약관·도움말·라이선스는 글이 길어 그 쪽을 열 때만 받는다(src/site/lazyPages.ts — 미리 그린 HTML 을 이어받기 전에는 main.tsx 가 받아 둔다).
 const { legal: LegalPage, licenses: LicensesPage } = splitPages
 
@@ -59,7 +59,9 @@ export function AppRoutes() {
       ) : page === 'contact' ? (
         <ContactPage />
       ) : page === 'account' ? (
-        <AccountPage />
+        <Suspense fallback={<PageLoading />}>
+          <AccountPage />
+        </Suspense>
       ) : page === 'admin' ? (
         <Suspense fallback={<div className="site" />}>
           <AdminPage />
