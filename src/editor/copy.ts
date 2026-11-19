@@ -1,3 +1,4 @@
+import type { ClipId } from '../media/clips'
 import type { Lang } from '../langs'
 import type { Graphic, ThemeId } from '../motion/types'
 
@@ -16,7 +17,7 @@ export type EditorCopy = {
   exportsLeft: string
   cancel: string
   close: string
-  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string }
+  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string; sampleNames: Record<ClipId, string> }
   /** Claude·ChatGPT 커넥터가 만든 주소(?draft=)로 들어왔을 때 */
   draft: { title: string; body: string; gone: string; failed: string }
   /** 인터넷이 끊겼을 때 머리줄의 표시와 그 설명 */
@@ -98,6 +99,8 @@ export type EditorCopy = {
   zoomIn: string
   zoomOut: string
   scrub: string
+  /** 오른쪽 판의 제목(화면 낭독기만 읽는다 — 제목 단계를 건너뛰지 않게) */
+  panelTitle: string
   /** 되돌리기·다시 하기 단추(src/editor/history.ts) */
   undo: string
   redo: string
@@ -191,6 +194,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       pick: 'Choose a video',
       drop: 'or drop a file here',
       samples: 'Or try a sample clip',
+      sampleNames: { explainer: 'Explainer', studio: 'Studio talk', 'shorts-a': 'Vertical short', 'shorts-b': 'Vertical vlog', 'podcast-a': 'Podcast 1', 'podcast-b': 'Podcast 2', 'podcast-c': 'Interview', teacher: 'Classroom' },
       privacy: 'Your video stays in this browser.',
       help: 'How it works',
       install: 'Install as an app',
@@ -276,6 +280,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: 'Zoom in the timeline',
     zoomOut: 'Zoom out the timeline',
     scrub: 'Move through the video',
+    panelTitle: 'Edit',
     undo: 'Undo',
     redo: 'Redo',
     sampleNote: 'Sample clips have no speech, so their script is typed.',
@@ -363,6 +368,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       pick: '영상 고르기',
       drop: '또는 파일을 여기로 끌어 놓기',
       samples: '또는 예시 영상으로 해 보기',
+      sampleNames: { explainer: '설명 영상', studio: '스튜디오 토크', 'shorts-a': '세로 쇼츠', 'shorts-b': '세로 브이로그', 'podcast-a': '팟캐스트 1', 'podcast-b': '팟캐스트 2', 'podcast-c': '인터뷰', teacher: '강의' },
       privacy: '영상은 이 브라우저 밖으로 나가지 않아요.',
       help: '쓰는 법 보기',
       install: '앱으로 설치',
@@ -448,6 +454,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: '타임라인 크게 보기',
     zoomOut: '타임라인 작게 보기',
     scrub: '영상 위치 옮기기',
+    panelTitle: '편집',
     undo: '되돌리기',
     redo: '다시 하기',
     sampleNote: '예시 영상에는 말소리가 없어서 대본을 적어 두었어요.',
@@ -535,6 +542,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       pick: '動画を選ぶ',
       drop: 'またはファイルをここにドロップ',
       samples: 'またはサンプル動画で試す',
+      sampleNames: { explainer: '解説動画', studio: 'スタジオトーク', 'shorts-a': '縦型ショート', 'shorts-b': '縦型 Vlog', 'podcast-a': 'ポッドキャスト 1', 'podcast-b': 'ポッドキャスト 2', 'podcast-c': 'インタビュー', teacher: '授業' },
       privacy: '動画はこのブラウザの外に出ません。',
       help: '使い方を見る',
       install: 'アプリとしてインストール',
@@ -620,6 +628,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: 'タイムラインを拡大',
     zoomOut: 'タイムラインを縮小',
     scrub: '動画の位置を動かす',
+    panelTitle: '編集',
     undo: '元に戻す',
     redo: 'やり直す',
     sampleNote: 'サンプル動画には声がないため、台本を入力してあります。',

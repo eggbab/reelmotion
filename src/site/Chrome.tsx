@@ -129,7 +129,8 @@ export function FloatingBar({ copy }: { copy: SiteCopy }) {
   }
   const placeholder = copy.floating.placeholders[turn % copy.floating.placeholders.length]
   return (
-    <form className={`floating ${shown ? 'is-shown' : ''}`} onSubmit={submit} aria-hidden={!shown}>
+    // 이름을 붙여 「양식」 구역이 되게 한다 — 화면 낭독기가 쪽의 구역 목록에서 찾을 수 있다(본문 밖 아래에 떠 있다)
+    <form className={`floating ${shown ? 'is-shown' : ''}`} onSubmit={submit} aria-hidden={!shown} aria-label={copy.floating.label}>
       <label className="sr-only" htmlFor="floating-input">
         {copy.floating.label}
       </label>

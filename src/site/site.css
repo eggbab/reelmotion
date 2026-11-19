@@ -724,7 +724,8 @@
 
 .steps__hint {
   font-size: 13px;
-  opacity: 0.75;
+  /* 반투명으로 흐리게 하면 대비가 3.4:1 로 모자라다 — 옅은 글씨 색(대비 4.5:1 이상)으로 */
+  color: var(--dim);
 }
 
 .phone {
@@ -1002,6 +1003,8 @@
 .marquee {
   width: 100%;
   overflow: hidden;
+  /* clip: 흘러가는 장식 띠라 손이나 키보드로 미는 곳이 아니다(hidden 만 두면 접근성 검사가 「키보드로 못 미는 스크롤 영역」으로 본다) */
+  overflow: clip;
 }
 
 .marquee__track {

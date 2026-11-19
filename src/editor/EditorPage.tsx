@@ -997,7 +997,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       {!source ? (
         <StartScreen copy={copy} lang={lang} notice={notice} pending={draftScript} onFile={openFile} onSample={openSample} onOpen={onOpen} onShowAll={() => setShowProjects(true)} />
       ) : (
-        <div className={`ed-body${shown.length === 0 ? ' is-empty' : ''}`}>
+        <main className={`ed-body${shown.length === 0 ? ' is-empty' : ''}`}>
+          <h1 className="sr-only">{displayName}</h1>
           <section className="ed-stage">
             {source.kind === 'missing' ? (
               <Reconnect copy={copy} meta={source.meta} onFile={reconnect} />
@@ -1053,6 +1054,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
           </section>
 
           <aside className="ed-panel">
+            <h2 className="sr-only">{copy.panelTitle}</h2>
             <div className="ed-styles">
               <span>{copy.style}</span>
               <div>
@@ -1149,7 +1151,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
           </aside>
 
           <Timeline copy={copy} graphics={shown} duration={duration} time={time} selectedId={selectedId} onSelect={setSelectedId} onChange={updateGraphic} onSeek={seek} />
-        </div>
+        </main>
       )}
 
       {exportState.stage !== 'idle' && (
@@ -1290,7 +1292,7 @@ function StartScreen({ copy, lang, notice, pending, onFile, onSample, onOpen, on
           <ul className="samples">
             {(Object.keys(CLIPS) as ClipId[]).map((clip) => (
               <li key={clip}>
-                <button type="button" onClick={() => onSample(clip)} className={CLIPS[clip].portrait ? 'is-tall' : undefined}>
+                <button type="button" onClick={() => onSample(clip)} className={CLIPS[clip].portrait ? 'is-tall' : undefined} aria-label={copy.start.sampleNames[clip]} title={copy.start.sampleNames[clip]}>
                   <img src={posterUrl(clip)} alt="" loading="lazy" onError={() => setSamplesFailed(true)} />
                 </button>
               </li>

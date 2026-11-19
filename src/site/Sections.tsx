@@ -2,7 +2,7 @@ import { AudioLines, ChevronDown, ChevronLeft, ChevronRight, ChevronRight as Arr
 import { motion, useScroll, useTransform } from 'motion/react'
 import type { MotionValue } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useLang } from '../lang'
 import { fill } from '../langs'
@@ -18,6 +18,7 @@ import type { SiteCopy } from './copy'
 import { demo } from './demos'
 import type { Demo, DemoId } from './demos'
 import { MotionStage } from './MotionStage'
+import { useScrollable } from './useScrollable'
 import { PLANS, formatWon } from './plans'
 import type { Plan } from './plans'
 import { EditorLink } from './EditorLink'
@@ -27,6 +28,9 @@ import { pagePath } from './routes'
 
 export function Make({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   const ref = useRef<HTMLElement>(null)
+  // 휴대폰에서는 이 줄을 옆으로 민다(site.css) — 그때는 키보드로도 닿게
+  const strip = useRef<HTMLDivElement>(null)
+  const stripScrolls = useScrollable(strip)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start start'] })
   const tiles: { demo: Demo; only: Graphic['kind'] }[] = useMemo(
     () => [
@@ -41,7 +45,7 @@ export function Make({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   return (
     <section className="make" ref={ref}>
       <div className="glow glow--top" aria-hidden="true" />
-      <div className="make__strip">
+      <div className="make__strip" ref={strip} tabIndex={stripScrolls ? 0 : undefined} role={stripScrolls ? 'region' : undefined} aria-label={stripScrolls ? copy.make.title : undefined}>
         {tiles.map((tile, i) => (
           <StripTile key={i} index={i} progress={scrollYProgress} demo={tile.demo} only={tile.only} label={copy.make.tiles[i]} />
         ))}
@@ -131,7 +135,7 @@ export function StylesCarousel({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
           const look = themeById(theme)
           return (
             <li key={theme} className="style-card">
-              <EditorLink search={`?theme=${theme}`} aria-label={`${copy.styles.names[theme]} — ${copy.styles.about[theme]}`}>
+              <EditorLink search={`?theme=${theme}`} aria-label={`${copy.styles.regions[look.region]} · ${copy.styles.names[theme]} — ${copy.styles.about[theme]}`}>
                 <MotionStage clip={d.clip} graphics={d.graphics} theme={theme} label={copy.styles.about[theme]} />
                 <span className="badge">{copy.styles.regions[look.region]}</span>
               </EditorLink>
@@ -168,9 +172,20 @@ export function StylesCarousel({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
 const ROW_A: { id: DemoId; theme?: ThemeId }[] = [{ id: 'shorts' }, { id: 'podcast' }, { id: 'vlog' }, { id: 'growth', theme: 'clean' }, { id: 'shorts', theme: 'neon' }, { id: 'classroom' }]
 const ROW_B: { id: DemoId; theme?: ThemeId }[] = [{ id: 'studio', theme: 'neon' }, { id: 'vlog', theme: 'bold' }, { id: 'story' }, { id: 'sleep', theme: 'clean' }, { id: 'shorts', theme: 'editorial' }, { id: 'growth' }]
 
+/** 흐르는 띠 한 줄. 「움직임 줄이기」를 켜면 흐르지 않고 손으로 미는 띠가 된다(site.css) — 그때는 키보드로도 닿아 화살표로 밀게 한다 */
+function Marquee({ reverse, label, children }: { reverse: boolean; label: string; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const scrollable = useScrollable(ref)
+  return (
+    <div ref={ref} className={`marquee ${reverse ? 'marquee--reverse' : ''}`} tabIndex={scrollable ? 0 : undefined} role={scrollable ? 'region' : undefined} aria-label={scrollable ? label : undefined}>
+      {children}
+    </div>
+  )
+}
+
 export function Formats({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   const row = (items: typeof ROW_A, reverse: boolean) => (
-    <div className={`marquee ${reverse ? 'marquee--reverse' : ''}`}>
+    <Marquee reverse={reverse} label={`${copy.formats.title} (${reverse ? 2 : 1}/2)`}>
       <div className="marquee__track">
         {[0, 1].map((copyIndex) =>
           items.map((item, i) => {
@@ -183,7 +198,7 @@ export function Formats({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
           }),
         )}
       </div>
-    </div>
+    </Marquee>
   )
   return (
     <section className="formats">

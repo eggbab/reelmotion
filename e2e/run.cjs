@@ -6,7 +6,7 @@ const { spawnSync } = require('node:child_process')
 const path = require('node:path')
 
 /** 기본 설정(베타: 요금제 한도 꺼짐)으로 띄운 스택에서 도는 것. 앞의 것일수록 빠르다. */
-const BASIC = ['landing', 'help', 'faqhelp', 'aspect', 'timeline', 'projects', 'accounts', 'notice', 'admin', 'pulse', 'connect', 'connect-limits', 'chat', 'ai-picks', 'faces', 'undo', 'subtitles', 'phone', 'pwa']
+const BASIC = ['landing', 'help', 'faqhelp', 'aspect', 'timeline', 'projects', 'accounts', 'notice', 'admin', 'pulse', 'connect', 'connect-limits', 'chat', 'ai-picks', 'faces', 'undo', 'subtitles', 'a11y', 'phone', 'pwa']
 /** 요금제 한도를 켠 스택에서 도는 것 */
 const ENFORCED = ['plans', 'admin']
 

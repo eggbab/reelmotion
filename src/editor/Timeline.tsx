@@ -23,7 +23,13 @@ type Drag = { id: string; mode: 'move' | 'start' | 'end'; x: number; original: G
 /** 오른쪽 끝에 남기는 자리(마지막 블록의 끝을 잡을 수 있게) — editor.css 의 .timeline__area 오른쪽 여백과 같다 */
 const TAIL = 16
 
+/** 블록에 보이는 내용(60자까지 — 블록이 좁아 화면에서도 잘린다. 화면 낭독기 이름에도 같은 글이 들어간다) */
 function summary(g: Graphic): string {
+  const text = fullSummary(g)
+  return [...text].length > 60 ? `${[...text].slice(0, 59).join('')}…` : text
+}
+
+function fullSummary(g: Graphic): string {
   switch (g.kind) {
     case 'title':
     case 'callout':
@@ -213,10 +219,9 @@ export function Timeline({ copy, graphics, duration, time, selectedId, onSelect,
               }}
               onKeyDown={(event) => onBlockKey(event, g)}
               onFocus={() => onSelect(g.id)}
-              aria-label={`${copy.graphics.kinds[g.kind]} ${g.start.toFixed(1)}–${g.end.toFixed(1)}s`}
+              aria-label={`${copy.graphics.kinds[g.kind]} ${summary(g)}, ${g.start.toFixed(1)}–${g.end.toFixed(1)}s`}
             >
-              <strong>{copy.graphics.kinds[g.kind]}</strong>
-              <span>{summary(g)}</span>
+              <strong>{copy.graphics.kinds[g.kind]}</strong> <span>{summary(g)}</span>
             </button>
           ))}
           <div className="timeline__head" style={{ left: time * pps }} aria-hidden="true" />
