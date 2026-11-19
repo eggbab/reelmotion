@@ -10,7 +10,6 @@ import { pushLocalProjects } from '../account/sync'
 import { joinWords, scriptToWords } from '../captions/segment'
 import { toSrt, toVtt } from '../captions/subtitles'
 import type { Word } from '../captions/types'
-import { ExportUnsupportedError, exportFormat, exportVideo } from '../export/exportVideo'
 import { pickerTypes, savePicker, writesToFile } from '../export/saveTarget'
 import { useLang } from '../lang'
 import { fill } from '../langs'
@@ -66,6 +65,13 @@ import { StorageUnavailableError, deleteProject, getMedia, getProject, keepStora
 import { Timeline } from './Timeline'
 import { useProjectList } from './useProjectList'
 import './editor.css'
+
+/**
+ * 내보내기 코드(영상 처리 라이브러리 Mediabunny — 편집기 스크립트의 5분의 4)는 따로 받는다: 시작 화면에는 필요 없다.
+ * 영상이 들어오면 미리 받아 두어 「내보내기」를 누르면 바로 시작한다 — 긴 영상의 파일 저장 창은 누른 직후에 열어야 하므로
+ * 그때 받기 시작하면 늦을 수 있다. 인터넷 없이도 내보낼 수 있게 서비스 워커가 함께 미리 받는다(src/pwa/routes.ts).
+ */
+const loadExport = () => import('../export/exportVideo')
 
 type FileMeta = Extract<ProjectSource, { kind: 'file' }>
 
@@ -335,6 +341,10 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   const { lang } = useLang()
   const copy = EDITOR_COPY[lang]
   const [source, setSource] = useState<Source | null>(initial.source)
+  // 영상이 들어오면 내보내기 코드를 미리 받아 둔다(못 받으면 내보낼 때 다시)
+  useEffect(() => {
+    if (source) void loadExport().catch(() => undefined)
+  }, [source])
   const [name, setName] = useState(initial.name)
   const [script, setScript] = useState(initial.script)
   const [recognized, setRecognized] = useState<Word[] | null>(initial.recognized)
@@ -887,6 +897,17 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       setExportState({ stage: 'blocked', reason: permit.reason })
       return
     }
+    let exporter: Awaited<ReturnType<typeof loadExport>>
+    try {
+      exporter = await loadExport()
+    } catch (error) {
+      // 내보내기 코드를 받지 못했다(인터넷이 끊긴 채 처음 내보내는 등)
+      pulse('export_failed')
+      reportError(error)
+      setExportState({ stage: 'failed', unsupported: false })
+      return
+    }
+    const { ExportUnsupportedError, exportFormat, exportVideo } = exporter
     // 긴 영상은 다 만든 영상을 메모리에 쥐지 않게, 저장 창이 있는 브라우저에서는 저장할 파일을 먼저 고른다(src/export/saveTarget.ts).
     // 누른 직후에 열어야 브라우저가 창을 열어 준다 — 열지 못하면 보통처럼 메모리에 모은다.
     let file: FileSystemWritableFileStream | null = null

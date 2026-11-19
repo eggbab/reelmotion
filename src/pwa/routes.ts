@@ -40,7 +40,8 @@ export const SHELLS = [pagePath('app', 'en'), pagePath('app', 'ko'), pagePath('a
  */
 export function precacheList(assetFiles: string[]): string[] {
   return assetFiles
-    .filter((name) => /^(index|EditorPage)-[\w-]+\.(js|css)$/.test(name))
+    // 내보내기(exportVideo — 영상 처리 라이브러리)는 편집기가 따로 받는 파일이지만 인터넷 없이도 내보내야 하므로 함께
+    .filter((name) => /^(index|EditorPage|exportVideo)-[\w-]+\.(js|css)$/.test(name))
     .sort()
     .map((name) => `/assets/${name}`)
 }

@@ -51,13 +51,15 @@ describe('미리 받아 둘 파일', () => {
       'index-lv1Ie1ap.js',
       'EditorPage-DAyA4w5g.js',
       'EditorPage-DYPZUSi1.css',
+      'exportVideo-Q7rT2xYz.js',
       'AdminPage-DjHhSQdc.js',
       'whisper.worker-DeSTM6AL.js',
       'ort-wasm-simd-threaded-4byDm7i3.wasm',
       'ort-wasm-simd-threaded-BQJNh0bu.mjs',
       'pretendard-jp-99-abc.woff2',
     ]
-    expect(precacheList(files)).toEqual(['/assets/EditorPage-DAyA4w5g.js', '/assets/EditorPage-DYPZUSi1.css', '/assets/index-D98ESNvq.css', '/assets/index-lv1Ie1ap.js'])
+    // 내보내기 코드(영상 처리 라이브러리)는 따로 받는 파일이지만 인터넷 없이도 내보낼 수 있게 함께 미리 받는다
+    expect(precacheList(files)).toEqual(['/assets/EditorPage-DAyA4w5g.js', '/assets/EditorPage-DYPZUSi1.css', '/assets/exportVideo-Q7rT2xYz.js', '/assets/index-D98ESNvq.css', '/assets/index-lv1Ie1ap.js'])
   })
 })
 
