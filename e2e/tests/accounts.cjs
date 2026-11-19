@@ -76,9 +76,21 @@ needMedia(VIDEO)
   const otherProjects = await one.page.evaluate(async () => (await (await fetch('/api/projects')).json()).projects.length)
   ok("another person's login does not receive Mina's project", otherProjects === 0, `other has ${otherProjects}`)
 
-  // 기기 2 에서 탈퇴 → 계정 작업도 사라짐
+  // 기기 2: 내 정보 내려받기 — 계정과 계정에 저장한 작업이 한 파일(JSON)로
   await two.page.goto(BASE + '/account', { waitUntil: 'networkidle' })
   await two.page.waitForSelector('.account-facts')
+  const [download] = await Promise.all([two.page.waitForEvent('download'), two.page.locator('[data-testid=export-data]').click()])
+  const exported = JSON.parse(require('node:fs').readFileSync(await download.path(), 'utf8'))
+  ok('data download file name', /^reelmotion-data-\d{4}-\d{2}-\d{2}\.json$/.test(download.suggestedFilename()), download.suggestedFilename())
+  ok(
+    'data download has the account and its project',
+    exported.account.email === 'mina@example.com' && exported.projects.length === 1 && exported.projects[0].name === 'Synced talk v2' && exported.projects[0].graphics.length === blocks,
+    `${exported.account.email} · ${exported.projects.length} project(s) · ${exported.projects[0]?.name}`,
+  )
+  await two.page.locator('[data-testid=export-data]').scrollIntoViewIfNeeded()
+  await two.page.screenshot({ path: `${OUT}/account-data.png` })
+
+  // 기기 2 에서 탈퇴 → 계정 작업도 사라짐
   await two.page.getByRole('button', { name: 'Delete my account' }).click()
   await two.page.getByRole('button', { name: 'Are you sure? Press again to delete.' }).click()
   await two.page.waitForSelector('.account-dev')

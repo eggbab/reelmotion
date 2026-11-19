@@ -227,3 +227,51 @@ describe('상태 주소(/api/status — 바깥 감시용)', () => {
     expect(await response.json()).toEqual({ ok: false, checkedAt: null, checks: [] })
   })
 })
+
+describe('내 정보 내려받기', () => {
+  it('로그인한 사람의 계정·요금제·달마다 내보내기 수·로그인 시각·저장한 작업을 한 파일로 — 다른 사람 것과 로그인 비밀값은 없다', async () => {
+    const { db, request, login } = setup()
+    expect((await request('/api/me/export')).status).toBe(401)
+    const { cookie } = await login()
+    await request('/api/projects/p1', { method: 'PUT', cookie, body: JSON.stringify(project('p1', 10)) })
+    await request('/api/projects/p2', { method: 'PUT', cookie, body: JSON.stringify(project('p2', 20, 'Second')) })
+    await request('/api/usage/export/done', { method: 'POST', cookie, body: '{}' })
+    // 다른 사람과 그 작업
+    db.prepare("insert into users (id, google_sub, email, name, created_at) values ('other', 'g-2', 'jun@example.com', 'Jun', 1)").run()
+    db.prepare("insert into projects (user_id, id, updated_at, data) values ('other', 'x1', 5, '{\"name\":\"Jun secret\"}')").run()
+
+    const response = await request('/api/me/export', { cookie })
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('application/json')
+    expect(response.headers.get('content-disposition')).toMatch(/^attachment; filename="reelmotion-data-\d{4}-\d{2}-\d{2}\.json"$/)
+    const text = await response.text()
+    const data = JSON.parse(text) as {
+      format: string
+      account: Record<string, unknown>
+      usage: { month: string; exports: number }[]
+      logins: Record<string, unknown>[]
+      projects: { id: string; name: string; updatedAt: string; graphics: unknown[] }[]
+    }
+    expect(data.format).toBe('reelmotion-account-export')
+    expect(data.account).toMatchObject({ email: 'mina@example.com', name: 'Mina', plan: 'free', googleId: 'g-1' })
+    expect(data.usage).toHaveLength(1)
+    expect(data.usage[0].exports).toBe(1)
+    expect(data.logins).toHaveLength(1)
+    expect(Object.keys(data.logins[0]).sort()).toEqual(['createdAt', 'expiresAt'])
+    // 새로 고친 작업부터, 저장한 내용 그대로
+    expect(data.projects.map((item) => item.id)).toEqual(['p2', 'p1'])
+    expect(data.projects[0].name).toBe('Second')
+    expect(data.projects[1].graphics).toEqual(project('p1', 10).graphics)
+    expect(text).not.toContain('jun@example.com')
+    expect(text).not.toContain('Jun secret')
+    expect(text).not.toMatch(/token|hash/i)
+  })
+
+  it('작업이 없으면 빈 목록', async () => {
+    const { request, login } = setup()
+    const { cookie } = await login()
+    const data = (await (await request('/api/me/export', { cookie })).json()) as { projects: unknown[]; usage: unknown[] }
+    expect(data.projects).toEqual([])
+    expect(data.usage).toEqual([])
+  })
+})

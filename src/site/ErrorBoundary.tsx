@@ -37,6 +37,10 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
                 {text.home}
               </a>
             </div>
+            {/* 고장 신고로 연다 — 문의하기 쪽이 들어온 쪽(이 화면의 주소)을 함께 받는다 */}
+            <a className="notfound__report" href={`${pagePath('contact', lang)}?kind=bug`}>
+              {text.report}
+            </a>
           </div>
         </main>
       </div>

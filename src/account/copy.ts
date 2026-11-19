@@ -24,6 +24,10 @@ export type AccountCopy = {
   planUntil: string
   openEditor: string
   logout: string
+  /** 내 정보 내려받기(GET /api/me/export) */
+  data: string
+  dataBody: string
+  dataButton: string
   danger: string
   dangerBody: string
   deleteButton: string
@@ -73,6 +77,9 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     planUntil: 'until {date}',
     openEditor: 'Open the editor',
     logout: 'Log out',
+    data: 'Your data',
+    dataBody: 'Download your account details, plan, monthly export counts, login times and the projects kept in your account as one file (JSON). Videos are not on our servers, so they are not included.',
+    dataButton: 'Download my data',
     danger: 'Delete account',
     dangerBody: 'Deleting your account removes it and the projects kept with it right away. This cannot be undone. Projects saved in this browser stay here.',
     deleteButton: 'Delete my account',
@@ -119,6 +126,9 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     planUntil: '{date}까지',
     openEditor: '편집기 열기',
     logout: '로그아웃',
+    data: '내 정보',
+    dataBody: '계정 정보, 요금제, 달마다 내보낸 횟수, 로그인 기록(시각), 계정에 저장한 작업을 한 파일(JSON)로 내려받아요. 영상은 서버에 없어서 들어 있지 않아요.',
+    dataButton: '내 정보 내려받기',
     danger: '탈퇴',
     dangerBody: '탈퇴하면 계정과 계정에 저장된 작업이 바로 지워지고 되돌릴 수 없어요. 이 브라우저에 저장된 작업은 남아요.',
     deleteButton: '탈퇴하기',
@@ -165,6 +175,9 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     planUntil: '{date}まで',
     openEditor: 'エディターを開く',
     logout: 'ログアウト',
+    data: 'あなたのデータ',
+    dataBody: 'アカウント情報、プラン、月ごとの書き出し回数、ログインの記録(時刻)、アカウントに保存したプロジェクトを1つのファイル(JSON)でダウンロードします。動画はサーバーにないため含まれません。',
+    dataButton: 'データをダウンロード',
     danger: '退会',
     dangerBody: '退会すると、アカウントとアカウントに保存したプロジェクトがすぐに削除され、元に戻せません。このブラウザに保存したプロジェクトは残ります。',
     deleteButton: '退会する',

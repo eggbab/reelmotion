@@ -240,6 +240,14 @@ function Profile({ user, copy, lang, back, admin, onDeleted, children }: Profile
         </div>
       </section>
       {children}
+      <section className="account-card">
+        <h2>{copy.data}</h2>
+        <p>{copy.dataBody}</p>
+        {/* 보통 링크로 받는다 — 로그인 쿠키가 함께 가고, 서버가 파일 이름을 정해 준다(server/app/export-data.ts) */}
+        <a className="btn-ghost" href="/api/me/export" download data-testid="export-data">
+          {copy.dataButton}
+        </a>
+      </section>
       <section className="account-card is-danger">
         <h2>{copy.danger}</h2>
         <p>{copy.dangerBody}</p>

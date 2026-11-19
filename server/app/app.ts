@@ -18,6 +18,7 @@ import type { AssistModel } from './assist'
 import { BACKUP_FILE, effectivePlan, listBackups, overview, searchUsers, setPlan } from './admin-data'
 import type { BillingProvider } from './billing'
 import { createConnector, openDraftStore } from './connect'
+import { accountExport, exportFileName } from './export-data'
 import { HIGHLIGHT_SCHEMA } from '../../src/editor/highlights'
 import { highlightMessages, parseHighlightRequest, parseHighlights } from './highlights'
 import { CONTACT_MAILS_PER_DAY, CONTACT_PER_DAY, CONTACT_PER_VISITOR, CONTACT_WINDOW, MAX_CONTACT_BYTES, contactAlert, createInbox, parseContact } from './inbox'
@@ -267,6 +268,20 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
   })
 
   /** 탈퇴: 계정과 서버에 둔 작업·세션·사용량을 모두 지운다(바로, 되돌릴 수 없다). */
+  /** 내 정보 내려받기(export-data.ts): 한 파일(JSON)로, 작업은 하나씩 흘려 보낸다 */
+  app.get('/me/export', requireUser, (c) => {
+    const chunks = accountExport(db, userOf(c), now())
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const next = chunks.next()
+        if (next.done) controller.close()
+        else controller.enqueue(encoder.encode(next.value))
+      },
+    })
+    return c.body(stream, 200, { 'content-type': 'application/json; charset=utf-8', 'content-disposition': `attachment; filename="${exportFileName(now())}"` })
+  })
+
   app.delete('/account', requireUser, (c) => {
     const user = userOf(c)
     endSession(c)

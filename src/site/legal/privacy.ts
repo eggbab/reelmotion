@@ -31,6 +31,7 @@ import type { LegalDocs } from './types'
  * - 문의(server/app/inbox.ts, 2026-11-19): 종류·내용·답장 받을 메일(적었을 때만)·화면 언어·보낸 쪽 주소(물음표 뒤 제외). 계정·IP 는 함께 저장하지 않는다.
  *   3년 두고 지운다. 남용 막기로 IP 를 메모리에 10분까지. 같은 저장소라 하루 백업에 들어간다. 운영자에게 가는 알림 메일에는 번호·종류만.
  *   답은 회사 메일(vmelabs@outlook.com — Microsoft Outlook)에서 보낸다 → 위탁·국외 이전(Microsoft). 메일함의 답장도 3년 뒤 지운다(docs/operations.md).
+ * - 내 정보 내려받기(server/app/export-data.ts, 2026-11-19): 로그인한 본인에게 계정·요금제·달마다 내보내기 수·로그인 시각·저장한 작업을 한 파일로.
  * - 바깥 회사: 브라우저 안 받아쓰기의 모델 파일만 Hugging Face 에서 직접 받는다. 실행 파일(onnxruntime)은 우리 서버에서 준다.
  */
 export const PRIVACY: LegalDocs = {
@@ -154,7 +155,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '이용자의 권리',
         blocks: [
-          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 계정 정보는 「내 계정」에서 볼 수 있고, 탈퇴하면 바로 지울 수 있습니다. 그 밖의 요청은 {contact} 로 메일을 보내거나 {inquiry}에서 하시면 지체 없이 답합니다.',
+          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 계정 정보는 「내 계정」에서 볼 수 있고, 계정 정보와 계정에 저장한 작업을 한 파일로 내려받을 수 있으며, 탈퇴하면 바로 지울 수 있습니다. 그 밖의 요청은 {contact} 로 메일을 보내거나 {inquiry}에서 하시면 지체 없이 답합니다.',
         ],
       },
       { title: '만 14세 미만 아동', blocks: ['만 14세 미만 아동은 로그인(계정 만들기)을 할 수 없습니다. 로그인 없이 쓸 때는 이름·메일 같은 정보를 받지 않습니다. 만 14세 미만 아동은 문의하기에 메일 주소를 적지 말고, 보호자가 대신 문의해 주세요.'] },
@@ -296,7 +297,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: 'Your rights',
         blocks: [
-          'You can ask to see, correct, delete or stop the processing of your personal information. You can see your account information in My account and delete it at once by deleting your account. For anything else, email {contact} or use {inquiry}, and we will answer without delay.',
+          'You can ask to see, correct, delete or stop the processing of your personal information. You can see your account information in My account, download it together with the projects kept in your account as one file, and delete it at once by deleting your account. For anything else, email {contact} or use {inquiry}, and we will answer without delay.',
         ],
       },
       { title: 'Children under 14', blocks: ['Children under 14 cannot log in or create an account. When the Service is used without logging in, we do not receive information such as names or email addresses. Children under 14 should not give an email address on the Contact page; a parent or guardian can contact us instead.'] },
@@ -438,7 +439,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '利用者の権利',
         blocks: [
-          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。アカウント情報は「マイアカウント」で確認でき、退会するとすぐに消せます。そのほかのご依頼は、{contact} へのメールか{inquiry}からご連絡いただければすぐにお答えします。',
+          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。アカウント情報は「マイアカウント」で確認でき、アカウントに保存したプロジェクトとあわせて1つのファイルでダウンロードでき、退会するとすぐに消せます。そのほかのご依頼は、{contact} へのメールか{inquiry}からご連絡いただければすぐにお答えします。',
         ],
       },
       { title: '14歳未満の子ども', blocks: ['14歳未満の子どもはログイン(アカウント作成)できません。ログインせずに使う場合は、氏名やメールアドレスなどの情報を受け取りません。14歳未満の子どもはお問い合わせにメールアドレスを書かず、保護者が代わりにお問い合わせください。'] },

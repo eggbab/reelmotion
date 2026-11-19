@@ -2302,6 +2302,16 @@
   margin-top: 36px;
 }
 
+/* 고장 화면의 「계속 그러면 알려 주세요」(문의하기의 고장 신고로) */
+.notfound__report {
+  display: inline-block;
+  margin-top: 24px;
+  color: var(--text-2);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 560px) {
   .legal {
     padding-top: 150px;
