@@ -1660,6 +1660,12 @@
   color: var(--text-2);
 }
 
+.account-consent a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .account-note.is-error {
   border-color: rgb(255 107 107 / 45%);
   color: #ffb4b4;

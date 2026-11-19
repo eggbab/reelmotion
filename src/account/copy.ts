@@ -5,6 +5,8 @@ export type AccountCopy = {
   loginTitle: string
   loginBody: string
   google: string
+  /** 로그인 단추 아래: 약관·방침에 동의하는 것으로 본다({terms}·{privacy} 자리에 링크) */
+  consent: string
   notReady: string
   off: string
   failed: string
@@ -53,6 +55,7 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     loginTitle: 'Log in',
     loginBody: 'Log in to open your projects on any device. Your video files are never uploaded — only the project (script, graphics and style) is kept with your account.',
     google: 'Continue with Google',
+    consent: 'By continuing with Google, you agree to the {terms} and the {privacy}. You can use the editor without logging in.',
     notReady: 'Login is not open yet. For now your projects are saved in this browser without an account.',
     off: 'Accounts are unavailable right now. The editor works without logging in.',
     failed: 'We could not log you in. Please try again.',
@@ -98,6 +101,7 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     loginTitle: '로그인',
     loginBody: '로그인하면 만든 작업을 어느 기기에서나 열 수 있어요. 영상 파일은 올리지 않고, 작업(대본·그래픽·스타일)만 계정에 저장돼요.',
     google: 'Google로 계속하기',
+    consent: 'Google로 계속하면 {terms}과 {privacy}에 동의하는 것으로 봐요. 로그인하지 않아도 편집기는 쓸 수 있어요.',
     notReady: '로그인은 준비 중이에요. 지금은 로그인 없이 이 브라우저에 저장돼요.',
     off: '지금은 계정 기능을 쓸 수 없어요. 편집기는 로그인 없이 쓸 수 있어요.',
     failed: '로그인하지 못했어요. 다시 시도해 주세요.',
@@ -143,6 +147,7 @@ export const ACCOUNT_COPY: Record<Lang, AccountCopy> = {
     loginTitle: 'ログイン',
     loginBody: 'ログインすると、作ったプロジェクトをどの端末でも開けます。動画ファイルはアップロードせず、プロジェクト(台本・グラフィックス・スタイル)だけをアカウントに保存します。',
     google: 'Google で続ける',
+    consent: 'Google で続けると、{terms}と{privacy}に同意したものとみなします。ログインしなくてもエディターは使えます。',
     notReady: 'ログインは準備中です。今はログインなしでこのブラウザに保存されます。',
     off: '今はアカウント機能を使えません。エディターはログインなしで使えます。',
     failed: 'ログインできませんでした。もう一度お試しください。',
