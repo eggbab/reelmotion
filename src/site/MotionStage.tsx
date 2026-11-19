@@ -58,12 +58,17 @@ export function MotionStage({ clip, graphics, theme, small = false, label, class
       draw(performance.now())
     })
     resize.observe(canvas)
-    void loadFontsForGraphics(look, graphics).then(() => draw(performance.now()))
 
+    // 글꼴은 처음 보일 때 받는다 — 쪽을 열자마자 칸 30여 개의 스타일 글꼴(서울·도쿄 글자 묶음)을 받지 않게
+    let fontsAsked = false
     let unsubscribe: (() => void) | null = null
     const visibility = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          if (!fontsAsked) {
+            fontsAsked = true
+            void loadFontsForGraphics(look, graphics).then(() => draw(performance.now()))
+          }
           if (!still) void video.play().catch(() => {})
           unsubscribe ??= subscribeFrame(draw)
         } else {

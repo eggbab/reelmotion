@@ -101,7 +101,7 @@
 - 스타일을 더하거나 고칠 때는 `themes.ts` 표만 고친다. 그리기 코드에 스타일별 분기를 두지 않는다.
 - 미리보기·소개 페이지·내보내기는 같은 `renderGraphics` 를 쓴다.
 - **그래픽에 넣는 글은 넘쳐도 말없이 버리지 않는다.** 줄 수가 정해진 자리는 `fitLines`·`fitLine`(`paint.ts`)으로 그려 넘치면 끝에 … 을 붙이고, 자동 배치는 자리에 들어가는 길이로 미리 줄인다(`fitText`·`fitTitle` — 낱말 가운데서 자르지 않는다). 예전에는 목록의 첫 줄만 그려 「…세우지 마세요」의 「마세요」가 사라졌다.
-- **소개 페이지 무게(2026-11-19)**: 쪽을 열자마자 받는 것은 스타일·스크립트·작은 정지 그림뿐이어야 한다 — 영상 벽은 `load` 뒤 재생(`Hero.tsx` 의 `useWallPlayback`), `MotionStage` 는 `preload="none"`·정지 그림은 600px 앞에서 붙인다. 큰 정지 그림이나 영상을 처음부터 받게 하면 휴대폰에서 스타일 파일이 늦어져 첫 글자가 1초 넘게 늦어진다(쟀다). 작은 정지 그림은 `public/media/*-sm.jpg`(긴 변 480px).
+- **소개 페이지 무게(2026-11-19)**: 쪽을 열자마자 받는 것은 스타일·스크립트·작은 정지 그림뿐이어야 한다 — 영상 벽은 `load` 뒤 재생(`Hero.tsx` 의 `useWallPlayback`), `MotionStage` 는 `preload="none"`·정지 그림은 600px 앞에서 붙인다. 큰 정지 그림이나 영상을 처음부터 받게 하면 휴대폰에서 스타일 파일이 늦어져 첫 글자가 1초 넘게 늦어진다(쟀다). 작은 정지 그림은 `public/media/*-sm.jpg`(긴 변 480px). 스타일에만 쓰는 제목 글꼴(Instrument Serif·Black Han Sans·Dela Gothic One)의 선언은 `src/motion/fonts.ts` 가 그 글꼴로 그릴 때 불러온다 — 맨 위에서 `import` 하면 첫 화면 스타일 파일이 두 배가 된다.
 - **접근성(2026-11-19)**: 화면을 고치면 `node e2e/tests/a11y.cjs`(axe-core, WCAG 2.1 A·AA)가 위반 0개여야 한다. 작은 글씨는 `--dim` 이상 밝기(어두운 판에서 대비 4.5:1), 그림만 있는 단추에는 이름(`aria-label`), 보이는 글이 있는 단추의 `aria-label` 은 그 글을 담는다, 옆으로 미는 칸은 밀릴 때만 키보드로 닿게(`src/site/useScrollable.ts`).
 - 화면 글은 세 언어를 함께 넣는다(`src/site/copy.ts`·`src/editor/copy.ts`, 사이트 글은 테스트가 빠진 항목을 잡는다).
 - 테스트를 먼저 쓰고 구현한다. 커밋 메시지는 `feat:` `fix:` `test:` `docs:` `chore:` 접두어 + 한 줄 요약.
