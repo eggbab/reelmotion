@@ -10,7 +10,8 @@ import { pushLocalProjects } from '../account/sync'
 import { joinWords, scriptToWords } from '../captions/segment'
 import { toSrt, toVtt } from '../captions/subtitles'
 import type { Word } from '../captions/types'
-import { ExportUnsupportedError, exportVideo } from '../export/exportVideo'
+import { ExportUnsupportedError, exportFormat, exportVideo } from '../export/exportVideo'
+import { pickerTypes, savePicker, writesToFile } from '../export/saveTarget'
 import { useLang } from '../lang'
 import { fill } from '../langs'
 import type { Lang } from '../langs'
@@ -83,8 +84,10 @@ type SpeechEngine = 'server' | SpeechQuality
 
 type ExportState =
   | { stage: 'idle' }
-  | { stage: 'running'; progress: number }
-  | { stage: 'done'; url: string; extension: string; watermark: boolean; remaining: number | null }
+  /** long: 긴 영상을 메모리에 모으는 중(파일 저장 창이 없는 브라우저) — 멈출 수 있다고 알린다 */
+  | { stage: 'running'; progress: number; long?: boolean }
+  /** url 이 null 이면 고른 파일(savedName)에 바로 썼다 — 긴 영상(src/export/saveTarget.ts) */
+  | { stage: 'done'; url: string | null; savedName?: string; extension: string; watermark: boolean; remaining: number | null }
   | { stage: 'failed'; unsupported: boolean }
   /** 요금제 한도에 걸림(결제를 붙인 뒤 켠다 — entitlements.ts) */
   | { stage: 'blocked'; reason: 'login' | 'too_long' | 'limit' }
@@ -883,13 +886,52 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       setExportState({ stage: 'blocked', reason: permit.reason })
       return
     }
+    // 긴 영상은 다 만든 영상을 메모리에 쥐지 않게, 저장 창이 있는 브라우저에서는 저장할 파일을 먼저 고른다(src/export/saveTarget.ts).
+    // 누른 직후에 열어야 브라우저가 창을 열어 준다 — 열지 못하면 보통처럼 메모리에 모은다.
+    let file: FileSystemWritableFileStream | null = null
+    let savedName: string | undefined
+    const picker = savePicker()
+    const long = writesToFile(duration, picker !== null)
+    if (long && picker) {
+      const format = await exportFormat(size.width, size.height)
+      if (format) {
+        try {
+          const handle = await picker({ suggestedName: `${safeFileName(displayName, 'reelmotion')}-reelmotion.${format}`, types: pickerTypes(format) })
+          file = await handle.createWritable()
+          savedName = handle.name
+        } catch (error) {
+          // 창을 닫았으면 내보내기를 그만둔다
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            setExportState({ stage: 'idle' })
+            return
+          }
+        }
+      }
+    }
+    if (controller.signal.aborted) {
+      await file?.abort().catch(() => undefined)
+      return
+    }
+    const memoryHeavy = duration > 600 && !file
     pulse('export_started')
     try {
       const blob = await sourceBlob(source)
-      const result = await exportVideo(blob, shown, theme, { onProgress: (progress) => setExportState({ stage: 'running', progress }), signal: controller.signal, watermark: permit.watermark })
+      const result = await exportVideo(blob, shown, theme, {
+        onProgress: (progress) => setExportState({ stage: 'running', progress, long: memoryHeavy }),
+        signal: controller.signal,
+        watermark: permit.watermark,
+        file,
+      })
       reportExportDone()
       pulse('export_done')
-      setExportState({ stage: 'done', url: URL.createObjectURL(result.blob), extension: result.extension, watermark: permit.watermark, remaining: permit.remaining })
+      setExportState({
+        stage: 'done',
+        url: result.blob ? URL.createObjectURL(result.blob) : null,
+        savedName,
+        extension: result.extension,
+        watermark: permit.watermark,
+        remaining: permit.remaining,
+      })
     } catch (error) {
       if (controller.signal.aborted) {
         setExportState({ stage: 'idle' })
@@ -905,7 +947,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   const closeExport = () => {
     exportAbort.current?.abort()
-    if (exportState.stage === 'done') URL.revokeObjectURL(exportState.url)
+    if (exportState.stage === 'done' && exportState.url) URL.revokeObjectURL(exportState.url)
     setExportState({ stage: 'idle' })
   }
 
@@ -1431,6 +1473,7 @@ function ExportDialog({ copy, lang, state, baseName, onClose, onRetry }: ExportD
             <div className="bar">
               <span style={{ width: `${state.progress * 100}%` }} />
             </div>
+            {state.long && <p className="hint">{copy.exportLongHint}</p>}
             <button type="button" className="btn-outline" onClick={onClose}>
               {copy.cancel}
             </button>
@@ -1439,11 +1482,17 @@ function ExportDialog({ copy, lang, state, baseName, onClose, onRetry }: ExportD
         {state.stage === 'done' && (
           <>
             <h2 id="export-title">{copy.exportDone}</h2>
-            <video src={state.url} controls playsInline className="dialog__video" />
-            <a className="btn-mint" href={state.url} download={`${baseName}-reelmotion.${state.extension}`}>
-              <Download size={16} aria-hidden="true" />
-              {fill(copy.download, { ext: state.extension.toUpperCase() })}
-            </a>
+            {state.url ? (
+              <>
+                <video src={state.url} controls playsInline className="dialog__video" />
+                <a className="btn-mint" href={state.url} download={`${baseName}-reelmotion.${state.extension}`}>
+                  <Download size={16} aria-hidden="true" />
+                  {fill(copy.download, { ext: state.extension.toUpperCase() })}
+                </a>
+              </>
+            ) : (
+              <p className="dialog__saved">{fill(copy.exportSaved, { name: state.savedName ?? `${baseName}-reelmotion.${state.extension}` })}</p>
+            )}
             {state.watermark && <p className="hint">{copy.watermarkNote}</p>}
             {state.remaining !== null && <p className="hint">{fill(copy.exportsLeft, { n: state.remaining })}</p>}
           </>

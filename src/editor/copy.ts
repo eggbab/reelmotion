@@ -15,6 +15,10 @@ export type EditorCopy = {
   exportBlocked: { login: string; too_long: string; limit: string; loginButton: string; planButton: string }
   watermarkNote: string
   exportsLeft: string
+  /** 긴 영상을 고른 파일에 바로 썼을 때(src/export/saveTarget.ts) */
+  exportSaved: string
+  /** 긴 영상을 메모리에 모으는 브라우저에서 내보내는 동안 */
+  exportLongHint: string
   cancel: string
   close: string
   start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string; sampleNames: Record<ClipId, string> }
@@ -186,6 +190,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     watermarkNote: 'Videos on the Free plan carry a small ReelMotion mark in the corner.',
     exportsLeft: 'You have {n} exports left this month.',
+    exportSaved: 'Saved as “{name}” where you chose.',
+    exportLongHint: 'Long videos use a lot of memory in this browser. If it stops, try Chrome or Edge on a computer — they save straight to a file.',
     cancel: 'Cancel',
     close: 'Close',
     start: {
@@ -360,6 +366,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     watermarkNote: '무료 요금제로 내보낸 영상에는 오른쪽 아래에 작은 ReelMotion 표시가 들어가요.',
     exportsLeft: '이번 달 내보내기가 {n}번 남았어요.',
+    exportSaved: '고른 곳에 「{name}」으로 저장했어요.',
+    exportLongHint: '긴 영상은 이 브라우저의 메모리를 많이 써요. 멈추면 컴퓨터의 크롬이나 엣지에서 해 보세요 — 파일에 바로 저장해요.',
     cancel: '그만두기',
     close: '닫기',
     start: {
@@ -534,6 +542,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     },
     watermarkNote: '無料プランで書き出した動画には、右下に小さな ReelMotion の表示が入ります。',
     exportsLeft: '今月の書き出しはあと{n}回です。',
+    exportSaved: '選んだ場所に「{name}」として保存しました。',
+    exportLongHint: '長い動画はこのブラウザのメモリを多く使います。止まったら、パソコンの Chrome か Edge でお試しください。ファイルに直接保存します。',
     cancel: 'やめる',
     close: '閉じる',
     start: {
