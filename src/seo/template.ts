@@ -36,6 +36,31 @@ function replaceOnce(source: string, find: string, replacement: string): string 
 export function fillTemplate(template: string, page: { lang: Lang; head: string; html: string; key: string | null }): string {
   let out = replaceOnce(template, '<html lang="en">', `<html lang="${page.lang}">`)
   out = replaceOnce(out, '<title>ReelMotion</title>', page.head)
-  const root = page.key === null ? '<div id="root"></div>' : `<div id="root" data-page="${page.key}">${page.html}</div>`
+  const root = page.key === null ? `<div id="root">${page.html}</div>` : `<div id="root" data-page="${page.key}">${page.html}</div>`
   return replaceOnce(out, '<div id="root"></div>', root)
+}
+
+/** 편집기 껍데기에 미리 그려 두는 한 줄 — 편집기 코드(압축 약 430KB)를 받는 동안 빈 화면 대신 보인다. 브라우저가 처음부터 그리며 바꾼다 */
+const EDITOR_LOADING: Record<Lang, string> = { en: 'Opening the editor…', ko: '편집기를 여는 중…', ja: 'エディターを開いています…' }
+
+/** 화면을 미리 그리지 않는 쪽(key 가 null)에 넣을 것. 편집기만 「여는 중」, 계정·관리자는 비운다 */
+export function shellHtml(target: HeadTarget): string {
+  if (target.kind !== 'page' || target.page !== 'app') return ''
+  return `<div class="editor"><p class="ed-loading" role="status">${EDITOR_LOADING[target.lang]}</p></div>`
+}
+
+/**
+ * 편집기 껍데기의 머리에 넣는 미리 받기: 편집기 코드와 스타일을 처음부터 함께 받게 한다. 넣지 않으면 기본 코드를 받아 실행한 뒤에야
+ * 편집기 코드를 받기 시작한다(차례로). assets: dist/assets 의 파일 이름들
+ */
+export function shellHints(target: HeadTarget, assets: string[]): string {
+  if (target.kind !== 'page' || target.page !== 'app') return ''
+  const script = assets.find((name) => /^EditorPage-[\w-]+\.js$/.test(name))
+  const style = assets.find((name) => /^EditorPage-[\w-]+\.css$/.test(name))
+  return [
+    script && `<link rel="modulepreload" crossorigin href="/assets/${script}" />`,
+    style && `<link rel="preload" as="style" crossorigin href="/assets/${style}" />`,
+  ]
+    .filter(Boolean)
+    .join('\n    ')
 }

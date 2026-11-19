@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { llmsTxt, robotsTxt, sitemapXml } from './files'
 import { headTags } from './head'
-import { fillTemplate, prerenderPlan } from './template'
+import { fillTemplate, prerenderPlan, shellHints, shellHtml } from './template'
 
 const ORIGIN = 'https://reelmotion.test'
 
@@ -96,6 +96,27 @@ describe('fillTemplate / prerenderPlan', () => {
   it('편집기 껍데기는 화면 없이, 열쇠도 없이 둔다', () => {
     const out = fillTemplate(template, { lang: 'ko', head: '<title>T</title>', html: '', key: null })
     expect(out).toContain('<div id="root"></div>')
+  })
+
+  it('편집기 껍데기에는 「여는 중」 한 줄을 미리 그려 둔다(열쇠 없이 — 브라우저가 처음부터 그린다), 언어마다', () => {
+    const ko = shellHtml({ kind: 'page', page: 'app', lang: 'ko' })
+    expect(ko).toContain('편집기를 여는 중')
+    expect(ko).toContain('role="status"')
+    expect(shellHtml({ kind: 'page', page: 'app', lang: 'ja' })).toContain('エディター')
+    expect(shellHtml({ kind: 'page', page: 'app', lang: 'en' })).toContain('Opening the editor')
+    // 계정·관리자 쪽은 지금처럼 비운다
+    expect(shellHtml({ kind: 'page', page: 'account', lang: 'ko' })).toBe('')
+    const out = fillTemplate(template, { lang: 'ko', head: '<title>T</title>', html: ko, key: null })
+    expect(out).toContain(`<div id="root">${ko}</div>`)
+    expect(out).not.toContain('data-page')
+  })
+
+  it('편집기 껍데기는 편집기 코드를 처음부터 함께 받게 한다(차례로 받지 않게)', () => {
+    const assets = ['index-AbC1.js', 'EditorPage-XyZ9.js', 'EditorPage-Q1w2.css', 'AdminPage-Z.js']
+    expect(shellHints({ kind: 'page', page: 'app', lang: 'en' }, assets)).toBe(
+      '<link rel="modulepreload" crossorigin href="/assets/EditorPage-XyZ9.js" />\n    <link rel="preload" as="style" crossorigin href="/assets/EditorPage-Q1w2.css" />',
+    )
+    expect(shellHints({ kind: 'page', page: 'help', lang: 'en' }, assets)).toBe('')
   })
 
   it('틀이 바뀌어 넣을 자리를 못 찾으면 멈춘다', () => {

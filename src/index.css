@@ -153,3 +153,12 @@ textarea {
 .notice__close:focus-visible {
   background: rgb(0 0 0 / 8%);
 }
+
+/* 편집기 코드를 받는 동안 미리 그려 둔 한 줄(src/seo/template.ts 의 shellHtml). 편집기 스타일은 아직 없으므로 여기에 둔다 */
+.ed-loading {
+  margin: 0;
+  padding: 40vh 24px 0;
+  color: var(--muted);
+  font: 500 15px/1.5 var(--font);
+  text-align: center;
+}

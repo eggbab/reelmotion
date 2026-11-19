@@ -26,9 +26,13 @@ const write = async (file, text) => {
 }
 
 const plan = entry.prerenderPlan()
+const assets = await readdir(join(dist, 'assets'))
 for (const item of plan) {
-  const html = item.key === null ? '' : entry.render(item.url)
-  await write(item.file, entry.fillTemplate(template, { lang: item.lang, head: entry.headTags(item.target, origin), html, key: item.key }))
+  // 미리 그리지 않는 쪽(편집기 껍데기)에는 「여는 중」 한 줄과 편집기 코드 미리 받기(src/seo/template.ts)
+  const html = item.key === null ? entry.shellHtml(item.target) : entry.render(item.url)
+  const hints = item.key === null ? entry.shellHints(item.target, assets) : ''
+  const head = hints ? `${entry.headTags(item.target, origin)}\n    ${hints}` : entry.headTags(item.target, origin)
+  await write(item.file, entry.fillTemplate(template, { lang: item.lang, head, html, key: item.key }))
 }
 await write('robots.txt', entry.robotsTxt(origin))
 await write('llms.txt', entry.llmsTxt(origin))

@@ -20,6 +20,6 @@ export function render(url: string): string {
 
 export { headTags } from './seo/head'
 export { llmsTxt, robotsTxt, sitemapXml } from './seo/files'
-export { fillTemplate, prerenderPlan } from './seo/template'
+export { fillTemplate, prerenderPlan, shellHints, shellHtml } from './seo/template'
 export { BUSINESS } from './site/business'
 export { KILL_SWITCH, SHELLS, precacheList, stampWorker } from './pwa/routes'
