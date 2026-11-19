@@ -12,6 +12,8 @@ type Props = {
   selected: Graphic | null
   /** 세로 영상이면 그래픽이 가운데에 놓여 「위치」를 고를 게 없다 */
   portrait: boolean
+  /** 되돌리기·다시 하기를 할 때마다 바뀌는 번호 — 칸들을 새로 그려 되돌린 값이 보이게 한다(목록·차트 칸은 치는 동안 칸이 글을 쥐고 있다) */
+  revision: number
   onSelect: (id: string) => void
   onAdd: (kind: Graphic['kind']) => void
   onChange: (graphic: Graphic) => void
@@ -34,7 +36,7 @@ const num = (value: string, fallback: number) => {
 }
 
 /** 그래픽 목록, 더하기, 고른 그래픽의 글·숫자·시간 고치기 */
-export function Inspector({ copy, graphics, selected, portrait, onSelect, onAdd, onChange, onRemove }: Props) {
+export function Inspector({ copy, graphics, selected, portrait, revision, onSelect, onAdd, onChange, onRemove }: Props) {
   const f = copy.graphics.fields
   const side = selected && !portrait ? sideOf(selected) : null
   return (
@@ -71,7 +73,7 @@ export function Inspector({ copy, graphics, selected, portrait, onSelect, onAdd,
       )}
 
       {selected && (
-        <div className="form" key={selected.id}>
+        <div className="form" key={`${selected.id}:${revision}`}>
           <div className="form__head">
             <h3>{copy.graphics.kinds[selected.kind]}</h3>
             <button type="button" className="icon-btn" onClick={() => onRemove(selected.id)}>

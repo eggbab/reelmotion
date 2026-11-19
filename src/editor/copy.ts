@@ -95,6 +95,9 @@ export type EditorCopy = {
   zoomIn: string
   zoomOut: string
   scrub: string
+  /** 되돌리기·다시 하기 단추(src/editor/history.ts) */
+  undo: string
+  redo: string
   sampleNote: string
   /** 말로 고치기(assist.ts · server/app/assist.ts) */
   chat: {
@@ -268,6 +271,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: 'Zoom in the timeline',
     zoomOut: 'Zoom out the timeline',
     scrub: 'Move through the video',
+    undo: 'Undo',
+    redo: 'Redo',
     sampleNote: 'Sample clips have no speech, so their script is typed.',
     chat: {
       intro: 'Say what you want to change.',
@@ -436,6 +441,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: '타임라인 크게 보기',
     zoomOut: '타임라인 작게 보기',
     scrub: '영상 위치 옮기기',
+    undo: '되돌리기',
+    redo: '다시 하기',
     sampleNote: '예시 영상에는 말소리가 없어서 대본을 적어 두었어요.',
     chat: {
       intro: '고치고 싶은 것을 말로 적으세요.',
@@ -604,6 +611,8 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     zoomIn: 'タイムラインを拡大',
     zoomOut: 'タイムラインを縮小',
     scrub: '動画の位置を動かす',
+    undo: '元に戻す',
+    redo: 'やり直す',
     sampleNote: 'サンプル動画には声がないため、台本を入力してあります。',
     chat: {
       intro: '直したいことを言葉で書いてください。',

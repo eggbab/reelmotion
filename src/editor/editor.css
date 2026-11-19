@@ -398,6 +398,18 @@
   cursor: pointer;
 }
 
+/* 되돌리기·다시 하기(미리보기 아래, 재생 단추와 같은 둥근 단추) */
+.ed-history {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+.ed-history .round-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .ed-time {
   flex: none;
   color: var(--muted);

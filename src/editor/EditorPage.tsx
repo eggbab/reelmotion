@@ -1,4 +1,4 @@
-import { Download, FolderOpen, Pause, Play, Upload, WifiOff, X } from 'lucide-react'
+import { Download, FolderOpen, Pause, Play, Redo2, Undo2, Upload, WifiOff, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ChangeEvent, DragEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -17,6 +17,8 @@ import { CLIPS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import { fetchDraft } from '../connect/api'
 import { reportError } from '../errors'
+import { changeKey, emptyHistory, record, redo, undo } from './history'
+import type { Snapshot } from './history'
 import { detectFaces } from '../faces/detect'
 import { needsPlacement, placeAwayFromFaces } from '../faces/track'
 import type { FaceSample } from '../faces/track'
@@ -365,6 +367,11 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   // 이 브라우저 안에서 얼굴 자리를 찾는다(faces — 영상마다 한 번, 못 찾으면 빈 목록).
   const [metaFor, setMetaFor] = useState<Source | null>(null)
   const [faces, setFaces] = useState<{ source: Source; track: FaceSample[] } | null>(null)
+  // 되돌리기·다시 하기(history.ts): 사람이 고친 것만 담는다. 단추를 켜고 끄려고 개수만 상태로 둔다.
+  // now 는 화면에 보이는 마지막 모습(고치기 직전의 모습을 남길 때 쓴다).
+  const history = useRef(emptyHistory())
+  const [steps, setSteps] = useState({ undo: 0, redo: 0, revision: 0 })
+  const now = useRef<Snapshot>({ graphics: initial.graphics, script: initial.script, recognized: initial.recognized, theme: initial.theme })
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -519,6 +526,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     pulse('video_added')
     setSource({ kind: 'file', file })
     setName((current) => current || defaultName(fileMeta(file), copy.untitled))
+    forget()
     setRecognized(null)
     // 커넥터 초안의 대본이 기다리고 있으면 그 대본으로 그래픽을 만든다(영상 길이를 안 뒤 — 위의 자동 만들기).
     setScript(draftScript ?? '')
@@ -543,6 +551,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     toTop()
     pulse('sample_opened')
     setSource({ kind: 'sample', clip })
+    forget()
     setRecognized(null)
     setScript(draftScript ?? SAMPLE_SCRIPTS[lang])
     setDraftScript(null)
@@ -568,6 +577,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
         return
       }
       pulse('transcribe_ok')
+      remember()
       setRecognized(result)
       setScript(joinWords(result))
       setSpeech({ stage: 'done', count: result.length })
@@ -586,6 +596,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     pulse('graphics_made')
     setAiPicks({ stage: 'idle' })
     setAiUndo(null)
+    remember()
     setGraphics(clampToDuration(direct(words), duration))
     setSelectedId(null)
     setTab('graphics')
@@ -610,6 +621,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     const added = picksToGraphics(result.picks, sentences, duration, () => `u${++serial.current}`)
     const current = latestGraphics.current
     const merged = resolveOverlaps([...current.map((graphic) => ({ ...graphic })), ...added])
+    remember()
     setGraphics(merged)
     setAiUndo({ before: current, after: merged })
     setAiPicks({ stage: 'done', added: added.length })
@@ -620,8 +632,46 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     latestGraphics.current = graphics
   }, [graphics])
 
+  useEffect(() => {
+    now.current = { graphics, script, recognized, theme: themeId }
+  }, [graphics, script, recognized, themeId])
+
+  /** 사람이 고치기 직전에 부른다. key: 같은 칸을 잇달아 고치면(글자 치기·끌기) 한 번으로 묶는 이름 */
+  const remember = (key: string | null = null) => {
+    history.current = record(history.current, now.current, key, Date.now())
+    setSteps((current) => ({ ...current, undo: history.current.past.length, redo: 0 }))
+  }
+  /** 새 영상을 열면 되돌리기를 비운다(다른 작업이다) */
+  const forget = () => {
+    history.current = emptyHistory()
+    setSteps((current) => ({ ...current, undo: 0, redo: 0 }))
+  }
+  const restore = (snapshot: Snapshot) => {
+    now.current = snapshot
+    setGraphics(snapshot.graphics)
+    setScript(snapshot.script)
+    setRecognized(snapshot.recognized)
+    setThemeId(snapshot.theme)
+    touch()
+  }
+  const undoEdit = () => {
+    const result = undo(history.current, now.current)
+    if (!result) return
+    history.current = result.history
+    setSteps((current) => ({ undo: result.history.past.length, redo: result.history.future.length, revision: current.revision + 1 }))
+    restore(result.snapshot)
+  }
+  const redoEdit = () => {
+    const result = redo(history.current, now.current)
+    if (!result) return
+    history.current = result.history
+    setSteps((current) => ({ undo: result.history.past.length, redo: result.history.future.length, revision: current.revision + 1 }))
+    restore(result.snapshot)
+  }
+
   const undoMoments = () => {
     if (!aiUndo || graphics !== aiUndo.after) return
+    remember()
     setGraphics(aiUndo.before)
     setAiUndo(null)
     setAiPicks({ stage: 'undone' })
@@ -629,17 +679,21 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
   }
 
   const updateGraphic = (next: Graphic) => {
+    const before = now.current.graphics.find((g) => g.id === next.id)
+    remember(before ? changeKey(before, next) : null)
     setGraphics((list) => list.map((g) => (g.id === next.id ? next : g)))
     touch()
   }
   const addGraphic = (kind: Graphic['kind']) => {
     const g = createGraphic(kind, time, duration || 10, `u${++serial.current}`)
+    remember()
     setGraphics((list) => [...list, g])
     setSelectedId(g.id)
     setTab('graphics')
     touch()
   }
   const removeGraphic = (id: string) => {
+    remember()
     setGraphics((list) => list.filter((g) => g.id !== id))
     setSelectedId(null)
     touch()
@@ -655,6 +709,12 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
         if (video) void (video.paused ? video.play() : video.pause())
       }
       if ((event.key === 'Delete' || event.key === 'Backspace') && selectedId) removeGraphic(selectedId)
+      const key = event.key.toLowerCase()
+      if ((event.metaKey || event.ctrlKey) && (key === 'z' || key === 'y')) {
+        event.preventDefault()
+        if (key === 'y' || event.shiftKey) redoEdit()
+        else undoEdit()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -836,6 +896,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
     const before = latestDoc.current
     const result = applyOps(before, ops, () => `u${++serial.current}`)
     const after: ChatDoc = { ...result, duration: before.duration }
+    remember()
     setGraphics(after.graphics)
     setThemeId(after.theme)
     setScript(after.script)
@@ -957,6 +1018,14 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
               <span className="ed-time">
                 {time.toFixed(1)}s / {duration.toFixed(1)}s
               </span>
+              <span className="ed-history">
+                <button type="button" className="round-btn" onClick={undoEdit} disabled={steps.undo === 0} aria-label={copy.undo} title={`${copy.undo} (Ctrl+Z · ⌘Z)`}>
+                  <Undo2 size={17} aria-hidden="true" />
+                </button>
+                <button type="button" className="round-btn" onClick={redoEdit} disabled={steps.redo === 0} aria-label={copy.redo} title={`${copy.redo} (Ctrl+Shift+Z · ⌘⇧Z)`}>
+                  <Redo2 size={17} aria-hidden="true" />
+                </button>
+              </span>
             </div>
           </section>
 
@@ -970,6 +1039,8 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                     type="button"
                     className={`swatch ${item.id === themeId ? 'is-on' : ''}`}
                     onClick={() => {
+                      if (item.id === themeId) return
+                      remember()
                       setThemeId(item.id)
                       touch()
                     }}
@@ -999,6 +1070,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                 canListen={source.kind === 'file'}
                 script={script}
                 onScript={(text) => {
+                  remember('script')
                   setScript(text)
                   touch()
                 }}
@@ -1027,6 +1099,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                 onEntries={setChat}
                 onApply={applyChat}
                 onRestore={(before) => {
+                  remember()
                   setGraphics(before.graphics)
                   setThemeId(before.theme)
                   setScript(before.script)
@@ -1045,7 +1118,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
                     onUndo={undoMoments}
                   />
                 )}
-                <Inspector copy={copy} graphics={shown} selected={selected} portrait={portrait} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
+                <Inspector copy={copy} graphics={shown} selected={selected} portrait={portrait} revision={steps.revision} onSelect={setSelectedId} onAdd={addGraphic} onChange={updateGraphic} onRemove={removeGraphic} />
               </>
             )}
           </aside>

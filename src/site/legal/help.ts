@@ -52,6 +52,7 @@ export const HELP: LegalDocs = {
         title: '고치기',
         blocks: [
           '타임라인에서 그래픽을 끌어 옮기거나 양 끝을 끌어 길이를 바꿔요(고른 그래픽은 화살표 키로도 움직여요). 「그래픽」 탭에서 글·숫자·시간을 고치고, 「더하기」로 그래픽을 더하거나 지울 수 있어요.',
+          '잘못 고치거나 지웠으면 미리보기 아래의 되돌리기(↶)를 누르거나 Ctrl+Z(맥은 ⌘Z)를 눌러요. 다시 하기는 ↷ 또는 Ctrl+Shift+Z(맥은 ⌘⇧Z). 글 칸 안에서 누르면 그 칸의 글자만 되돌려요.',
           '눈금 줄이나 미리보기 아래의 막대를 끌면 영상 위치가 따라와요. 긴 영상은 타임라인을 옆으로 밀어 보고, 왼쪽 위의 −·+ 로 크게·작게 볼 수 있어요. 휴대폰에서는 그래픽을 먼저 한 번 눌러 고른 뒤에 끌어요 — 타임라인을 밀다가 잘못 옮기지 않게요.',
         ],
       },
@@ -172,6 +173,7 @@ export const HELP: LegalDocs = {
         title: 'Edit',
         blocks: [
           'On the timeline, drag a graphic to move it or drag its ends to change its length (arrow keys move the selected one). On the Graphics tab, change the text, numbers and timing, use “Add” for more graphics, or delete one.',
+          'Made a mistake or deleted something? Press Undo (↶) under the preview, or Ctrl+Z (⌘Z on a Mac). Redo is ↷ or Ctrl+Shift+Z (⌘⇧Z). Inside a text box, it only undoes your typing there.',
           'Drag along the ruler, or the bar under the preview, to move through the video. For a long video, swipe the timeline sideways and use − and + at its top left to zoom. On a phone, tap a graphic once to select it, then drag it — so swiping the timeline never moves one by accident.',
         ],
       },
@@ -292,6 +294,7 @@ export const HELP: LegalDocs = {
         title: '直す',
         blocks: [
           'タイムラインでグラフィックをドラッグして動かしたり、両端をドラッグして長さを変えたりできます(選んだグラフィックは矢印キーでも動きます)。「グラフィック」タブで文字・数字・時間を直し、「追加」でグラフィックを増やしたり削除したりできます。',
+          '間違えて直したり消したりしたときは、プレビューの下の「元に戻す」(↶)か Ctrl+Z(Mac は ⌘Z)を押します。やり直しは ↷ か Ctrl+Shift+Z(⌘⇧Z)。文字の欄の中で押すと、その欄の文字だけが戻ります。',
           '目盛りの行や、プレビューの下のバーをドラッグすると、動画の位置が動きます。長い動画はタイムラインを横にスワイプして見られ、左上の − と + で拡大・縮小できます。スマートフォンでは、グラフィックを一度タップして選んでからドラッグします — タイムラインをスワイプしているときに誤って動かさないためです。',
         ],
       },
