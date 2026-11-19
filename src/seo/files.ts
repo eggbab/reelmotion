@@ -1,4 +1,5 @@
 import { LANGS } from '../langs'
+import { CONTACT_COPY } from '../site/contact/copy'
 import { SITE_COPY } from '../site/copy'
 import { LICENSES_UI } from '../site/legal/credits'
 import { LEGAL_DOCS } from '../site/legal/docs'
@@ -52,6 +53,7 @@ export function llmsTxt(origin: string | null): string {
     `- [Home](${link('/')}): what ReelMotion does, styles, pricing and FAQ`,
     `- [Editor](${link(pagePath('app', 'en'))}): add a talking video, transcribe it, place graphics and export an MP4 in the browser`,
     `- [${HELP.en.title}](${link(pagePath('help', 'en'))}): ${HELP.en.description}`,
+    `- [${CONTACT_COPY.en.title}](${link(pagePath('contact', 'en'))}): ${CONTACT_COPY.en.description}`,
     ...(['terms', 'privacy', 'refund'] as const).map((page) => `- [${LEGAL_DOCS[page].en.title}](${link(pagePath(page, 'en'))}): ${LEGAL_DOCS[page].en.description}`),
     `- [${LICENSES_UI.en.title}](${link(pagePath('licenses', 'en'))}): ${LICENSES_UI.en.description}`,
     `- The same pages in Korean start with ${link('/ko')} and in Japanese with ${link('/ja')}`,

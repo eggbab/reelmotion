@@ -85,7 +85,7 @@ export const TERMS: LegalDocs = {
       },
       { title: '준거법', blocks: ['이 약관은 대한민국 법을 따릅니다.'] },
       { title: '번역', blocks: ['이 약관의 원문은 한국어입니다. 영어·일본어 번역과 뜻이 다르면 한국어 원문을 따릅니다.'] },
-      { title: '문의', blocks: ['{contact}'] },
+      { title: '문의', blocks: ['{inquiry}에서 보내거나 {contact} 로 메일을 보내 주세요.'] },
     ],
   },
   en: {
@@ -165,7 +165,7 @@ export const TERMS: LegalDocs = {
       },
       { title: 'Governing law', blocks: ['These terms are governed by the laws of the Republic of Korea.'] },
       { title: 'Translations', blocks: ['The original of these terms is in Korean. If an English or Japanese translation differs from it, the Korean original applies.'] },
-      { title: 'Contact', blocks: ['{contact}'] },
+      { title: 'Contact', blocks: ['Use {inquiry} or email {contact}.'] },
     ],
   },
   ja: {
@@ -245,7 +245,7 @@ export const TERMS: LegalDocs = {
       },
       { title: '準拠法', blocks: ['この規約は大韓民国の法律に従います。'] },
       { title: '翻訳', blocks: ['この規約の原文は韓国語です。英語・日本語の翻訳と意味が異なる場合は、韓国語の原文に従います。'] },
-      { title: 'お問い合わせ', blocks: ['{contact}'] },
+      { title: 'お問い合わせ', blocks: ['{inquiry}から送るか、{contact} までメールをお送りください。'] },
     ],
   },
 }

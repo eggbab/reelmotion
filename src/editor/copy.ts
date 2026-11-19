@@ -10,6 +10,8 @@ export type EditorCopy = {
   exportDone: string
   download: string
   exportFailed: string
+  /** 내보내기가 멈춘 창에서 문의하기(고장 신고)로 */
+  exportReport: string
   exportUnsupported: string
   /** 요금제 한도(결제를 붙인 뒤 켠다) */
   exportBlocked: { login: string; too_long: string; limit: string; loginButton: string; planButton: string }
@@ -21,7 +23,7 @@ export type EditorCopy = {
   exportLongHint: string
   cancel: string
   close: string
-  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; install: string; sampleNames: Record<ClipId, string> }
+  start: { title: string; body: string; pick: string; drop: string; samples: string; privacy: string; help: string; contact: string; install: string; sampleNames: Record<ClipId, string> }
   /** Claude·ChatGPT 커넥터가 만든 주소(?draft=)로 들어왔을 때 */
   draft: { title: string; body: string; gone: string; failed: string }
   /** 인터넷이 끊겼을 때 머리줄의 표시와 그 설명 */
@@ -180,6 +182,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     exportDone: 'Your video is ready.',
     download: 'Download {ext}',
     exportFailed: 'The export stopped. Please try again.',
+    exportReport: 'Still not working? Tell us',
     exportUnsupported: 'This browser cannot make video files. Please use a recent Chrome, Edge or Safari on a computer.',
     exportBlocked: {
       login: 'Log in to export your video.',
@@ -203,6 +206,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       sampleNames: { explainer: 'Explainer', studio: 'Studio talk', 'shorts-a': 'Vertical short', 'shorts-b': 'Vertical vlog', 'podcast-a': 'Podcast 1', 'podcast-b': 'Podcast 2', 'podcast-c': 'Interview', teacher: 'Classroom' },
       privacy: 'Your video stays in this browser.',
       help: 'How it works',
+      contact: 'Contact us',
       install: 'Install as an app',
     },
     draft: {
@@ -356,6 +360,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     exportDone: '영상이 준비됐어요.',
     download: '{ext} 내려받기',
     exportFailed: '내보내기가 멈췄어요. 다시 눌러 주세요.',
+    exportReport: '계속 안 되면 알려 주세요',
     exportUnsupported: '이 브라우저에서는 영상 파일을 만들 수 없어요. 컴퓨터의 최신 크롬·엣지·사파리에서 열어 주세요.',
     exportBlocked: {
       login: '로그인하면 내보낼 수 있어요.',
@@ -379,6 +384,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       sampleNames: { explainer: '설명 영상', studio: '스튜디오 토크', 'shorts-a': '세로 쇼츠', 'shorts-b': '세로 브이로그', 'podcast-a': '팟캐스트 1', 'podcast-b': '팟캐스트 2', 'podcast-c': '인터뷰', teacher: '강의' },
       privacy: '영상은 이 브라우저 밖으로 나가지 않아요.',
       help: '쓰는 법 보기',
+      contact: '문의하기',
       install: '앱으로 설치',
     },
     draft: {
@@ -532,6 +538,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
     exportDone: '動画の準備ができました。',
     download: '{ext} をダウンロード',
     exportFailed: '書き出しが止まりました。もう一度お試しください。',
+    exportReport: 'うまくいかないときはお知らせください',
     exportUnsupported: 'このブラウザでは動画ファイルを作れません。パソコンの最新の Chrome・Edge・Safari で開いてください。',
     exportBlocked: {
       login: 'ログインすると書き出せます。',
@@ -555,6 +562,7 @@ export const EDITOR_COPY: Record<Lang, EditorCopy> = {
       sampleNames: { explainer: '解説動画', studio: 'スタジオトーク', 'shorts-a': '縦型ショート', 'shorts-b': '縦型 Vlog', 'podcast-a': 'ポッドキャスト 1', 'podcast-b': 'ポッドキャスト 2', 'podcast-c': 'インタビュー', teacher: '授業' },
       privacy: '動画はこのブラウザの外に出ません。',
       help: '使い方を見る',
+      contact: 'お問い合わせ',
       install: 'アプリとしてインストール',
     },
     draft: {

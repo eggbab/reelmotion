@@ -5,11 +5,14 @@ const { chromium } = require('playwright')
 const { BASE } = require('../env.cjs')
 const AXE = require.resolve('axe-core/axe.min.js')
 
-/** [주소, 무엇을 한 뒤(편집기)] */
+/** [주소, 무엇을 한 뒤(편집기 · 문의하기의 빈칸 오류)] */
 const PAGES = [
   ['/'], ['/ko'], ['/ja'], ['/help'], ['/ko/help'], ['/ja/help'], ['/terms'], ['/ko/privacy'], ['/ja/refund'], ['/licenses'],
+  ['/contact'], ['/ko/contact', 'empty'], ['/ja/contact'],
   ['/ko/account'], ['/nope'], ['/app'], ['/ko/app', 'sample'], ['/ja/app', 'transcript'], ['/app', 'chat'], ['/ko/app', 'projects'],
 ]
+/** 휴대폰에서도 보는 쪽(머리줄이 좁아지는 쪽 포함) */
+const PHONE_PAGES = ['/', '/ko', '/app', '/ko/app', '/ja/contact']
 
 ;(async () => {
   const browser = await chromium.launch()
@@ -21,7 +24,11 @@ const PAGES = [
     const page = await context.newPage()
     page.on('pageerror', (e) => errors.push(`${path} pageerror ${String(e).slice(0, 160)}`))
     await page.goto(BASE + path, { waitUntil: 'networkidle' })
-    if (step) {
+    if (step === 'empty') {
+      // 빈 채로 보내 오류 안내와 「틀린 칸」 표시가 나온 상태
+      await page.locator('.contact-form button[type=submit]').click()
+      await page.waitForSelector('.contact-form [role=alert]')
+    } else if (step) {
       await page.locator('.samples button').nth(0).click()
       await page.waitForSelector('.block')
       if (step === 'sample') await page.locator('.block').first().click()
@@ -30,7 +37,7 @@ const PAGES = [
       if (step === 'projects') await page.locator('.ed-projects').click()
     }
     // 소개 페이지의 한 문장은 스크롤하는 만큼 낱말이 밝아진다(일부러 둔 움직임) — 끝까지 내려 다 밝아진 뒤에 본다
-    if (!step) {
+    if (!step || step === 'empty') {
       await page.evaluate(async () => {
         for (let y = 0; y <= document.body.scrollHeight; y += 400) {
           window.scrollTo(0, y)
@@ -54,7 +61,7 @@ const PAGES = [
     ['phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }],
   ]) {
     const context = await browser.newContext({ ...options, locale: 'en-US', bypassCSP: true })
-    for (const [path, step] of label === 'computer' ? PAGES : PAGES.filter(([path]) => ['/', '/ko', '/app'].includes(path) || path === '/ko/app')) {
+    for (const [path, step] of label === 'computer' ? PAGES : PAGES.filter(([path]) => PHONE_PAGES.includes(path))) {
       const found = await audit(context, path, step)
       ok(`${label}: ${path}${step ? ` (${step})` : ''} has no accessibility problems`, found.length === 0, found.join(' | '))
     }

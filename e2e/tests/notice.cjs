@@ -38,7 +38,7 @@ const EN = 'Maintenance on Nov 20, 2–3 AM (KST).'
   }
   // 빈 채로 켜면 막힘(앞선 시험의 글이 남아 있을 수 있어 비운다)
   for (let i = 0; i < 3; i++) await admin.locator('.admin-field textarea').nth(i).fill('')
-  await admin.locator('.admin-check input').check()
+  await admin.locator('.admin-notice .admin-check input').check()
   ok('1 empty notice refused', (await save()) === '공지를 보이려면 한 언어 이상 글을 적어 주세요.')
   await admin.locator('.admin-levels input[value=warning]').check()
   await admin.locator('.admin-field textarea').nth(0).fill(KO)
@@ -90,7 +90,7 @@ const EN = 'Maintenance on Nov 20, 2–3 AM (KST).'
   await phone.screenshot({ path: `${OUT}/phone-notice.png` })
 
   // 끄기 → 베타 안내로
-  await admin.locator('.admin-check input').uncheck()
+  await admin.locator('.admin-notice .admin-check input').uncheck()
   ok('6 turned off', (await save()) === '저장했어요.')
   const fresh = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'ko-KR' })).newPage()
   watch(fresh, 'fresh')

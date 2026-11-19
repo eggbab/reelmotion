@@ -3,15 +3,15 @@ import type { Lang } from '../langs'
 
 /**
  * 사이트의 쪽. 언어는 주소에 들어 있다: 영어는 앞말 없이(`/`, `/terms`), 한국어·일본어는 `/ko`·`/ja` 를 앞에 붙인다.
- * home·help·terms·privacy·refund·licenses 는 빌드할 때 HTML 을 미리 그려 둔다(검색·AI 가 읽는다).
+ * home·help·contact·terms·privacy·refund·licenses 는 빌드할 때 HTML 을 미리 그려 둔다(검색·AI 가 읽는다).
  * app(편집기)·account(내 계정)·admin(관리자 화면)은 사람마다 다르므로 빈 껍데기만 두고 브라우저가 그린다.
  */
-export type PageId = 'home' | 'help' | 'terms' | 'privacy' | 'refund' | 'licenses' | 'app' | 'account' | 'admin'
+export type PageId = 'home' | 'help' | 'contact' | 'terms' | 'privacy' | 'refund' | 'licenses' | 'app' | 'account' | 'admin'
 
-const PAGE_IDS: readonly PageId[] = ['home', 'help', 'terms', 'privacy', 'refund', 'licenses', 'app', 'account', 'admin']
+const PAGE_IDS: readonly PageId[] = ['home', 'help', 'contact', 'terms', 'privacy', 'refund', 'licenses', 'app', 'account', 'admin']
 
 /** 미리 그려 두는(내용이 HTML 에 들어 있는) 쪽 */
-export const PRERENDERED_PAGES: readonly PageId[] = ['home', 'help', 'terms', 'privacy', 'refund', 'licenses']
+export const PRERENDERED_PAGES: readonly PageId[] = ['home', 'help', 'contact', 'terms', 'privacy', 'refund', 'licenses']
 
 export type PageMatch = { page: PageId; lang: Lang }
 

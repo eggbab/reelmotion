@@ -8,6 +8,7 @@ import { autoBackup } from './backup'
 import { readConfig } from './config'
 import { openDraftStore } from './connect'
 import { openDb } from './db'
+import { pruneContacts } from './inbox'
 import { createGoogleClient } from './google'
 import { sweep } from './sessions'
 import { createChecks, createSmtpMailer, createWatchdog, smtpTransport } from './watch'
@@ -47,8 +48,13 @@ if (process.argv[2] === 'admin') {
   db.close()
   process.exit(0)
 }
-sweep(db, Date.now())
-setInterval(() => sweep(db, Date.now()), 60 * 60 * 1000).unref()
+// 지난 로그인 기록과 3년 지난 문의를 지운다(한 시간마다)
+const tidy = () => {
+  sweep(db, Date.now())
+  pruneContacts(db, Date.now())
+}
+tidy()
+setInterval(tidy, 60 * 60 * 1000).unref()
 
 // 자동 백업: 한 시간마다 확인해 서울 날짜로 하루 하나를 만들고 오래된 것은 지운다(backup.ts). 기록에는 파일 이름만 남긴다.
 const backup = () => {
@@ -83,6 +89,8 @@ const app = createApp({
   config,
   assist,
   watch,
+  // 문의 알림(번호·종류만)도 장애 알림과 같은 곳으로
+  mailer,
   admin: {
     emails: config.adminEmails,
     backupDir: config.backupDays > 0 ? join(config.dataDir, 'backups') : null,

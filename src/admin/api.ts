@@ -14,6 +14,7 @@ export type AdminOverview = {
   recent: AdminUser[]
   backups: { name: string; bytes: number }[]
   alerts: { email: string | null; mail: boolean }
+  messages: { open: number }
   settings: { enforced: boolean; billing: boolean; googleLogin: boolean; connector: boolean }
 }
 
@@ -93,6 +94,25 @@ export async function fetchErrors(): Promise<AdminError[] | null> {
 
 export async function clearErrors(): Promise<boolean> {
   const response = await fetch('/api/admin/errors', { method: 'DELETE' }).catch(() => null)
+  release(response)
+  return response?.ok === true
+}
+
+/** 문의하기로 온 것(server/app/inbox.ts) — 최근 100개 */
+export type AdminMessage = { id: number; createdAt: number; kind: 'question' | 'bug' | 'idea' | 'billing'; body: string; email: string | null; lang: string; page: string; doneAt: number | null }
+
+export async function fetchMessages(): Promise<{ messages: AdminMessage[]; open: number } | null> {
+  return okJson<{ messages: AdminMessage[]; open: number }>(fetch('/api/admin/messages', { cache: 'no-store' }))
+}
+
+export async function markMessage(id: number, done: boolean): Promise<boolean> {
+  const response = await fetch(`/api/admin/messages/${id}/done`, { method: 'POST', headers: json, body: JSON.stringify({ done }) }).catch(() => null)
+  release(response)
+  return response?.ok === true
+}
+
+export async function removeMessage(id: number): Promise<boolean> {
+  const response = await fetch(`/api/admin/messages/${id}`, { method: 'DELETE' }).catch(() => null)
   release(response)
   return response?.ok === true
 }

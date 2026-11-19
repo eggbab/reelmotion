@@ -20,6 +20,7 @@ import type { BillingProvider } from './billing'
 import { createConnector, openDraftStore } from './connect'
 import { HIGHLIGHT_SCHEMA } from '../../src/editor/highlights'
 import { highlightMessages, parseHighlightRequest, parseHighlights } from './highlights'
+import { CONTACT_MAILS_PER_DAY, CONTACT_PER_DAY, CONTACT_PER_VISITOR, CONTACT_WINDOW, MAX_CONTACT_BYTES, contactAlert, createInbox, parseContact } from './inbox'
 import { ERRORS_PER_MINUTE, MAX_ERROR_BODY, PULSE_PER_MINUTE, agentOf, cleanError, createPulse } from './pulse'
 import { isClientEvent } from '../../src/pulseEvents'
 import type { DraftStore } from './connect'
@@ -27,7 +28,7 @@ import type { Db, UserRow } from './db'
 import { LoginError, pkcePair } from './google'
 import type { GoogleClaims, GoogleClient } from './google'
 import { SESSION_COOKIE, SESSION_DAYS, createSession, deleteSession, newToken, sessionUser } from './sessions'
-import type { WatchStatus } from './watch'
+import type { Mailer, WatchStatus } from './watch'
 
 /**
  * ReelMotion 앱 서버(/api): 로그인·계정·작업 저장. 받아쓰기(/api/asr)는 따로(server/asr).
@@ -44,6 +45,8 @@ export type AppConfig = {
   enforcePlans?: boolean
   /** Claude·ChatGPT 커넥터(/mcp)를 켠다(기본). 남용될 때 끄는 스위치 — 이미 만든 링크는 기한까지 열린다. */
   connector?: boolean
+  /** 문의하기: 한 곳(IP)에서 10분에 받는 수(기본 5 — inbox.ts) */
+  contactLimit?: number
 }
 
 type Env = { Variables: { user: UserRow | null; token: string | null } }
@@ -61,6 +64,8 @@ export type AppDeps = {
   admin?: AdminDeps | null
   /** 커넥터 초안을 두는 곳(connect.ts). 주지 않으면 메모리에만(시험). */
   drafts?: DraftStore
+  /** 문의 알림 메일(장애 알림과 같은 받는 곳 — main.ts). 없으면 관리자 화면에만 */
+  mailer?: Mailer | null
 }
 
 /** 관리자: ADMIN_EMAILS 의 메일로 로그인한 사람(구글은 확인된 메일만 받는다 — google.ts). */
@@ -112,7 +117,7 @@ function upsertUser(db: Db, claims: GoogleClaims | { email: string; name: string
   return db.prepare('select * from users where id = ?').get(id) as UserRow
 }
 
-export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null, admin = null, drafts = openDraftStore(':memory:') }: AppDeps) {
+export function createApp({ db, google, config, now = Date.now, assist = null, billing = null, watch = null, admin = null, drafts = openDraftStore(':memory:'), mailer = null }: AppDeps) {
   const app = new Hono<Env>().basePath('/api')
   const assistLimiter = createRateLimiter(ASSIST_LIMIT, ASSIST_WINDOW, now)
   let assistWaiting = 0
@@ -334,6 +339,29 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
     return c.body(null, 204)
   })
 
+  // ── 문의하기(inbox.ts) — 누구나 보내고, 관리자 화면에서 읽는다. 알림 메일에는 번호·종류만. ──
+  const inbox = createInbox({ db, now })
+  const contactLimiter = createRateLimiter(config.contactLimit ?? CONTACT_PER_VISITOR, CONTACT_WINDOW, now)
+
+  app.post('/contact', bodyLimit({ maxSize: MAX_CONTACT_BYTES, onError: (c) => c.json({ error: 'too_large' }, 413) }), async (c) => {
+    const message = parseContact(await c.req.json().catch(() => null))
+    if (message === null) return c.json({ error: 'bad_request' }, 400)
+    // IP 는 메모리에서 10분 안에 사라진다(문의와 함께 저장하지 않는다)
+    if (!contactLimiter.hit(visitorOf(c))) return c.json({ error: 'rate_limited' }, 429)
+    // 숨긴 칸을 채운 자동 프로그램에는 받은 척만 한다(다른 방법을 찾지 않게)
+    if (message === 'bot') return c.json({ ok: true })
+    inbox.prune()
+    if (inbox.today() >= CONTACT_PER_DAY) return c.json({ error: 'inbox_full' }, 503)
+    const id = inbox.add(message)
+    const today = inbox.today()
+    if (mailer && today <= CONTACT_MAILS_PER_DAY) {
+      const alert = contactAlert({ id, kind: message.kind, hasEmail: message.email !== null, adminUrl: `${config.siteOrigin ?? ''}${pagePath('admin', 'ko')}#messages`, last: today === CONTACT_MAILS_PER_DAY })
+      // 메일을 기다리지 않는다 — 못 보내도 문의는 관리자 화면에 있다
+      void mailer.send(alert.subject, alert.text).catch((error: unknown) => console.error('contact alert failed:', error instanceof Error ? error.message : error))
+    }
+    return c.json({ ok: true })
+  })
+
   // ── 말로 고치기 ──
   app.get('/assist/health', async (c) => c.json({ ready: assist ? await assist.ready() : false }))
 
@@ -443,9 +471,24 @@ export function createApp({ db, google, config, now = Date.now, assist = null, b
       ...overview(db, now()),
       backups: listBackups(admin?.backupDir ?? null),
       alerts: { email: admin?.alerts.email ?? null, mail: admin?.alerts.mail ?? false },
+      messages: { open: inbox.open() },
       settings: { enforced: config.enforcePlans === true, billing: billing !== null, googleLogin: google !== null, connector: config.connector ?? true },
     }),
   )
+
+  // 문의: 최근 100개, 답함 표시·되돌리기, 지우기(잘못 온 것·지워 달라는 요청)
+  app.get('/admin/messages', (c) => c.json({ messages: inbox.list(), open: inbox.open() }))
+  app.post('/admin/messages/:id/done', async (c) => {
+    const id = Number(c.req.param('id'))
+    const body = (await c.req.json().catch(() => null)) as { done?: unknown } | null
+    if (!Number.isInteger(id) || typeof body?.done !== 'boolean') return c.json({ error: 'bad_request' }, 400)
+    return inbox.setDone(id, body.done) ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
+  })
+  app.delete('/admin/messages/:id', (c) => {
+    const id = Number(c.req.param('id'))
+    if (!Number.isInteger(id)) return c.json({ error: 'bad_request' }, 400)
+    return inbox.remove(id) ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
+  })
 
   app.get('/admin/users', (c) => c.json({ users: searchUsers(db, c.req.query('q') ?? '', now()) }))
 

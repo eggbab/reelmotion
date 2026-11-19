@@ -99,6 +99,24 @@ export type AdminCopy = {
   }
   /** 브라우저 오류(최근 30일) */
   errors: { title: string; note: string; empty: string; count: string; last: string; version: string; stack: string; clear: string; cleared: string }
+  /** 문의하기로 온 것 */
+  messages: {
+    title: string
+    note: string
+    open: string
+    empty: string
+    allDone: string
+    showDone: string
+    kinds: Record<'question' | 'bug' | 'idea' | 'billing', string>
+    noEmail: string
+    reply: string
+    done: string
+    reopen: string
+    doneAt: string
+    remove: string
+    confirmRemove: string
+    removed: string
+  }
 }
 
 export const ADMIN_COPY: Record<Lang, AdminCopy> = {
@@ -229,6 +247,23 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
       clear: '모두 지우기',
       cleared: '지웠어요.',
     },
+    messages: {
+      title: '문의',
+      note: '문의하기 쪽으로 온 것이에요. 「메일로 답하기」를 누르면 메일 프로그램에 답장이 열려요. 답했으면 「답함으로 표시」를 눌러 정리하세요. 3년이 지나면 저절로 지워져요.',
+      open: '답 안 한 것 {n}개',
+      empty: '아직 문의가 없어요.',
+      allDone: '모두 답했어요.',
+      showDone: '답한 것도 보기',
+      kinds: { question: '질문', bug: '고장 신고', idea: '제안', billing: '요금제·결제' },
+      noEmail: '답장 받을 메일 없음',
+      reply: '메일로 답하기',
+      done: '답함으로 표시',
+      reopen: '답 안 함으로 되돌리기',
+      doneAt: '{time}에 답함',
+      remove: '지우기',
+      confirmRemove: '이 문의를 지울까요? 되돌릴 수 없어요.',
+      removed: '지웠어요.',
+    },
   },
   en: {
     title: 'Admin',
@@ -357,6 +392,23 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
       clear: 'Clear all',
       cleared: 'Cleared.',
     },
+    messages: {
+      title: 'Messages',
+      note: 'Sent from the Contact page. “Reply by email” opens a reply in your mail program. When you have answered, mark the message as answered. Messages are deleted automatically after 3 years.',
+      open: '{n} unanswered',
+      empty: 'No messages yet.',
+      allDone: 'All answered.',
+      showDone: 'Show answered',
+      kinds: { question: 'Question', bug: 'Bug report', idea: 'Idea', billing: 'Plans & billing' },
+      noEmail: 'No reply address',
+      reply: 'Reply by email',
+      done: 'Mark answered',
+      reopen: 'Mark unanswered',
+      doneAt: 'answered {time}',
+      remove: 'Delete',
+      confirmRemove: 'Delete this message? This can’t be undone.',
+      removed: 'Deleted.',
+    },
   },
   ja: {
     title: '管理画面',
@@ -484,6 +536,23 @@ export const ADMIN_COPY: Record<Lang, AdminCopy> = {
       stack: '発生箇所を見る',
       clear: 'すべて消す',
       cleared: '消しました。',
+    },
+    messages: {
+      title: 'お問い合わせ',
+      note: 'お問い合わせページから届いたものです。「メールで返信」を押すと、メールソフトで返信が開きます。返信したら「返信済みにする」を押して整理してください。3年たつと自動で削除されます。',
+      open: '未返信 {n}件',
+      empty: 'まだお問い合わせはありません。',
+      allDone: 'すべて返信しました。',
+      showDone: '返信済みも表示',
+      kinds: { question: '質問', bug: '不具合の報告', idea: '提案', billing: 'プラン・お支払い' },
+      noEmail: '返信先なし',
+      reply: 'メールで返信',
+      done: '返信済みにする',
+      reopen: '未返信に戻す',
+      doneAt: '{time} 返信',
+      remove: '削除',
+      confirmRemove: 'このお問い合わせを削除しますか?元に戻せません。',
+      removed: '削除しました。',
     },
   },
 }

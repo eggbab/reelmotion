@@ -9,3 +9,5 @@ services:
       COOKIE_SECURE: "0"
       # 장애 확인을 20초마다(관리자 화면의 상태가 빨리 채워지게)
       WATCH_SECONDS: "20"
+      # 시험은 모두 한 곳(IP)에서 보내므로 문의하기 한도(10분에 5개)를 늘린다. 한도에 걸린 화면은 시험이 응답을 바꿔 본다(e2e/tests/contact.cjs)
+      CONTACT_LIMIT: "200"

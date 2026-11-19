@@ -7,6 +7,7 @@ import { useLang } from '../lang'
 import { LANGS } from '../langs'
 import type { Lang } from '../langs'
 import { BUSINESS } from './business'
+import { ContactLink } from './contact/ContactLink'
 import type { SiteCopy } from './copy'
 import { EditorLink } from './EditorLink'
 import { LICENSES_UI } from './legal/credits'
@@ -159,6 +160,9 @@ export function Footer({ copy }: { copy: SiteCopy }) {
               </li>
               <li>
                 <Link to={pagePath('help', lang)}>{f.links.help}</Link>
+              </li>
+              <li>
+                <ContactLink>{f.links.contact}</ContactLink>
               </li>
               <li>
                 <a href={`${home}#styles`}>{f.links.styles}</a>

@@ -17,6 +17,7 @@ import type { AdminOverview, AdminUser } from './api'
 import { ADMIN_COPY } from './copy'
 import type { AdminCopy } from './copy'
 import { ErrorsCard } from './ErrorsCard'
+import { MessagesCard } from './MessagesCard'
 import { NoticeCard } from './NoticeCard'
 import { PulseCard } from './PulseCard'
 
@@ -283,6 +284,7 @@ function AdminBoard({ copy, lang }: Props) {
   return (
     <>
       <StatusCard copy={copy} lang={lang} status={data.status} />
+      <MessagesCard copy={copy} lang={lang} />
       <NumbersCard copy={copy} lang={lang} data={data} />
       <PulseCard copy={copy} />
       <ErrorsCard copy={copy} lang={lang} />

@@ -1,5 +1,6 @@
 import { BUSINESS } from '../../src/site/business'
 import type { AppConfig } from './app'
+import { CONTACT_PER_VISITOR } from './inbox'
 import type { GoogleConfig } from './google'
 
 /**
@@ -21,6 +22,7 @@ import type { GoogleConfig } from './google'
  * | WATCH_SECONDS | 300 | 장애 확인 간격(초, 10 이상). 세 번 잇달아 문제면 알린다 |
  * | ADMIN_EMAILS | 문의 메일(business.ts) | 관리자 화면(/admin)을 쓸 수 있는 로그인 메일, 쉼표로 여럿 |
  * | CONNECTOR | 1 | 0 이면 Claude·ChatGPT 커넥터(/mcp)를 끈다 — 남용될 때 쓰는 스위치. 이미 만든 링크는 기한(7일)까지 열린다 |
+ * | CONTACT_LIMIT | 5 | 문의하기: 한 곳(IP)에서 10분에 받는 수(1~1000). 화면 시험만 늘린다(e2e/compose.test.yml) |
  */
 export type SmtpConfig = { host: string; port: number; user: string | null; pass: string | null; from: string }
 export type ServerConfig = AppConfig & {
@@ -61,6 +63,8 @@ export function readConfig(env: Record<string, string | undefined>): ServerConfi
   }
   const diskMinGb = Number(env.DISK_MIN_GB || 2)
   const watchSeconds = Number(env.WATCH_SECONDS || 300)
+  const contactLimit = Number(env.CONTACT_LIMIT || CONTACT_PER_VISITOR)
+  if (!Number.isInteger(contactLimit) || contactLimit < 1 || contactLimit > 1000) throw new Error(`CONTACT_LIMIT 는 1~1000 사이의 정수여야 합니다: ${env.CONTACT_LIMIT}`)
   return {
     host: env.APP_HOST || '0.0.0.0',
     port: Number(env.APP_PORT || 8787),
@@ -72,6 +76,7 @@ export function readConfig(env: Record<string, string | undefined>): ServerConfi
     assistUrl: env.ASSIST_URL?.trim() || null,
     enforcePlans: flag(env.ENFORCE_PLANS, false),
     connector: flag(env.CONNECTOR, true),
+    contactLimit,
     backupDays,
     alertEmail: text(env.ALERT_EMAIL) ?? BUSINESS.contactEmail,
     smtp,

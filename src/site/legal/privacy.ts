@@ -27,6 +27,9 @@ import type { LegalDocs } from './types'
  * - 쓰임 횟수·오류(server/app/pulse.ts, 화면은 src/pulse.ts·src/errors.ts): 편집기에서 한 일의 이름과 브라우저 종류(크롬-윈도우 같은 이름)를
  *   날짜마다 횟수로만 센다(400일). 편집기에서 오류가 나면 오류 글·자취·쪽 주소(물음표 뒤 제외)·브라우저 종류·판 번호(30일, 200가지까지).
  *   계정·IP·브라우저 원문은 저장하지 않는다(칸이 없다). 남용 막기로 IP 를 메모리에 1분까지. 같은 저장소라 하루 백업에 들어간다.
+ * - 문의(server/app/inbox.ts, 2026-11-19): 종류·내용·답장 받을 메일(적었을 때만)·화면 언어·보낸 쪽 주소(물음표 뒤 제외). 계정·IP 는 함께 저장하지 않는다.
+ *   3년 두고 지운다. 남용 막기로 IP 를 메모리에 10분까지. 같은 저장소라 하루 백업에 들어간다. 운영자에게 가는 알림 메일에는 번호·종류만.
+ *   답은 회사 메일(vmelabs@outlook.com — Microsoft Outlook)에서 보낸다 → 위탁·국외 이전(Microsoft). 메일함의 답장도 3년 뒤 지운다(docs/operations.md).
  * - 바깥 회사: 브라우저 안 받아쓰기의 모델 파일만 Hugging Face 에서 직접 받는다. 실행 파일(onnxruntime)은 우리 서버에서 준다.
  */
 export const PRIVACY: LegalDocs = {
@@ -48,9 +51,10 @@ export const PRIVACY: LegalDocs = {
               ['커넥터로 보낸 대본', 'Claude·ChatGPT 에 ReelMotion 커넥터를 더해 쓰면, 그 서비스가 보내는 대본·스타일·말한 언어를 받습니다. 누가 보냈는지(계정·이름)는 받지 않습니다.'],
               ['내보내기 횟수', '내보내기 전에 요금제 한도를 확인하려고 영상 길이(초)를 받습니다. 로그인했으면 달마다 다 만든 내보내기 수를 계정에 셉니다. 영상과 그 내용은 받지 않습니다.'],
               ['쓰임 횟수와 오류', '서비스가 얼마나 쓰이는지와 고장을 알려고, 편집기에서 한 일의 이름(편집기 열기, 영상 넣기, 내보내기 시작·끝·실패 등)과 브라우저 종류(예: 크롬·윈도우)를 받아 날짜마다 횟수만 셉니다. 편집기에서 오류가 나면 오류 글(프로그램이 만든 글로, 드물게 파일 이름 같은 값이 섞일 수 있습니다), 오류가 난 코드의 위치, 쪽 주소(물음표 뒤는 빼고), 브라우저 종류, 판 번호를 받습니다. 누가 했는지(계정·IP 주소)는 함께 저장하지 않습니다.'],
+              ['문의', '문의하기 쪽에서 보내면 문의 종류와 내용, 적었으면 답장 받을 메일 주소, 화면 언어, 어느 쪽에서 왔는지(쪽 주소, 물음표 뒤는 빼고)를 받습니다. 누가 보냈는지(계정·IP 주소)는 함께 저장하지 않습니다.'],
             ],
           },
-          '영상 파일과 내보낸 결과물은 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다. 로그인하지 않으면 이름·메일 같은 정보도 받지 않습니다.',
+          '영상 파일과 내보낸 결과물은 받지 않습니다. 영상은 이용자의 기기 안에서만 처리합니다. 로그인하지 않으면, 문의하기에 답장 받을 메일을 적을 때 말고는 이름·메일 같은 정보도 받지 않습니다.',
           '그래픽이 말하는 사람의 얼굴을 가리지 않도록, 편집기는 이용자의 기기 안에서 영상 장면의 얼굴이 화면 어디에 있는지만 찾습니다. 누구인지 알아보지 않으며, 찾은 자리는 회사로 보내거나 저장하지 않고 편집기를 닫으면 사라집니다. 작업에는 그래픽이 놓인 쪽(왼쪽·오른쪽)만 남습니다.',
         ],
       },
@@ -67,6 +71,7 @@ export const PRIVACY: LegalDocs = {
               '커넥터로 보낸 대본: 그래픽 계획을 만들어 돌려주고, 「편집기로 열기」를 하면 편집기에서 열 링크를 만드는 데만 씁니다. 학습에 쓰지 않습니다.',
               '내보내기 횟수: 요금제의 영상 길이·한 달 횟수 한도를 지키고 「내 계정」에 보여 주는 데만 씁니다.',
               '쓰임 횟수와 오류: 서비스가 얼마나 쓰이는지, 어느 브라우저에서 무엇이 안 되는지 알아 고치는 데만 씁니다.',
+              '문의: 문의를 읽고 답하고, 알려 준 고장을 고치는 데만 씁니다.',
             ],
           },
         ],
@@ -81,9 +86,10 @@ export const PRIVACY: LegalDocs = {
               '계정 정보, 계정에 저장한 작업, 내보내기 횟수: 탈퇴할 때까지 보관하고, 탈퇴하면 바로 지웁니다. 작업 하나는 「내 작업」에서 지우면 바로 지웁니다. 한도를 확인할 때 받은 영상 길이는 저장하지 않습니다.',
               '로그인 기록: 로그인 유지 기간(30일, 쓸 때마다 다시 30일)이 끝나거나 로그아웃하면 지웁니다.',
               '커넥터로 보낸 대본: 계획만 볼 때는 돌려주면 바로 지웁니다. 「편집기로 열기」로 링크를 만들면 그 대본과 스타일을 최대 7일 보관한 뒤 지우며, 백업에는 넣지 않습니다. 그동안 링크를 아는 사람은 그 대본을 열 수 있습니다. 남용을 막으려고 링크를 만든 횟수를 셀 때, 요청을 보낸 서버(보통 Claude·ChatGPT 의 서버)의 IP 주소를 서버 메모리에 1분까지 둡니다.',
-              '백업: 장애에 대비해 계정 정보, 계정에 저장한 작업, 내보내기 횟수, 쓰임 횟수와 오류를 하루 한 번 백업하고, 30일이 지난 백업은 지웁니다. 그래서 탈퇴하거나 지운 정보도 백업에는 최대 30일 남을 수 있습니다.',
+              '백업: 장애에 대비해 계정 정보, 계정에 저장한 작업, 내보내기 횟수, 쓰임 횟수와 오류, 문의를 하루 한 번 백업하고, 30일이 지난 백업은 지웁니다. 그래서 탈퇴하거나 지운 정보도 백업에는 최대 30일 남을 수 있습니다.',
               '말로 고치기·AI 그래픽 찾기에 보낸 글: 답을 돌려주면 바로 지웁니다. 로그인하지 않았으면 남용을 막으려고 요청 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
               '쓰임 횟수와 오류: 날짜별 횟수는 400일, 오류는 30일이 지나면 지웁니다. 남용을 막으려고 요청 횟수를 셀 때 보낸 곳의 IP 주소를 서버 메모리에 1분까지 둡니다.',
+              '문의: 받은 날부터 3년 보관한 뒤 지웁니다(전자상거래 등에서의 소비자보호에 관한 법률의 소비자 불만·분쟁 처리 기록). 메일로 주고받은 답장도 회사 메일함에서 같은 기간이 지나면 지웁니다. 남용을 막으려고 보낸 횟수를 셀 때 IP 주소를 서버 메모리에 10분까지 둡니다.',
             ],
           },
         ],
@@ -107,7 +113,13 @@ export const PRIVACY: LegalDocs = {
       {
         title: '제3자 제공과 처리 위탁',
         blocks: [
-          '개인정보를 제3자에게 제공하지 않고, 처리를 다른 회사에 맡기지 않습니다. 서버는 회사가 직접 운영합니다.',
+          '개인정보를 제3자에게 제공하지 않습니다. 서버는 회사가 직접 운영하며, 처리를 다른 회사에 맡기는 것은 문의에 메일로 답할 때 하나뿐입니다.',
+          {
+            facts: [
+              ['맡는 회사', 'Microsoft Corporation(회사의 메일 계정 Outlook)'],
+              ['맡기는 일', '문의에 메일로 답하고, 주고받은 메일을 보관합니다. 운영자에게 가는 문의 알림 메일에는 문의 번호와 종류만 넣고, 내용과 메일 주소는 넣지 않습니다.'],
+            ],
+          },
           '구글 로그인은 이용자가 Google LLC(미국)의 로그인 화면에서 직접 하며, 회사는 구글에서 고유번호·메일·이름만 받습니다.',
           'Claude(Anthropic)·ChatGPT(OpenAI)에 커넥터를 더해 쓰는 것은 이용자가 고른 그 서비스와 이용자 사이의 일이며, 그 대화는 각 회사의 방침을 따릅니다. 회사는 그 서비스의 요청에 답할 뿐, 이용자의 정보를 먼저 보내지 않습니다.',
         ],
@@ -115,7 +127,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '국외 이전',
         blocks: [
-          '브라우저 안 받아쓰기를 쓸 때(직접 고르거나, 받아쓰기 서버를 쓸 수 없어 편집기가 이 방식을 고른 때)만 해당합니다. 이용자의 브라우저가 받아쓰기 모델 파일을 아래 회사의 서버에서 직접 내려받습니다. 말소리와 영상은 보내지 않습니다.',
+          '개인정보가 나라 밖으로 가는 것은 아래 두 경우뿐입니다. 첫째는 브라우저 안 받아쓰기를 쓸 때(직접 고르거나, 받아쓰기 서버를 쓸 수 없어 편집기가 이 방식을 고른 때)입니다. 이용자의 브라우저가 받아쓰기 모델 파일을 아래 회사의 서버에서 직접 내려받습니다. 말소리와 영상은 보내지 않습니다.',
           {
             facts: [
               ['받는 자', 'Hugging Face, Inc.(미국)'],
@@ -126,15 +138,26 @@ export const PRIVACY: LegalDocs = {
               ['거부 방법', '브라우저 안 받아쓰기를 쓰지 않고, 회사 서버로 받아 적거나 말을 직접 입력합니다'],
             ],
           },
+          '둘째는 문의에 메일로 답할 때입니다. 회사의 메일 계정(Outlook)은 Microsoft 의 서버에 있습니다.',
+          {
+            facts: [
+              ['받는 자', 'Microsoft Corporation(미국)'],
+              ['항목', '답장 받을 메일 주소, 답장과 그 안에 인용한 문의 내용'],
+              ['때와 방법', '문의에 답장을 보낼 때 인터넷으로'],
+              ['목적', '문의 답장 보내기와 주고받은 메일 보관'],
+              ['보유 기간', '회사 메일함에서 3년 보관한 뒤 지웁니다'],
+              ['거부 방법', '답장 받을 메일을 적지 않고 보냅니다(이때는 답장을 받을 수 없습니다)'],
+            ],
+          },
         ],
       },
       {
         title: '이용자의 권리',
         blocks: [
-          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 계정 정보는 「내 계정」에서 볼 수 있고, 탈퇴하면 바로 지울 수 있습니다. 그 밖의 요청은 {contact} 로 하시면 지체 없이 답합니다.',
+          '이용자는 개인정보의 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다. 계정 정보는 「내 계정」에서 볼 수 있고, 탈퇴하면 바로 지울 수 있습니다. 그 밖의 요청은 {contact} 로 메일을 보내거나 {inquiry}에서 하시면 지체 없이 답합니다.',
         ],
       },
-      { title: '만 14세 미만 아동', blocks: ['만 14세 미만 아동은 로그인(계정 만들기)을 할 수 없습니다. 로그인 없이 쓸 때는 이름·메일 같은 정보를 받지 않습니다.'] },
+      { title: '만 14세 미만 아동', blocks: ['만 14세 미만 아동은 로그인(계정 만들기)을 할 수 없습니다. 로그인 없이 쓸 때는 이름·메일 같은 정보를 받지 않습니다. 만 14세 미만 아동은 문의하기에 메일 주소를 적지 말고, 보호자가 대신 문의해 주세요.'] },
       {
         title: '안전성 확보 조치',
         blocks: [
@@ -171,9 +194,10 @@ export const PRIVACY: LegalDocs = {
               ['Scripts sent through the connector', 'If you add the ReelMotion connector to Claude or ChatGPT, we receive the script, style and spoken language that service sends. We do not receive who sent it (no account or name).'],
               ['Export count', 'Before an export, we receive the length of the video (in seconds) to check your plan’s limits. If you are logged in, we count the exports you finish each month in your account. We do not receive the video or what is in it.'],
               ['Usage counts and errors', 'To see how much the Service is used and what breaks, we receive the name of what you did in the editor (opening the editor, adding a video, starting, finishing or failing an export, and so on) and the kind of browser (for example Chrome on Windows), and only count them per day. If the editor hits an error, we receive the error text (written by the program; on rare occasions it may include a value such as a file name), where in our code it happened, the page address (without anything after the question mark), the kind of browser and the build number. We do not store who did it (no account or IP address).'],
+              ['Messages', 'When you send a message from the Contact page, we receive its type and text, the email address for our reply if you give one, the language of the page and which page you came from (the page address, without anything after the question mark). We do not store who sent it (no account or IP address).'],
             ],
           },
-          'We do not receive video files or what you export. Videos are processed only on your device. If you do not log in, we do not receive information such as your name or email address either.',
+          'We do not receive video files or what you export. Videos are processed only on your device. If you do not log in, we do not receive information such as your name or email address either, except an email address you give on the Contact page for our reply.',
           'So that graphics do not cover the speaker’s face, the editor finds, on your device, only where a face is on the screen in your video’s frames. It does not recognize who anyone is. The face positions are not sent to us or saved, and they are gone when you close the editor. Your project keeps only the side each graphic sits on (left or right).',
         ],
       },
@@ -190,6 +214,7 @@ export const PRIVACY: LegalDocs = {
               'Scripts sent through the connector: only to make the graphics plan we send back and, when you ask to open it in the editor, the link that opens it. They are not used for training.',
               'Export count: only to apply your plan’s limits on video length and exports per month, and to show them in My account.',
               'Usage counts and errors: only to know how much the Service is used and what does not work in which browser, so we can fix it.',
+              'Messages: only to read and answer them, and to fix the problems you report.',
             ],
           },
         ],
@@ -204,9 +229,10 @@ export const PRIVACY: LegalDocs = {
               'Account information, projects kept in your account and your export count: kept until you delete your account, then deleted right away. Deleting a project in My projects deletes it right away. The video length we receive to check limits is not kept.',
               'Login records: deleted when the login period ends (30 days, renewed as you use the Service) or when you log out.',
               'Scripts sent through the connector: when you only preview a plan, deleted as soon as the plan is returned. When a link to the editor is made, the script and style are kept for up to 7 days and then deleted, and they are not included in backups. During that time anyone who has the link can open the script. To prevent abuse, the IP address of the server that sent the request (normally a Claude or ChatGPT server) is held in server memory for up to 1 minute to count how many links were made.',
-              'Backups: to recover from failures, we back up account information, projects kept in accounts, export counts, and usage counts and errors once a day, and delete backups older than 30 days. Information you delete, including a closed account, may therefore remain in a backup for up to 30 days.',
+              'Backups: to recover from failures, we back up account information, projects kept in accounts, export counts, usage counts and errors, and messages once a day, and delete backups older than 30 days. Information you delete, including a closed account, may therefore remain in a backup for up to 30 days.',
               'Text sent for chat editing and AI moments: deleted as soon as the answer is returned. If you are not logged in, your IP address is held in server memory for up to 10 minutes to count requests and prevent abuse.',
               'Usage counts and errors: daily counts are deleted after 400 days and errors after 30 days. To prevent abuse, the IP address a request comes from is held in server memory for up to 1 minute while requests are counted.',
+              'Messages: kept for 3 years from the day we receive them and then deleted (records of consumer complaints and disputes under the Korean Act on Consumer Protection in Electronic Commerce). The replies we exchange by email are also deleted from our mailbox after the same period. To prevent abuse, your IP address is held in server memory for up to 10 minutes to count how many messages are sent.',
             ],
           },
         ],
@@ -230,7 +256,13 @@ export const PRIVACY: LegalDocs = {
       {
         title: 'Sharing and outsourcing',
         blocks: [
-          'We do not provide personal information to third parties or outsource its processing to other companies. We run our servers ourselves.',
+          'We do not provide personal information to third parties. We run our servers ourselves, and the only processing we outsource to another company is answering messages by email.',
+          {
+            facts: [
+              ['Company', 'Microsoft Corporation (our Outlook email account)'],
+              ['Work outsourced', 'Sending our email replies to messages and keeping the emails exchanged. The alert email our operator receives about a new message contains only its number and type, not its text or your email address.'],
+            ],
+          },
           'Google login happens on the login screen of Google LLC (United States), directly between you and Google; we only receive your Google account ID, email address and name from Google.',
           'Using the connector in Claude (Anthropic) or ChatGPT (OpenAI) is between you and the service you chose, and that conversation follows that company’s policy. We only answer the service’s requests; we do not send your information to it on our own.',
         ],
@@ -238,7 +270,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: 'Transfers outside Korea',
         blocks: [
-          'This applies only when transcription runs in your browser (when you choose it, or when the editor uses it because the speech server is unavailable). Your browser downloads the speech model files directly from the servers of the company below. Your audio and video are not sent.',
+          'Personal information leaves Korea only in the two cases below. The first is when transcription runs in your browser (when you choose it, or when the editor uses it because the speech server is unavailable). Your browser downloads the speech model files directly from the servers of the company below. Your audio and video are not sent.',
           {
             facts: [
               ['Recipient', 'Hugging Face, Inc. (United States)'],
@@ -249,15 +281,26 @@ export const PRIVACY: LegalDocs = {
               ['How to refuse', 'Do not use in-browser transcription: transcribe on our server or type the words yourself'],
             ],
           },
+          'The second is when we answer a message by email. Our email account (Outlook) is on Microsoft’s servers.',
+          {
+            facts: [
+              ['Recipient', 'Microsoft Corporation (United States)'],
+              ['Information', 'The email address for our reply, and our reply including any part of your message it quotes'],
+              ['When and how', 'Over the internet, when we send a reply'],
+              ['Purpose', 'Sending replies to messages and keeping the emails exchanged'],
+              ['Retention', 'Kept in our mailbox for 3 years and then deleted'],
+              ['How to refuse', 'Send your message without an email address (we then cannot reply)'],
+            ],
+          },
         ],
       },
       {
         title: 'Your rights',
         blocks: [
-          'You can ask to see, correct, delete or stop the processing of your personal information. You can see your account information in My account and delete it at once by deleting your account. For anything else, we will answer any request sent to {contact} without delay.',
+          'You can ask to see, correct, delete or stop the processing of your personal information. You can see your account information in My account and delete it at once by deleting your account. For anything else, email {contact} or use {inquiry}, and we will answer without delay.',
         ],
       },
-      { title: 'Children under 14', blocks: ['Children under 14 cannot log in or create an account. When the Service is used without logging in, we do not receive information such as names or email addresses.'] },
+      { title: 'Children under 14', blocks: ['Children under 14 cannot log in or create an account. When the Service is used without logging in, we do not receive information such as names or email addresses. Children under 14 should not give an email address on the Contact page; a parent or guardian can contact us instead.'] },
       {
         title: 'How we protect it',
         blocks: [
@@ -294,9 +337,10 @@ export const PRIVACY: LegalDocs = {
               ['コネクターで送られた台本', 'Claude・ChatGPT に ReelMotion のコネクターを追加して使う場合、そのサービスが送る台本・スタイル・話している言語を受け取ります。誰が送ったか(アカウント・名前)は受け取りません。'],
               ['書き出し回数', '書き出しの前に、プランの上限を確かめるため動画の長さ(秒)を受け取ります。ログインしている場合は、月ごとに書き出しを終えた回数をアカウントで数えます。動画とその内容は受け取りません。'],
               ['利用回数とエラー', '本サービスがどれだけ使われ、どこで不具合が起きているかを知るため、エディターで行ったことの名前(エディターを開く、動画を追加する、書き出しの開始・完了・失敗など)とブラウザの種類(例: Windows の Chrome)を受け取り、日ごとの回数だけを数えます。エディターでエラーが起きた場合は、エラーの文(プログラムが作った文で、まれにファイル名のような値が含まれることがあります)、エラーが起きたコードの場所、ページのアドレス(? 以降は除く)、ブラウザの種類、ビルド番号を受け取ります。誰が行ったか(アカウント・IP アドレス)は一緒に保存しません。'],
+              ['お問い合わせ', 'お問い合わせページから送ると、お問い合わせの種類と内容、書いた場合は返信先のメールアドレス、画面の言語、どのページから来たか(ページのアドレス、? 以降は除く)を受け取ります。誰が送ったか(アカウント・IP アドレス)は一緒に保存しません。'],
             ],
           },
-          '動画ファイルと書き出した作成物は受け取りません。動画はお使いの端末の中だけで処理します。ログインしなければ、氏名やメールアドレスなどの情報も受け取りません。',
+          '動画ファイルと書き出した作成物は受け取りません。動画はお使いの端末の中だけで処理します。ログインしなければ、お問い合わせで返信先のメールを書く場合を除き、氏名やメールアドレスなどの情報も受け取りません。',
           'グラフィックが話している人の顔を隠さないように、エディターはお使いの端末の中で、動画の場面のどこに顔があるかだけを探します。誰なのかは識別しません。見つけた位置は当社に送らず保存もせず、エディターを閉じると消えます。作品には、グラフィックを置く側(左・右)だけが残ります。',
         ],
       },
@@ -313,6 +357,7 @@ export const PRIVACY: LegalDocs = {
               'コネクターで送られた台本: グラフィックの計画を作ってお返しし、「エディターで開く」を行った場合はエディターで開くリンクを作るためだけに使います。学習には使いません。',
               '書き出し回数: プランの動画の長さ・月の回数の上限を守り、「マイアカウント」に表示するためだけに使います。',
               '利用回数とエラー: 本サービスがどれだけ使われ、どのブラウザで何が動かないかを知って直すためだけに使います。',
+              'お問い合わせ: お問い合わせを読んで返信し、知らせていただいた不具合を直すためだけに使います。',
             ],
           },
         ],
@@ -327,9 +372,10 @@ export const PRIVACY: LegalDocs = {
               'アカウント情報、アカウントに保存したプロジェクト、書き出し回数: 退会するまで保管し、退会するとすぐに消します。プロジェクトは「マイプロジェクト」で削除するとすぐに消します。上限の確認で受け取った動画の長さは保存しません。',
               'ログインの記録: ログインの保持期間(30日、使うたびに延長)が終わるか、ログアウトすると消します。',
               'コネクターで送られた台本: 計画を見るだけの場合は、お返ししたらすぐに消します。「エディターで開く」でリンクを作った場合は、その台本とスタイルを最大7日間保管してから消し、バックアップには含めません。その間、リンクを知っている人はその台本を開けます。不正利用を防ぐため、リンクを作った回数を数えるあいだ、要求を送ってきたサーバー(通常は Claude・ChatGPT のサーバー)の IP アドレスをサーバーのメモリに最大1分置きます。',
-              'バックアップ: 障害に備えて、アカウント情報・アカウントに保存したプロジェクト・書き出し回数・利用回数とエラーを1日1回バックアップし、30日を過ぎたバックアップは削除します。そのため、退会や削除をした情報もバックアップには最大30日残ることがあります。',
+              'バックアップ: 障害に備えて、アカウント情報・アカウントに保存したプロジェクト・書き出し回数・利用回数とエラー・お問い合わせを1日1回バックアップし、30日を過ぎたバックアップは削除します。そのため、退会や削除をした情報もバックアップには最大30日残ることがあります。',
               '話して直す・AIで見せ場を探すに送った文: 答えをお返ししたらすぐに消します。ログインしていない場合は、不正利用を防ぐため、回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
               '利用回数とエラー: 日ごとの回数は400日、エラーは30日を過ぎると削除します。不正利用を防ぐため、回数を数えるあいだ送信元の IP アドレスをサーバーのメモリに最大1分置きます。',
+              'お問い合わせ: 受け取った日から3年保管したあと削除します(韓国の電子商取引等における消費者保護に関する法律が定める、消費者の不満・紛争処理の記録)。メールでやり取りした返信も、同じ期間がたつと当社のメールボックスから削除します。不正利用を防ぐため、送った回数を数えるあいだ IP アドレスをサーバーのメモリに最大10分置きます。',
             ],
           },
         ],
@@ -353,7 +399,13 @@ export const PRIVACY: LegalDocs = {
       {
         title: '第三者提供と委託',
         blocks: [
-          '個人情報を第三者に提供せず、処理をほかの会社に委託しません。サーバーは当社が自ら運営しています。',
+          '個人情報を第三者に提供しません。サーバーは当社が自ら運営しており、処理をほかの会社に委託するのは、お問い合わせにメールで返信するときだけです。',
+          {
+            facts: [
+              ['委託先', 'Microsoft Corporation(当社のメールアカウント Outlook)'],
+              ['委託する業務', 'お問い合わせへのメールでの返信と、やり取りしたメールの保管。運営者に届く新着お問い合わせの通知メールには番号と種類だけを入れ、内容とメールアドレスは入れません。'],
+            ],
+          },
           'Google ログインは、利用者が Google LLC(米国)のログイン画面で直接行い、当社は Google から固有番号・メールアドレス・名前だけを受け取ります。',
           'Claude(Anthropic)・ChatGPT(OpenAI)でコネクターを使うことは、利用者が選んだそのサービスと利用者の間のことで、その会話は各社のポリシーに従います。当社はそのサービスからの要求に答えるだけで、利用者の情報を自分から送ることはありません。',
         ],
@@ -361,7 +413,7 @@ export const PRIVACY: LegalDocs = {
       {
         title: '国外移転',
         blocks: [
-          'ブラウザ内の文字起こしを使う場合(ご自身で選んだとき、または文字起こしサーバーが使えずエディターがこの方式を選んだとき)だけ該当します。お使いのブラウザが、文字起こしモデルのファイルを下記の会社のサーバーから直接ダウンロードします。音声と動画は送りません。',
+          '個人情報が国外に移るのは、次の2つの場合だけです。1つ目は、ブラウザ内の文字起こしを使う場合(ご自身で選んだとき、または文字起こしサーバーが使えずエディターがこの方式を選んだとき)です。お使いのブラウザが、文字起こしモデルのファイルを下記の会社のサーバーから直接ダウンロードします。音声と動画は送りません。',
           {
             facts: [
               ['受け取る者', 'Hugging Face, Inc.(米国)'],
@@ -372,15 +424,26 @@ export const PRIVACY: LegalDocs = {
               ['拒否する方法', 'ブラウザ内の文字起こしを使わず、当社サーバーで文字起こしするか、言葉を直接入力してください'],
             ],
           },
+          '2つ目は、お問い合わせにメールで返信するときです。当社のメールアカウント(Outlook)は Microsoft のサーバーにあります。',
+          {
+            facts: [
+              ['受け取る者', 'Microsoft Corporation(米国)'],
+              ['項目', '返信先のメールアドレス、返信とその中で引用したお問い合わせの内容'],
+              ['時期と方法', '返信を送るときに、インターネットで'],
+              ['目的', 'お問い合わせへの返信と、やり取りしたメールの保管'],
+              ['保存期間', '当社のメールボックスで3年保管したあと削除します'],
+              ['拒否する方法', '返信先のメールを書かずに送ってください(この場合は返信を受け取れません)'],
+            ],
+          },
         ],
       },
       {
         title: '利用者の権利',
         blocks: [
-          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。アカウント情報は「マイアカウント」で確認でき、退会するとすぐに消せます。そのほかのご依頼は、{contact} までご連絡いただければすぐにお答えします。',
+          '利用者は、個人情報の閲覧・訂正・削除・処理停止を求めることができます。アカウント情報は「マイアカウント」で確認でき、退会するとすぐに消せます。そのほかのご依頼は、{contact} へのメールか{inquiry}からご連絡いただければすぐにお答えします。',
         ],
       },
-      { title: '14歳未満の子ども', blocks: ['14歳未満の子どもはログイン(アカウント作成)できません。ログインせずに使う場合は、氏名やメールアドレスなどの情報を受け取りません。'] },
+      { title: '14歳未満の子ども', blocks: ['14歳未満の子どもはログイン(アカウント作成)できません。ログインせずに使う場合は、氏名やメールアドレスなどの情報を受け取りません。14歳未満の子どもはお問い合わせにメールアドレスを書かず、保護者が代わりにお問い合わせください。'] },
       {
         title: '安全管理措置',
         blocks: [

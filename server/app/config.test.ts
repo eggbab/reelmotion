@@ -57,6 +57,10 @@ describe('앱 서버 설정', () => {
     expect(readConfig({ WEB_URL: 'http://web', ASR_URL: 'http://asr:8008', DISK_MIN_GB: '5' })).toMatchObject({ webUrl: 'http://web', asrUrl: 'http://asr:8008', diskMinBytes: 5e9 })
     // 확인 간격: 기본 5분, 10초보다 짧게는 못 한다
     expect(readConfig({}).watchMs).toBe(300_000)
+    expect(readConfig({}).contactLimit).toBe(5)
+    expect(readConfig({ CONTACT_LIMIT: '200' }).contactLimit).toBe(200)
+    expect(() => readConfig({ CONTACT_LIMIT: '0' })).toThrow()
+    expect(() => readConfig({ CONTACT_LIMIT: 'many' })).toThrow()
     expect(readConfig({ WATCH_SECONDS: '20' }).watchMs).toBe(20_000)
     expect(readConfig({ WATCH_SECONDS: '1' }).watchMs).toBe(10_000)
   })

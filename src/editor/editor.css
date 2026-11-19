@@ -1304,6 +1304,14 @@
   font: 600 18px/1.4 var(--font);
 }
 
+/* 창 안의 작은 글 링크(내보내기가 멈췄을 때 「계속 안 되면 알려 주세요」) */
+.dialog__link {
+  color: var(--text-2);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .dialog__close {
   position: absolute;
   top: 12px;

@@ -321,8 +321,10 @@
 }
 
 .nav__logo {
+  flex: none;
   color: var(--text);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .logo {
@@ -2495,6 +2497,45 @@
   outline-offset: 3px;
 }
 
+/* 좁은 휴대폰(420px 이하): 언어 고르기는 지구본만 보이고, 누르면 같은 고르기 칸이 열린다.
+   글자까지 두면 360px 에서 로고가 「ReelMoti / on」 두 줄로 밀려났다(2026-11-19). */
+@media (max-width: 420px) {
+  .nav {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .nav__side {
+    gap: 4px;
+  }
+
+  .nav .account-link {
+    padding: 0 8px;
+  }
+
+  .nav .lang-picker {
+    justify-content: center;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+  }
+
+  .nav .lang-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    /* 16px 아래면 아이폰이 고르기 칸을 누를 때 화면을 확대한다 */
+    font-size: 16px;
+  }
+
+  .nav .lang-picker:has(select:focus-visible) {
+    outline: 2px solid var(--mint);
+    outline-offset: 3px;
+  }
+}
+
 /* 좁은 화면 */
 @media (max-width: 960px) {
   .nav__links,
@@ -2734,4 +2775,233 @@
   color: var(--text-2);
   font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   white-space: pre;
+}
+
+/* 문의하기(/contact) — 내 계정·관리자 화면과 같은 칸 모양 */
+.contact-form {
+  display: grid;
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.contact-kinds {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.contact-kinds legend,
+.contact-field > label {
+  margin: 0 0 12px;
+  padding: 0;
+  color: var(--text);
+  font: 600 16px/1.4 var(--font);
+}
+
+.contact-kinds__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contact-kind {
+  position: relative;
+}
+
+/* 단추처럼 보이는 고르기 칸. 진짜 고르기 칸(input)은 투명하게 그 위에 두어 키보드·화면 낭독기가 그대로 쓴다 */
+.contact-kind input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.contact-kind span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  font: 500 15px/1 var(--font);
+  transition:
+    border-color 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.contact-kind input:checked + span {
+  border-color: var(--mint);
+  background: rgb(0 255 221 / 8%);
+  color: var(--text);
+}
+
+.contact-kind input:focus-visible + span {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.contact-field {
+  display: grid;
+}
+
+.contact-field > label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.contact .contact-hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.contact .contact-field > .contact-hint:last-child {
+  margin: 8px 0 0;
+}
+
+.contact-field textarea,
+.contact-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: #0b0b0f;
+  color: var(--text);
+  /* 16px 아래면 아이폰이 칸을 누를 때 화면을 확대한다 */
+  font: 400 16px/1.6 var(--font);
+}
+
+.contact-field textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.contact-field textarea:focus-visible,
+.contact-field input:focus-visible {
+  outline: none;
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px rgb(0 255 221 / 18%);
+}
+
+.contact-field [aria-invalid='true'] {
+  border-color: rgb(255 107 107 / 70%);
+}
+
+.contact .contact-count {
+  justify-self: end;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.contact .contact-count.is-over {
+  color: #ffb4b4;
+}
+
+/* 사람에게는 보이지 않는 칸(자동 프로그램 거르기) */
+.contact-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contact-actions .btn-mint {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.contact-actions .btn-mint:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.contact .account-note {
+  margin: 0;
+}
+
+.contact-sent {
+  margin-top: 40px;
+}
+
+.contact-sent:focus {
+  outline: none;
+}
+
+.contact-sent .btn-ghost {
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.contact a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 관리자 화면의 문의 칸 */
+.legal .admin-messages {
+  display: grid;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal .admin-messages li {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal .admin-messages li::before {
+  display: none;
+}
+
+.legal .admin-messages li.is-done {
+  opacity: 0.6;
+}
+
+.legal .admin-messages__meta {
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.legal .admin-messages__body {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-messages__count {
+  color: var(--mint-soft);
+  font-weight: 500;
+}
+
+.admin-messages__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.admin-messages__actions .btn-ghost {
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-messages__actions small {
+  color: var(--muted);
 }

@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router'
 import { AccountPage } from './account/AccountPage'
 import { LangProvider } from './lang'
+import { ContactPage } from './site/contact/ContactPage'
 import { LandingPage } from './site/LandingPage'
 import { LegalPage } from './site/legal/LegalPage'
 import { LicensesPage } from './site/legal/LicensesPage'
@@ -51,6 +52,8 @@ export function AppRoutes() {
         <LandingPage />
       ) : page === 'licenses' ? (
         <LicensesPage />
+      ) : page === 'contact' ? (
+        <ContactPage />
       ) : page === 'account' ? (
         <AccountPage />
       ) : page === 'admin' ? (

@@ -50,10 +50,11 @@ describe('headTags', () => {
 })
 
 describe('sitemap / robots / llms', () => {
-  it('사이트 지도에는 미리 그린 쪽 여섯 × 언어 셋과 서로의 언어별 주소가 들어간다', () => {
+  it('사이트 지도에는 미리 그린 쪽 일곱 × 언어 셋과 서로의 언어별 주소가 들어간다', () => {
     const xml = sitemapXml(ORIGIN)
-    expect(xml.match(/<url>/g)).toHaveLength(18)
+    expect(xml.match(/<url>/g)).toHaveLength(21)
     expect(xml).toContain('<loc>https://reelmotion.test/ko/help</loc>')
+    expect(xml).toContain('<loc>https://reelmotion.test/ja/contact</loc>')
     expect(xml).toContain('<loc>https://reelmotion.test/licenses</loc>')
     expect(xml).toContain('<loc>https://reelmotion.test/ja/privacy</loc>')
     expect(xml).toContain('<xhtml:link rel="alternate" hreflang="ko" href="https://reelmotion.test/ko/privacy" />')
@@ -123,9 +124,11 @@ describe('fillTemplate / prerenderPlan', () => {
     expect(() => fillTemplate('<html>', { lang: 'en', head: '', html: '', key: '/' })).toThrow()
   })
 
-  it('파일 목록: 쪽 27개 + 404 셋', () => {
+  it('파일 목록: 쪽 30개 + 404 셋', () => {
     const plan = prerenderPlan()
-    expect(plan).toHaveLength(30)
+    expect(plan).toHaveLength(33)
+    // 문의하기는 양식이 HTML 에 들어 있다(미리 그린다)
+    expect(plan.find((item) => item.file === 'ko/contact/index.html')?.key).toBe('/ko/contact')
     expect(plan.find((item) => item.file === 'ko/account/index.html')?.key).toBeNull()
     expect(plan.find((item) => item.file === 'ko/admin/index.html')?.key).toBeNull()
     const files = plan.map((item) => item.file)

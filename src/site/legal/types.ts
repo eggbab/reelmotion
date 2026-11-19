@@ -26,4 +26,4 @@ export type LegalDocs = Record<Lang, LegalDoc>
  * 세 규정의 시행일. 글을 바꾸면 날짜도 바꾸고, 바꾼 내용을 시행 7일 전(이용자에게 불리하면 30일 전)에 알린다.
  * 서비스를 정식으로 열 때 다시 확인한다(docs/service-scope.md).
  */
-export const LEGAL_EFFECTIVE = '2026-11-15'
+export const LEGAL_EFFECTIVE = '2026-11-19'

@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite'
  * 앱 서버의 저장소: SQLite 파일 하나(운영은 볼륨 /data/reelmotion.db — 백업은 이 파일을 복사, docs/operations.md).
  * 판을 올릴 때는 MIGRATIONS 끝에 하나를 더한다(이미 쓴 것은 고치지 않는다).
  * 저장하는 것: 계정(구글 id·메일·이름·요금제), 로그인 세션(토큰은 해시만), 로그인 중인 요청(10분), 작업(영상 제외), 월별 내보내기 수,
- * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님), 쓰임 숫자(날짜·이름·브라우저 종류·횟수)와 브라우저 오류(오류 글·쪽 주소·브라우저 종류·판 —
+ * 공지 하나(관리자 화면에서 쓴 글 — 개인정보 아님), 문의(내용과 적었으면 답장 받을 메일 — inbox.ts, 3년), 쓰임 숫자(날짜·이름·브라우저 종류·횟수)와 브라우저 오류(오류 글·쪽 주소·브라우저 종류·판 —
  * 누구인지는 없다, pulse.ts). 커넥터 초안은 여기 두지 않는다(백업에 들어가지 않게 따로 — connect.ts).
  * 바꾸면 개인정보처리방침(src/site/legal/privacy.ts)도 함께 고친다.
  */
@@ -81,6 +81,20 @@ const MIGRATIONS: string[] = [
     last_at integer not null
   );
   create index client_errors_last on client_errors(last_at);
+  `,
+  // 4. 문의하기(inbox.ts): 종류·내용·답장 받을 메일(적었을 때만)·화면 언어·보낸 쪽. 3년 두고 지운다.
+  `
+  create table contact_messages (
+    id integer primary key autoincrement,
+    created_at integer not null,
+    kind text not null,
+    body text not null,
+    email text,
+    lang text not null default 'en',
+    page text not null default '',
+    done_at integer
+  );
+  create index contact_messages_created on contact_messages(created_at);
   `,
 ]
 

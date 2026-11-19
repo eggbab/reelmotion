@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { LANGS } from '../../langs'
+import { KEEP_DAYS } from '../../../server/app/inbox'
+import { CONTACT_COPY } from '../contact/copy'
+import { PRIVACY } from './privacy'
 import { LEGAL_DOCS, LEGAL_PAGES, formatDate } from './docs'
 import { HELP } from './help'
 import type { LegalBlock, LegalDocs } from './types'
@@ -38,7 +41,7 @@ describe('약관·정책 글', () => {
         const doc = docs[id]
         const texts = [doc.intro, ...doc.sections.flatMap((section) => section.blocks.flatMap(allText))]
         for (const text of texts) {
-          for (const [, token] of text.matchAll(/\{(\w+)\}/g)) expect(['contact', 'terms', 'privacy', 'refund', 'account', 'pricing', 'mcp']).toContain(token)
+          for (const [, token] of text.matchAll(/\{(\w+)\}/g)) expect(['contact', 'inquiry', 'terms', 'privacy', 'refund', 'account', 'pricing', 'mcp']).toContain(token)
           expect(text).not.toMatch(/[\w.+-]+@[\w-]+\.\w+/)
         }
       }
@@ -55,6 +58,16 @@ describe('약관·정책 글', () => {
     expect(compose).toContain('ASR_MAX_SECONDS: "600"')
     expect(app).toContain('max_seconds: float = 600.0')
     expect(LEGAL_DOCS.terms.ko.sections.flatMap((section) => section.blocks.flatMap(allText)).join(' ')).toContain('10분')
+  })
+
+  it('문의 보관 기간(3년)은 서버(inbox.ts)·개인정보처리방침·문의하기 쪽 안내가 같다', () => {
+    expect(KEEP_DAYS).toBe(3 * 365)
+    const years: Record<string, string> = { ko: '3년', en: '3 years', ja: '3年' }
+    for (const { id } of LANGS) {
+      const privacy = PRIVACY[id].sections.flatMap((section) => section.blocks.flatMap(allText)).join(' ')
+      expect(privacy, id).toContain(years[id])
+      expect(CONTACT_COPY[id].privacy, id).toContain(years[id])
+    }
   })
 
   it('날짜를 언어마다 바르게 쓴다', () => {

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { useLang } from '../../lang'
 import type { Lang } from '../../langs'
 import { BUSINESS } from '../business'
+import { CONTACT_COPY } from '../contact/copy'
 import { Footer, Header } from '../Chrome'
 import { SITE_COPY } from '../copy'
 import { pageMeta } from '../meta'
@@ -33,7 +34,7 @@ function McpAddress() {
   return <code className="legal__code">{`${origin}/mcp`}</code>
 }
 
-/** 문장 안의 {contact}·{terms}·{privacy}·{refund}·{account}·{pricing}·{mcp} 를 링크(주소)로 바꾼다. */
+/** 문장 안의 {contact}(메일)·{inquiry}(문의하기 쪽)·{terms}·{privacy}·{refund}·{account}·{pricing}·{mcp} 를 링크(주소)로 바꾼다. */
 function Rich({ text, lang }: { text: string; lang: Lang }) {
   return (
     <>
@@ -41,6 +42,13 @@ function Rich({ text, lang }: { text: string; lang: Lang }) {
         const token = /^\{(\w+)\}$/.exec(part)?.[1]
         if (token === 'contact') return <Contact key={index} lang={lang} />
         if (token === 'mcp') return <McpAddress key={index} />
+        if (token === 'inquiry') {
+          return (
+            <Link key={index} to={pagePath('contact', lang)}>
+              {CONTACT_COPY[lang].title}
+            </Link>
+          )
+        }
         if (token === 'account') {
           return (
             <Link key={index} to={pagePath('account', lang)}>

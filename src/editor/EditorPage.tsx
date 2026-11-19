@@ -37,6 +37,7 @@ import { promptInstall, useCanInstall } from '../pwa/install'
 import { registerServiceWorker } from '../pwa/register'
 import { useOnline } from '../pwa/useOnline'
 import { Logo, LangPicker } from '../site/Chrome'
+import { ContactLink } from '../site/contact/ContactLink'
 import { NoticeBar } from '../site/NoticeBar'
 import { pageMeta } from '../site/meta'
 import { pagePath } from '../site/routes'
@@ -1304,7 +1305,7 @@ function StartScreen({ copy, lang, notice, pending, onFile, onSample, onOpen, on
           <input type="file" accept="video/*" hidden onChange={(event: ChangeEvent<HTMLInputElement>) => onFile(event.target.files?.[0])} />
         </label>
         <small>
-          {copy.start.drop} · {copy.start.privacy} · <Link to={pagePath('help', lang)}>{copy.start.help}</Link>
+          {copy.start.drop} · {copy.start.privacy} · <Link to={pagePath('help', lang)}>{copy.start.help}</Link> · <ContactLink>{copy.start.contact}</ContactLink>
           {/* 크롬·엣지가 설치할 수 있다고 알려 줄 때만(다른 브라우저의 순서는 도움말에 있다) */}
           {canInstall && (
             <>
@@ -1513,6 +1514,9 @@ function ExportDialog({ copy, lang, state, baseName, onClose, onRetry }: ExportD
                 {copy.export}
               </button>
             )}
+            <ContactLink kind="bug" className="dialog__link">
+              {copy.exportReport}
+            </ContactLink>
           </>
         )}
       </div>
