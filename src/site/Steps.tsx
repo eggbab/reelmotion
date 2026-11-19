@@ -1,6 +1,5 @@
 import { Check, FileVideo } from 'lucide-react'
-import { useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { scriptToWords } from '../captions/segment'
 import { fill } from '../langs'
@@ -9,6 +8,8 @@ import { THEMES } from '../motion/themes'
 import type { SiteCopy } from './copy'
 import { demo } from './demos'
 import { MotionStage } from './MotionStage'
+import { useScrollProgress } from './scrollProgress'
+import { useReducedMotion } from './useReducedMotion'
 
 /** 단계 하나가 차지하는 스크롤 길이(화면 높이 배수). 다섯 단계 + 머무는 몫. */
 const STEP_VH = 70
@@ -20,9 +21,9 @@ const STEP_VH = 70
 export function Steps({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   const ref = useRef<HTMLElement>(null)
   const [step, setStep] = useState(0)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const count = copy.steps.steps.length
-  useMotionValueEvent(scrollYProgress, 'change', (value) => setStep(Math.min(count - 1, Math.max(0, Math.floor(value * count)))))
+  const onProgress = useCallback((value: number) => setStep(Math.min(count - 1, Math.max(0, Math.floor(value * count)))), [count])
+  useScrollProgress(ref, ['start start', 'end end'], onProgress)
 
   const goTo = (index: number) => {
     const section = ref.current

@@ -1,6 +1,4 @@
 import { AudioLines, ChevronDown, ChevronLeft, ChevronRight, ChevronRight as Arrow, PenLine, Palette, RectangleVertical, ShieldCheck, Sparkles } from 'lucide-react'
-import { motion, useScroll, useTransform } from 'motion/react'
-import type { MotionValue } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router'
@@ -18,6 +16,7 @@ import type { SiteCopy } from './copy'
 import { demo } from './demos'
 import type { Demo, DemoId } from './demos'
 import { MotionStage } from './MotionStage'
+import { useScrollVar } from './scrollProgress'
 import { useScrollable } from './useScrollable'
 import { PLANS, formatWon } from './plans'
 import type { Plan } from './plans'
@@ -31,7 +30,8 @@ export function Make({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   // 휴대폰에서는 이 줄을 옆으로 민다(site.css) — 그때는 키보드로도 닿게
   const strip = useRef<HTMLDivElement>(null)
   const stripScrolls = useScrollable(strip)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start start'] })
+  // 이 구역의 위가 창의 아래 → 창의 위: 타일이 제자리로 올라온다(site.css 의 .strip-tile)
+  useScrollVar(ref, ['start end', 'start start'])
   const tiles: { demo: Demo; only: Graphic['kind'] }[] = useMemo(
     () => [
       { demo: demo('sleep', lang, 'neon'), only: 'title' },
@@ -47,7 +47,7 @@ export function Make({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
       <div className="glow glow--top" aria-hidden="true" />
       <div className="make__strip" ref={strip} tabIndex={stripScrolls ? 0 : undefined} role={stripScrolls ? 'region' : undefined} aria-label={stripScrolls ? copy.make.title : undefined}>
         {tiles.map((tile, i) => (
-          <StripTile key={i} index={i} progress={scrollYProgress} demo={tile.demo} only={tile.only} label={copy.make.tiles[i]} />
+          <StripTile key={i} index={i} demo={tile.demo} only={tile.only} label={copy.make.tiles[i]} />
         ))}
       </div>
       <div className="container center">
@@ -68,10 +68,10 @@ export function Make({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   )
 }
 
-function StripTile({ index, progress, demo: d, only, label }: { index: number; progress: MotionValue<number>; demo: Demo; only: Graphic['kind']; label: string }) {
-  // 가운데 타일이 먼저, 바깥 타일이 늦게 제자리로 올라온다.
-  const lag = Math.abs(index - 2) * 0.12
-  const y = useTransform(progress, [0, 0.7 + lag], [180 + Math.abs(index - 2) * 60, 0])
+function StripTile({ index, demo: d, only, label }: { index: number; demo: Demo; only: Graphic['kind']; label: string }) {
+  // 가운데 타일이 먼저, 바깥 타일이 늦게 제자리로 올라온다: 진행 0 → (0.7 + 늦음) 동안 아래 (180 + 60 × 가운데서 떨어진 칸)px 에서 0 으로
+  const away = Math.abs(index - 2)
+  const place = { '--until': 0.7 + away * 0.12, '--from': `${180 + away * 60}px` } as CSSProperties
   const graphics = useMemo(
     () =>
       d.graphics
@@ -80,10 +80,10 @@ function StripTile({ index, progress, demo: d, only, label }: { index: number; p
     [d, only],
   )
   return (
-    <motion.figure className="strip-tile" style={{ y }}>
+    <figure className="strip-tile" style={place}>
       <MotionStage clip={d.clip} graphics={graphics} theme={d.theme} small label={label} />
       <figcaption>{label}</figcaption>
-    </motion.figure>
+    </figure>
   )
 }
 
@@ -256,7 +256,8 @@ const SCATTER = [
 
 export function Lanes({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   const ref = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.8', 'center 0.5'] })
+  // 흩어진 카드가 레인으로 모인다(site.css 의 .lane-card)
+  useScrollVar(ref, ['start 0.8', 'center 0.5'])
   const snaps: Snap[] = useMemo(() => {
     const sleep = demo('sleep', lang)
     const studio = demo('studio', lang)
@@ -291,7 +292,7 @@ export function Lanes({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
           ))}
           {snaps.map((snap, i) => {
             const slot = laneCount[snap.lane]++
-            return <LaneCard key={i} snap={snap} from={SCATTER[i]} lane={snap.lane} slot={slot} progress={scrollYProgress} />
+            return <LaneCard key={i} snap={snap} from={SCATTER[i]} lane={snap.lane} slot={slot} />
           })}
         </div>
       </div>
@@ -299,14 +300,13 @@ export function Lanes({ copy, lang }: { copy: SiteCopy; lang: Lang }) {
   )
 }
 
-function LaneCard({ snap, from, lane, slot, progress }: { snap: Snap; from: (typeof SCATTER)[number]; lane: number; slot: number; progress: MotionValue<number> }) {
-  const left = useTransform(progress, [0, 1], [`${from.x / 6}%`, `${14 + slot * 42}%`])
-  const top = useTransform(progress, [0, 1], [`${from.y / 4.4}%`, `${lane * 33.3 + 4}%`])
-  const rotate = useTransform(progress, [0, 1], [from.r, 0])
+function LaneCard({ snap, from, lane, slot }: { snap: Snap; from: (typeof SCATTER)[number]; lane: number; slot: number }) {
+  // 흩어진 자리·기울기(--x0·--y0·--r0)에서 레인의 자리(--x1·--y1)로 — 진행 --p 로 CSS 가 옮긴다
+  const place = { '--x0': `${from.x / 6}%`, '--x1': `${14 + slot * 42}%`, '--y0': `${from.y / 4.4}%`, '--y1': `${lane * 33.3 + 4}%`, '--r0': from.r } as CSSProperties
   return (
-    <motion.div className="lane-card" style={{ left, top, rotate }}>
+    <div className="lane-card" style={place}>
       <Snapshot snap={snap} />
-    </motion.div>
+    </div>
   )
 }
 
@@ -314,19 +314,19 @@ function LaneCard({ snap, from, lane, slot, progress }: { snap: Snap; from: (typ
 
 export function Statement({ copy }: { copy: SiteCopy }) {
   const ref = useRef<HTMLParagraphElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.45'] })
+  useScrollVar(ref, ['start 0.85', 'end 0.45'])
   const words = copy.statement.text.split(' ')
   return (
     <section className="statement">
       <div className="container">
         <p className="eyebrow">{copy.statement.eyebrow}</p>
-        <motion.p ref={ref} className="statement__text" style={{ '--p': scrollYProgress, '--n': words.length } as unknown as CSSProperties}>
+        <p ref={ref} className="statement__text" style={{ '--n': words.length } as CSSProperties}>
           {words.map((word, index) => (
             <span key={index} style={{ '--i': index } as CSSProperties}>
               {word}{' '}
             </span>
           ))}
-        </motion.p>
+        </p>
       </div>
     </section>
   )

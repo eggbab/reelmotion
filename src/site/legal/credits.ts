@@ -81,7 +81,6 @@ export const MODEL_CREDITS: (Credit & { by: string; where: 'server' | 'browser';
 export const PROGRAM_CREDITS: (Credit & { source?: string })[] = [
   { name: 'React', license: 'MIT', url: 'https://react.dev', packages: ['react', 'react-dom'] },
   { name: 'React Router', license: 'MIT', url: 'https://reactrouter.com', packages: ['react-router'] },
-  { name: 'Motion', license: 'MIT', url: 'https://motion.dev', packages: ['motion'] },
   { name: 'Lucide', license: 'ISC', url: 'https://lucide.dev', packages: ['lucide-react'] },
   { name: 'Mediabunny', license: 'MPL-2.0', url: 'https://mediabunny.dev', source: 'https://github.com/Vanilagy/mediabunny', packages: ['mediabunny'] },
   { name: 'Transformers.js', license: 'Apache-2.0', url: 'https://github.com/huggingface/transformers.js', packages: ['@huggingface/transformers'] },

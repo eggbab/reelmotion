@@ -81,7 +81,7 @@
 4. ~~Claude·ChatGPT 커넥터~~(2026-11-15). 남은 것: 도메인이 생기면 실제 Claude·ChatGPT 에 더해 확인(`docs/operations.md` 「Claude·ChatGPT 커넥터」의 「공개하는 날 할 일」), 두 회사의 메뉴 이름이 바뀌면 도움말(`help.ts` 의 `connect`) 고치기.
 
 ## 기술 스택과 명령
-- Vite 8 · React 19 · TypeScript 7 · Vitest · oxlint · motion(스크롤 연동) · mediabunny(내보내기) · @huggingface/transformers(받아쓰기). 패키지 관리자는 npm 만.
+- Vite 8 · React 19 · TypeScript 7 · Vitest · oxlint · mediabunny(내보내기) · @huggingface/transformers(받아쓰기). 패키지 관리자는 npm 만.
 - `npm run dev` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`(화면 빌드 → 서버용 빌드 → 쪽마다 미리 그리기. 도메인을 알면 `SITE_ORIGIN=https://… npm run build`)
 - **화면 시험(끝에서 끝까지, 실제 크롬으로)**: `npm run e2e:media`(시험 영상 만들기) → 시험용 스택 띄우기 → `npm run e2e`. 15개 묶음(2026-11-15). 띄우는 법·시험마다 보는 것·스택을 다르게 띄워야 하는 시험은 **`e2e/README.md`**. 화면이나 서버 흐름을 고치면 관련 시험을 돌리고, 새 흐름을 만들면 시험을 더한다. 2026-11-15 까지는 작업 공간의 임시 폴더에만 있어 작업 공간이 닫히면 사라졌다.
 - 공유 그림·홈 화면 아이콘 다시 만들기(개발용, Playwright 필요): `node scripts/og.mjs` — 그리는 쪽은 `og.html`·`src/motion/og.ts`.
@@ -103,6 +103,7 @@
 - 미리보기·소개 페이지·내보내기는 같은 `renderGraphics` 를 쓴다.
 - **그래픽에 넣는 글은 넘쳐도 말없이 버리지 않는다.** 줄 수가 정해진 자리는 `fitLines`·`fitLine`(`paint.ts`)으로 그려 넘치면 끝에 … 을 붙이고, 자동 배치는 자리에 들어가는 길이로 미리 줄인다(`fitText`·`fitTitle` — 낱말 가운데서 자르지 않는다). 예전에는 목록의 첫 줄만 그려 「…세우지 마세요」의 「마세요」가 사라졌다.
 - **약관·도움말·라이선스 글은 따로 받는다(2026-11-19)**: 글이 길어(압축 약 35KB) 그 쪽을 열 때만 받는다(`src/site/lazyPages.ts` — 미리 그린 HTML 을 이어받기 전에 `main.tsx` 가, 빌드 때는 `scripts/prerender.mjs` 가 먼저 받아 둔다). 바닥글·쪽 제목·문의하기·내 계정처럼 모든 쪽이 쓰는 제목·설명·날짜 글은 작은 파일 `src/site/legal/heads.ts` 에서 가져다 쓴다 — **글 전체(`LEGAL_DOCS`·`HELP`·`PRIVACY`·`TERMS`·`credits`)를 다른 곳에서 가져다 쓰면 빌드가 멈춘다**(첫 스크립트에 그 글만의 문장이 들었는지 본다, `src/seo/template.ts` 의 `SPLIT_MARKERS`). 그 쪽들에 미리 받기(modulepreload)를 넣지 않는다 — 휴대폰 조건에서 스타일 파일과 대역을 다퉈 첫 글자가 0.15초 늦었다.
+- **소개 페이지의 스크롤 효과는 CSS 가 계산한다(2026-11-19)**: 구역이 화면을 지나는 정도(0~1)를 `src/site/scrollProgress.ts` 가 재어 그 구역의 `--p` 로 적고(`useScrollVar`, 단계처럼 화면 상태가 바뀌는 곳은 `useScrollProgress`), 투명도·위치·흐림·잘라내기·기울기는 `site.css` 가 구간 안의 직선(`clamp`·`calc`)으로 계산한다. 움직임 라이브러리(motion)를 빼서 첫 스크립트가 193KB → 141KB(압축, 받은 양) — 옛 판과 같은 스크롤 위치 280곳에서 28,000개 값을 비교해 차이 0(움직임 줄이기 포함), 스크롤 매끄러움도 같다. 새 효과를 더할 때도 라이브러리 대신 이 방식으로 하고, 미리 그린 HTML(스크립트가 돌기 전)은 `--p` 가 없어 0 의 모습이므로 CSS 의 `var(--p, 0)` 처럼 0 을 기본으로 둔다.
 - **소개 페이지 무게(2026-11-19)**: 쪽을 열자마자 받는 것은 스타일·스크립트·작은 정지 그림뿐이어야 한다 — 영상 벽은 `load` 뒤 재생(`Hero.tsx` 의 `useWallPlayback`), `MotionStage` 는 `preload="none"`·정지 그림은 600px 앞에서 붙인다. 큰 정지 그림이나 영상을 처음부터 받게 하면 휴대폰에서 스타일 파일이 늦어져 첫 글자가 1초 넘게 늦어진다(쟀다). 작은 정지 그림은 `public/media/*-sm.jpg`(긴 변 480px). 스타일에만 쓰는 제목 글꼴(Instrument Serif·Black Han Sans·Dela Gothic One)의 선언은 `src/motion/fonts.ts` 가 그 글꼴로 그릴 때 불러온다 — 맨 위에서 `import` 하면 첫 화면 스타일 파일이 두 배가 된다.
 - **좁은 휴대폰의 머리줄(2026-11-19)**: 로고는 줄을 바꾸지 않는다(`.nav__logo` 의 `flex: none`·`white-space: nowrap`). 420px 이하에서는 언어 고르기를 지구본만 보이고(고르기 칸을 투명하게 덮어 누르면 같은 칸이 열린다) 사이를 좁힌다 — 전에는 360px 에서 로고가 「ReelMoti / on」 두 줄이 됐다. 머리줄에 단추를 더하면 320·360px 세 언어에서 `e2e/tests/contact.cjs` 10번이 잡는다.
 - **접근성(2026-11-19)**: 화면을 고치면 `node e2e/tests/a11y.cjs`(axe-core, WCAG 2.1 A·AA)가 위반 0개여야 한다. 작은 글씨는 `--dim` 이상 밝기(어두운 판에서 대비 4.5:1), 그림만 있는 단추에는 이름(`aria-label`), 보이는 글이 있는 단추의 `aria-label` 은 그 글을 담는다, 옆으로 미는 칸은 밀릴 때만 키보드로 닿게(`src/site/useScrollable.ts`).

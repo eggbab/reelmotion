@@ -440,7 +440,10 @@
   background: rgb(255 255 255 / 6%);
 }
 
-/* 첫 화면 */
+/* 첫 화면
+   스크롤 효과: Hero.tsx 가 진행 --p(0~1, 이 구역의 위가 창의 위 → 아래가 창의 아래)를 적고, 아래 규칙이 구간 안의 직선으로 계산한다 —
+   글은 [0, 0.16] 동안 흐려지며 80px 올라가고, 벽은 [0.1, 0.3] 동안 사라지고 영상이 나타나며, 영상은 [0.1, 0.42] 동안 1.14 배에서 제 크기로,
+   [0.78, 1] 동안 둥근 카드로 줄어든다. 스크립트가 돌기 전(미리 그린 HTML)에는 --p 가 없어 0 의 모습이다. */
 .hero {
   position: relative;
   height: 300vh;
@@ -462,6 +465,7 @@
   gap: 14px;
   filter: blur(26px) saturate(1.1);
   transform: scale(1.06);
+  opacity: calc(1 - clamp(0, (var(--p, 0) - 0.1) / 0.2, 1));
 }
 
 .wall__tile {
@@ -492,9 +496,15 @@
 }
 
 .reel {
+  --show: clamp(0, (var(--p, 0) - 0.1) / 0.2, 1);
+  --grow: clamp(0, (var(--p, 0) - 0.1) / 0.32, 1);
+  --card: clamp(0, (var(--p, 0) - 0.78) / 0.22, 1);
   position: absolute;
   inset: 0;
   will-change: transform, opacity, clip-path;
+  opacity: var(--show);
+  transform: scale(calc(1.14 - 0.14 * var(--grow)));
+  clip-path: inset(calc(var(--card) * 6%) calc(var(--card) * 6%) round calc(var(--card) * 28px));
 }
 
 .reel__stage {
@@ -503,9 +513,13 @@
 }
 
 .hero__text {
+  --fade: clamp(0, var(--p, 0) / 0.16, 1);
   position: absolute;
   inset: 0;
   z-index: 2;
+  opacity: calc(1 - var(--fade));
+  transform: translateY(calc(var(--fade) * -80px));
+  filter: blur(calc(var(--fade) * 14px));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -604,8 +618,10 @@
   margin: -40px auto 96px;
 }
 
+/* 가운데 타일이 먼저 올라온다: 이 구역의 진행 --p(Sections.tsx 의 Make)가 0 → --until 동안 아래 --from 에서 제자리로 */
 .strip-tile {
   margin: 0;
+  transform: translateY(calc((1 - clamp(0, var(--p, 0) / var(--until, 1), 1)) * var(--from, 0px)));
 }
 
 .strip-tile .stage {
@@ -1099,8 +1115,12 @@
   text-transform: uppercase;
 }
 
+/* 흩어진 자리·기울기(--x0·--y0·--r0)에서 레인 자리(--x1·--y1)로: 이 구역의 진행 --p(Sections.tsx 의 Lanes) */
 .lane-card {
   position: absolute;
+  left: calc(var(--x0) + (var(--x1) - var(--x0)) * var(--p, 0));
+  top: calc(var(--y0) + (var(--y1) - var(--y0)) * var(--p, 0));
+  transform: rotate(calc(var(--r0) * (1 - var(--p, 0)) * 1deg));
   width: 38%;
   overflow: hidden;
   border-radius: 12px;
@@ -1127,7 +1147,7 @@
 }
 
 .statement__text span {
-  opacity: clamp(0.18, calc(var(--p) * var(--n) - var(--i) + 0.18), 1);
+  opacity: clamp(0.18, calc(var(--p, 0) * var(--n) - var(--i) + 0.18), 1);
 }
 
 /* 대화 */
