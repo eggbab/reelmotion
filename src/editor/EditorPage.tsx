@@ -21,10 +21,11 @@ import { changeKey, emptyHistory, record, redo, undo } from './history'
 import type { Snapshot } from './history'
 import { detectFaces } from '../faces/detect'
 import { needsPlacement, placeAwayFromFaces } from '../faces/track'
-import type { FaceSample } from '../faces/track'
+import type { FaceSample, Measure } from '../faces/track'
 import { release } from '../http'
 import { direct, resolveOverlaps } from '../motion/direct'
 import { loadFontsForGraphics } from '../motion/fonts'
+import { measureGraphic } from '../motion/measure'
 import { isPortrait } from '../motion/paint'
 import { renderGraphics } from '../motion/render'
 import { THEMES, themeById } from '../motion/themes'
@@ -415,8 +416,15 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
 
   // 얼굴 자리를 알면, 쪽이 아직 정해지지 않은 그래픽(자동으로 만든 것·AI·말로 더한 것·손으로 더한 것)의 쪽을 정한다.
   // 한 번 정한 쪽은 다시 정하지 않는다(src/faces/track.ts). AI 되돌리기는 정한 뒤의 그래픽을 기준으로 둔다.
-  if (faceTrack) {
-    const placed = placeAwayFromFaces(graphics, faceTrack, portrait)
+  if (faceTrack && needsPlacement(graphics)) {
+    // 그래픽이 차지하는 자리는 지금 스타일로 실제로 그려 보고 잰다(src/motion/measure.ts). 한 번 정할 동안 같은 것은 다시 재지 않는다.
+    const drawn = new Map<string, ReturnType<Measure>>()
+    const measure: Measure = (graphic, side) => {
+      const key = `${graphic.id}:${side}`
+      if (!drawn.has(key)) drawn.set(key, measureGraphic(graphic, side, size.width / size.height, theme))
+      return drawn.get(key) ?? null
+    }
+    const placed = placeAwayFromFaces(graphics, faceTrack, portrait, measure)
     if (placed !== graphics) {
       setGraphics(placed)
       setAiUndo((undo) => (undo && undo.after === graphics ? { ...undo, after: placed } : undo))

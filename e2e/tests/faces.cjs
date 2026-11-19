@@ -1,5 +1,6 @@
 // 그래픽이 얼굴을 가리지 않게(src/faces): 실제 크롬에서 예시 영상의 얼굴을 찾아(브라우저 안 UltraFace) 그래픽의 쪽을 정하는지.
 //  1. 사람이 오른쪽에 앉은 영상(podcast-a): 오른쪽에 놓이던 숫자가 왼쪽으로, 왼쪽의 제목·이름표·목록은 그대로 — 그리는 그림도 왼쪽
+//  1b. 같은 때 보이는 이름표와 5칸 차트: 차트가 왼쪽으로 가면서 이름표가 오른쪽 아래로 비켜 선다(겹치지 않게)
 //  2. 「위치」에서 오른쪽으로 바꾸면 그대로(다시 옮기지 않는다)
 //  3. 사람이 가운데인 영상(explainer): 숫자는 오른쪽 그대로
 //  4. 세로 영상(shorts-a): 얼굴을 찾지 않고(파일도 받지 않는다) 「위치」 칸이 없다
@@ -88,6 +89,31 @@ const SAMPLE = { explainer: 0, 'shorts-a': 2, 'podcast-a': 4 }
   const leftInk = await inkCenter(page, counterAt)
   ok('1 the counter is drawn on the left half', leftInk !== null && leftInk < 0.45, `ink centre ${leftInk?.toFixed(2)}`)
   await page.locator('.ed-frame').screenshot({ path: `${OUT}/podcast-a-left.png` })
+
+  // ── 1b. 옮길 쪽에 같은 때 보이는 그래픽이 있으면 부딪히지 않게(실제로 그려 본 크기로 잰다) ──
+  // 이름표(왼쪽 아래)가 떠 있는 동안 5칸짜리 차트가 나온다 — 차트를 왼쪽으로 옮기면 이름표와 겹친다
+  await page.getByRole('tab', { name: 'Transcript' }).click()
+  await page.locator('.transcript-panel textarea').fill("Hi, I'm Mina Park.\nWe sold 30 apples, 50 bananas, 20 cherries, 40 pears and 10 plums.\nThanks for watching.")
+  await page.getByRole('button', { name: /Make graphics|Remake/ }).click()
+  await page.waitForSelector('.block[aria-label^="Chart"]')
+  const chartSide = await sideOf(page, 'Chart')
+  const tagSide = await sideOf(page, 'Name tag')
+  // 차트는 머리를 피해 왼쪽으로, 그 자리의 이름표는 오른쪽 아래로 비켜 선다(머리는 위에 있어 이름표가 가리지 않는다)
+  ok('1b the chart moves off the face and the name tag steps aside', chartSide === 'left' && tagSide === 'right', `chart ${chartSide}, name tag ${tagSide}`)
+  const chartLabel = await page.locator('.block[aria-label^="Chart"]').first().getAttribute('aria-label')
+  const tagLabel = await page.locator('.block[aria-label^="Name tag"]').first().getAttribute('aria-label')
+  const span = (label) => /(\d+\.\d)–(\d+\.\d)/.exec(label).slice(1).map(Number)
+  const [c0] = span(chartLabel)
+  const [, t1] = span(tagLabel)
+  ok('1b they really are on screen at the same time', c0 < t1 - 0.2, `${chartLabel} / ${tagLabel}`)
+  await page.evaluate((t) => {
+    const video = document.querySelector('video')
+    video.pause()
+    video.currentTime = t
+  }, (c0 + t1) / 2 + 0.3)
+  await page.waitForTimeout(800)
+  await page.locator('.ed-frame').screenshot({ path: `${OUT}/podcast-a-chart-and-tag.png` })
+  await page.keyboard.press('Control+z')
 
   // ── 2. 사람이 고르면 그대로 ──
   await page.locator('.block[aria-label^="Counter"]').first().click()

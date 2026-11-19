@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Graphic } from '../motion/types'
-import { decodeFaces, defaultSide, needsPlacement, placeAwayFromFaces, sampleTimes, sideOf } from './track'
+import { decodeFaces, defaultSide, needsPlacement, placeAwayFromFaces, regionMeasure, sampleTimes, sideOf } from './track'
 import type { FaceSample } from './track'
 
 describe('얼굴 찾기 모델(UltraFace)의 답 풀기', () => {
@@ -36,8 +36,9 @@ const RIGHT_FACE = [0.52, 0.08, 0.65, 0.43] as [number, number, number, number]
 const LEFT_FACE = [0.18, 0.1, 0.36, 0.5] as [number, number, number, number]
 const CENTER_FACE = [0.44, 0.08, 0.56, 0.42] as [number, number, number, number]
 const track = (box: [number, number, number, number] | null) => Array.from({ length: 10 }, (_, i) => at(i + 0.5, box))
-const stat: Graphic = { id: 's', kind: 'stat', start: 2, end: 5, value: 37, prefix: '', suffix: '%', decimals: 0, label: '' }
-const list: Graphic = { id: 'l', kind: 'list', start: 2, end: 6, title: '', items: ['a', 'b'] }
+const stat: Graphic = { id: 's', kind: 'stat', start: 3.1, end: 5.4, value: 37, prefix: '', suffix: '%', decimals: 0, label: '' }
+// 가운데 그래픽(숫자·목록·제목)은 자동 배치가 시간을 나눠 같은 때 보이지 않는다(direct.ts 의 resolveOverlaps)
+const list: Graphic = { id: 'l', kind: 'list', start: 5.5, end: 9, title: '', items: ['a', 'b'] }
 const lower: Graphic = { id: 'n', kind: 'lowerThird', start: 0, end: 3, name: 'Mina', role: '' }
 const title: Graphic = { id: 't', kind: 'title', start: 0, end: 3, text: 'Hello' }
 const quote: Graphic = { id: 'q', kind: 'quote', start: 6, end: 9, text: 'Hi', author: '' }
@@ -79,6 +80,40 @@ describe('얼굴을 피해 놓기(가로 영상)', () => {
     const once = placeAwayFromFaces([stat], track(RIGHT_FACE), false)
     const moved = once.map((graphic) => ({ ...graphic, start: 0, end: 1 }))
     expect(placeAwayFromFaces(moved, track(LEFT_FACE), false)).toBe(moved)
+  })
+
+  it('옮길 쪽에 같은 때 보이는 그래픽이 있으면, 그 그래픽이 비켜 설 수 있으면 함께 옮기고 아니면 옮기지 않는다', () => {
+    const bars: Graphic = { id: 'b', kind: 'bars', start: 2, end: 6, title: '', unit: '', items: [{ label: 'a', value: 1 }, { label: 'b', value: 2 }] }
+    const tag: Graphic = { ...lower, start: 1, end: 5 }
+    // 차트를 왼쪽으로 옮기면 왼쪽 아래 이름표와 부딪힌다 — 이름표가 오른쪽 아래로 비켜 선다(머리는 위에 있어 가리지 않는다)
+    const placed = placeAwayFromFaces([tag, bars], track(RIGHT_FACE), false)
+    expect([sideIn(placed, 'n'), sideIn(placed, 'b')]).toEqual(['right', 'left'])
+    // 사람이 이름표를 왼쪽으로 정해 두었으면 비켜 세우지 않는다 — 차트도 그대로(「위치」로 바꿀 수 있다)
+    const chosen = placeAwayFromFaces([{ ...tag, side: 'left' }, bars], track(RIGHT_FACE), false)
+    expect([sideIn(chosen, 'n'), sideIn(chosen, 'b')]).toEqual(['left', 'right'])
+    // 이름표가 같은 때가 아니면 차트만 옮긴다
+    expect(sideIn(placeAwayFromFaces([{ ...tag, start: 0, end: 1.5 }, bars], track(RIGHT_FACE), false), 'b')).toBe('left')
+    // 숫자는 이름표 위에 놓여(가장자리만 닿는다) 같은 때라도 이름표를 건드리지 않고 옮긴다 — 예시 영상 podcast-a 의 모습
+    const stats = placeAwayFromFaces([tag, stat], track(RIGHT_FACE), false)
+    expect([sideIn(stats, 'n'), sideIn(stats, 's')]).toEqual(['left', 'left'])
+  })
+
+  it('기본 자리에서 같은 때의 그래픽과 부딪히면, 반대쪽이 비어 있고 얼굴을 더 가리지 않을 때 옮긴다', () => {
+    const tag: Graphic = { ...lower, start: 5, end: 8 }
+    const placed = placeAwayFromFaces([tag, list], track(null), false)
+    // 먼저 나오는 이름표가 비켜 선다(어느 쪽이 비켜도 겹치지 않으면 된다)
+    expect([sideIn(placed, 'n'), sideIn(placed, 'l')]).toEqual(['right', 'left'])
+  })
+
+  it('실제로 그려 본 자리를 쓸 수 있다(편집기) — 짧은 제목은 가운데 얼굴을 가리지 않는다', () => {
+    const short = { ...title, text: 'Hi' }
+    const measure = (graphic: Graphic, side: 'left' | 'right') =>
+      graphic.kind === 'title' ? (side === 'left' ? ([0.06, 0.1, 0.3, 0.25] as const) : ([0.7, 0.1, 0.94, 0.25] as const)) : regionMeasure(graphic, side)
+    const face = [0.12, 0.05, 0.3, 0.4] as [number, number, number, number]
+    // 얼굴이 왼쪽 위에 있어 짧은 제목과 겹치면 옮긴다
+    expect(sideIn(placeAwayFromFaces([short], track(face), false, (g, side) => [...measure(g, side)!] as [number, number, number, number]), 't')).toBe('right')
+    // 얼굴이 가운데면 짧은 제목은 어느 쪽이든 가리지 않는다
+    expect(sideIn(placeAwayFromFaces([short], track(CENTER_FACE), false, (g, side) => [...measure(g, side)!] as [number, number, number, number]), 't')).toBe('left')
   })
 
   it('쪽 고르기에 쓰는 기본 쪽', () => {
