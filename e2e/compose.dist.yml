@@ -1,6 +1,8 @@
-# 고친 화면을 이미지를 다시 굽지 않고 바로 시험할 때: `npm run build` 로 만든 dist 를 웹 서버에 그대로 물린다.
+# 고친 화면을 이미지를 다시 굽지 않고 바로 시험할 때: `npm run build` 로 만든 dist 와 웹 서버 설정(Caddyfile)을 그대로 물린다.
 #   cd deploy && docker compose -f compose.yml -f ../e2e/compose.test.yml -f ../e2e/compose.dist.yml up -d --no-build web
 services:
   web:
     volumes:
       - ../dist:/srv:ro
+      # 웹 서버 설정(머리글·보안 규칙)도 저장소의 것으로 — 고친 설정을 이미지를 다시 굽지 않고 시험한다
+      - ../deploy/Caddyfile:/etc/caddy/Caddyfile:ro

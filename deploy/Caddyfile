@@ -32,6 +32,15 @@
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# 다른 사이트가 우리 쪽을 몰래 끼워 넣지 못하게(계정 지우기 단추 위에 덮어씌우는 속임수 막기)
+		X-Frame-Options "DENY"
+		# https 로만 오게(앞단이 https 를 맡는다 — 브라우저는 https 응답에서만 이 머리글을 따른다). 다른 하위 주소에는 걸지 않는다.
+		Strict-Transport-Security "max-age=31536000"
+		# 실행해도 되는 것만: 우리 파일과 쪽마다 같은 언어 옮기기 스크립트(해시 — index.html 을 고치면 src/site/csp.test.ts 가 새 값을 알려 준다),
+		# 받아쓰기·얼굴 찾기의 wasm, 워커. blob: 은 브라우저 안 받아쓰기가 실행 파일을 그 브라우저 안의 임시 주소로 불러와서 필요하다
+		# (2026-11-19 이 규칙을 켜고 브라우저 Whisper 로 확인 — blob: 이 없으면 「받아쓰기가 멈췄어요」).
+		# 바깥으로는 브라우저 받아쓰기 모델 파일을 주는 Hugging Face 만(개인정보처리방침과 같게).
+		Content-Security-Policy "default-src 'self'; script-src 'self' blob: 'sha256-BB/KjXah2DriE2cVtW8EbZMPxLiHop5+MILWZMf6GFI=' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' blob: https://huggingface.co https://*.huggingface.co https://*.hf.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 		-Server
 	}
 }

@@ -70,6 +70,7 @@ docker compose -f compose.yml -f compose.gpu.yml up -d --build
    - `handleWebhook(request, setPlan)`: 결제사가 보내는 알림의 **서명부터 확인**한다(틀리면 400). 결제가 끝났으면 `setPlan(사용자 id, 'creator' 또는 'pro', 끝나는 시각(ms))`, 해지·환불이면 `setPlan(사용자 id, 'free', null)`. 같은 알림이 두 번 와도 결과가 같게 만든다.
    - 결제사 관리 화면에 알림 주소 `https://도메인/api/billing/webhook` 를 적는다. 이 주소만 「우리 사이트에서 온 요청인지」(Origin)를 보지 않는다 — 대신 서명으로 확인한다.
 4. `server/app/main.ts` 에서 `createApp({ …, billing: 만든 구현 })` 으로 넘기고, 시작 줄의 `billing not connected` 를 바꾼다.
+   - 결제 화면을 결제사 주소로 **옮겨 가는** 방식이면 웹 서버 설정을 고칠 것이 없다. 결제창을 우리 쪽 **안에 띄우는** 방식(결제사 스크립트·창)이면 `deploy/Caddyfile` 의 `Content-Security-Policy` 에 결제사가 알려 주는 주소를 `script-src`·`frame-src`·`connect-src` 에 더해야 한다(아래 「실행해도 되는 것(보안 규칙)」). 더하지 않으면 결제창이 뜨지 않는다.
 5. `src/site/plans.ts` 에서 유료 요금제의 `available` 을 `true` 로 바꾼다(소개 페이지 요금표 단추가 「내 계정」의 그 요금제로 간다). `src/site/plans.test.ts` 의 「결제를 받을 수 있기 전에는…」 시험과, 요금표의 「베타 동안 무료」 글(`src/site/copy.ts` 의 `pricing.body`·`pricing.note`, `src/account/copy.ts` 의 `planBeta`)도 함께 고친다.
 6. `deploy/.env` 에 `ENFORCE_PLANS=1`.
 7. 약관·정책을 먼저 고치고 알린다(약관의 「약관 변경」: 시행 7일 전, 불리하면 30일 전).
@@ -182,6 +183,12 @@ docker compose exec app node main.js admin test-alert
   - 말로 고치기 AI: `docker compose logs assist`. 메모리가 모자라면 다른 프로그램을 끈다.
   - 저장 공간: `docker system df` 로 큰 것을 찾아 정리한다(Docker Desktop 의 정리 기능).
   - 자동 백업: `docker compose logs app` 에서 `backup failed` 줄을 본다.
+
+## 실행해도 되는 것(보안 규칙, 2026-11-19)
+- 웹 서버가 모든 응답에 `Content-Security-Policy` 를 붙인다(`deploy/Caddyfile`). 우리 사이트의 파일과, 쪽마다 들어가는 언어 옮기기 스크립트 하나(해시)만 실행하고, 바깥으로는 브라우저 받아쓰기 모델을 주는 Hugging Face 에만 연결한다. 남이 끼워 넣은 스크립트가 돌거나 다른 사이트가 우리 쪽을 몰래 감싸는(계정 지우기 단추를 덮어 누르게 하는) 일을 막는다. `X-Frame-Options: DENY`, `Strict-Transport-Security`(https 로만)도 함께.
+- `index.html` 의 그 스크립트를 고치면 해시가 바뀐다 — `npm test` 의 `src/site/csp.test.ts` 가 새 값을 알려 준다. Caddyfile 의 `script-src` 를 그 값으로 바꾼다.
+- 바깥 서비스를 새로 붙이면(결제창·분석 도구 등) 그 주소를 이 규칙에 더해야 동작한다. 더하면 개인정보처리방침의 「바깥 회사」도 함께 고친다(시험이 Hugging Face 말고 다른 바깥 주소를 잡는다).
+- 확인: `curl -sI https://도메인/ | grep -i content-security` · 시험 스택에서 화면 시험 전체(19묶음)와 브라우저 받아쓰기(Whisper)를 이 규칙을 켠 채 돌렸다. `blob:` 을 빼면 브라우저 받아쓰기가 멈춘다.
 
 ## 기록(로그)
 - 웹(Caddy)은 접속 기록을 쓰지 않는다. 오류 기록에는 요청 정보가 붙는데, 그중 IP 주소·포트·머리글을 지우게 했다(`deploy/Caddyfile` 맨 위). 2026-11-15 확인: 일부러 오류를 낸 요청(`X-Forwarded-For` 포함)의 기록에 IP 가 0번 나왔다.
