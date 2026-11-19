@@ -1,3 +1,4 @@
+import { DOC_HEADS } from './heads'
 import type { LegalDocs } from './types'
 
 /**
@@ -34,8 +35,7 @@ import type { LegalDocs } from './types'
  */
 export const PRIVACY: LegalDocs = {
   ko: {
-    title: '개인정보처리방침',
-    description: 'ReelMotion 개인정보처리방침 — 영상은 올리지 않고, 받아 적은 소리는 저장하지 않으며, 접속 기록을 남기지 않습니다. 처리하는 정보와 보유 기간, 이용자의 권리를 안내합니다.',
+    ...DOC_HEADS.privacy.ko,
     intro: '브이미랩스(이하 「회사」)는 ReelMotion(이하 「서비스」)을 운영하면서 개인정보 보호법에 따라 이용자의 개인정보를 보호합니다. 서비스는 로그인하지 않아도 쓸 수 있고, 영상을 회사 서버로 올리지 않으며, 받아 적은 소리를 저장하지 않습니다.',
     sections: [
       {
@@ -177,8 +177,7 @@ export const PRIVACY: LegalDocs = {
     ],
   },
   en: {
-    title: 'Privacy Policy',
-    description: 'ReelMotion Privacy Policy — videos are never uploaded, the sound we transcribe is not kept, and we keep no access logs. What we process, for how long, and your rights.',
+    ...DOC_HEADS.privacy.en,
     intro: '브이미랩스 (the “Company”) runs ReelMotion (the “Service”) and protects your personal information under Korea’s Personal Information Protection Act. You can use the Service without logging in. It never uploads your videos to our servers and does not keep the sound it transcribes.',
     sections: [
       {
@@ -320,8 +319,7 @@ export const PRIVACY: LegalDocs = {
     ],
   },
   ja: {
-    title: 'プライバシーポリシー',
-    description: 'ReelMotion プライバシーポリシー — 動画はアップロードせず、文字起こしした音声は保存せず、アクセス記録も残しません。扱う情報、保存期間、利用者の権利をご案内します。',
+    ...DOC_HEADS.privacy.ja,
     intro: '브이미랩스(以下「当社」)は、ReelMotion(以下「本サービス」)の運営にあたり、韓国の個人情報保護法に従って利用者の個人情報を保護します。本サービスはログインしなくても使え、動画を当社のサーバーにアップロードせず、文字起こしした音声を保存しません。',
     sections: [
       {

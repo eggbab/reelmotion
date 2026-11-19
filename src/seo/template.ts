@@ -53,6 +53,22 @@ export function shellHtml(target: HeadTarget): string {
  * 편집기 껍데기의 머리에 넣는 미리 받기: 편집기 코드와 스타일을 처음부터 함께 받게 한다. 넣지 않으면 기본 코드를 받아 실행한 뒤에야
  * 편집기 코드를 받기 시작한다(차례로). assets: dist/assets 의 파일 이름들
  */
+/**
+ * 첫 화면 스크립트에 들어가면 안 되는 긴 글의 표시(개인정보처리방침·약관·도움말·라이선스에만 있는 글).
+ * 누가 바닥글·쪽 제목 같은 곳에서 글 전체(LEGAL_DOCS·HELP·credits)를 다시 가져다 쓰면 빌드가 멈춘다(scripts/prerender.mjs) —
+ * 그러면 소개 페이지를 여는 모든 사람이 약 40KB 를 더 받는다(2026-11-19 나눔, src/site/lazyPages.ts).
+ */
+export const SPLIT_MARKERS = ['권익침해 구제방법', '이 약관은 대한민국 법을 따릅니다', '말하는 영상 하나로 모션그래픽 영상을 만드는 순서', 'SIL Open Font License']
+
+export function leakedSplitText(script: string): string[] {
+  return SPLIT_MARKERS.filter((marker) => script.includes(marker))
+}
+
+/** index.html 이 처음 부르는 스크립트(assets 안의 파일 이름) */
+export function entryScript(html: string): string | null {
+  return /<script type="module"[^>]*\ssrc="\/assets\/([^"]+\.js)"/.exec(html)?.[1] ?? null
+}
+
 export function shellHints(target: HeadTarget, assets: string[]): string {
   if (target.kind !== 'page' || target.page !== 'app') return ''
   const script = assets.find((name) => /^EditorPage-[\w-]+\.js$/.test(name))

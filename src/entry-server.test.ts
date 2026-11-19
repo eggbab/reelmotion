@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { BUSINESS, render } from './entry-server'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { BUSINESS, preloadAllPages, render } from './entry-server'
 import { prerenderPlan } from './seo/template'
 
 describe('빌드 때 미리 그리기', () => {
+  // 약관·도움말·라이선스는 따로 받는 쪽이라 빌드 때처럼 먼저 받아 둔다(scripts/prerender.mjs)
+  beforeAll(() => preloadAllPages())
+
   it('미리 그리는 쪽은 모두 오류 없이 그려지고 제목(h1)이 하나 있다', () => {
     for (const item of prerenderPlan().filter((entry) => entry.key !== null)) {
       const html = render(item.url)

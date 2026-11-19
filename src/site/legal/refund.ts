@@ -1,5 +1,6 @@
 import { PLANS, formatWon } from '../plans'
 import { REFUND_BUSINESS_DAYS as DAYS3, REFUND_EXAMPLE as X, REFUND_PENALTY_PERCENT as FEE, REFUND_WINDOW_DAYS as WINDOW } from './refund-math'
+import { DOC_HEADS } from './heads'
 import type { LegalDocs } from './types'
 
 /**
@@ -11,8 +12,7 @@ const w = formatWon
 
 export const REFUND: LegalDocs = {
   ko: {
-    title: '환불 규정',
-    description: `ReelMotion 유료 요금제의 환불 기준 — 결제한 날부터 ${WINDOW}일 안에는 전액, 그 뒤에는 쓴 기간과 위약금 ${FEE}%를 빼고 돌려 드립니다.`,
+    ...DOC_HEADS.refund.ko,
     intro: `유료 요금제는 아직 판매하지 않습니다. 지금은 모든 기능이 무료라 결제와 환불이 없습니다. 판매를 시작하면 아래 기준으로 환불합니다.`,
     sections: [
       { title: '적용 대상', blocks: [`크리에이터(월 ${price('creator')}원)·프로(월 ${price('pro')}원) 요금제 결제에 적용됩니다. 무료 요금제는 결제가 없습니다.`] },
@@ -37,8 +37,7 @@ export const REFUND: LegalDocs = {
     ],
   },
   en: {
-    title: 'Refund Policy',
-    description: `Refunds for ReelMotion paid plans — a full refund within ${WINDOW} days of payment; after that, the used period and a ${FEE}% fee are deducted.`,
+    ...DOC_HEADS.refund.en,
     intro: 'Paid plans are not on sale yet. Every feature is free for now, so there is nothing to pay or refund. When paid plans open, these rules apply.',
     sections: [
       { title: 'Which payments this covers', blocks: [`Payments for the Creator (KRW ${price('creator')} a month) and Pro (KRW ${price('pro')} a month) plans. The Free plan has no payment.`] },
@@ -63,8 +62,7 @@ export const REFUND: LegalDocs = {
     ],
   },
   ja: {
-    title: '返金ポリシー',
-    description: `ReelMotion 有料プランの返金基準 — お支払いから${WINDOW}日以内は全額、その後は利用期間と違約金${FEE}%を差し引いて返金します。`,
+    ...DOC_HEADS.refund.ja,
     intro: '有料プランはまだ販売していません。現在はすべての機能が無料のため、支払いと返金はありません。販売を始めたら、以下の基準で返金します。',
     sections: [
       { title: '対象', blocks: [`クリエイター(月${price('creator')}ウォン)・プロ(月${price('pro')}ウォン)プランの支払いが対象です。無料プランには支払いがありません。`] },

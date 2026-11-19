@@ -8,9 +8,7 @@ import type { Lang } from '../langs'
 import { Footer, Header } from '../site/Chrome'
 import { SITE_COPY } from '../site/copy'
 import { planOf } from '../site/entitlements'
-import { formatDate } from '../site/legal/docs'
-import { PRIVACY } from '../site/legal/privacy'
-import { TERMS } from '../site/legal/terms'
+import { DOC_HEADS, formatDate } from '../site/legal/heads'
 import { pageMeta } from '../site/meta'
 import { formatWon, PLANS } from '../site/plans'
 import type { PlanId } from '../site/plans'
@@ -43,11 +41,11 @@ function Consent({ text }: { text: string }) {
       {text.split(/(\{terms\}|\{privacy\})/).map((part, i) =>
         part === '{terms}' ? (
           <Link key={i} to={pagePath('terms', lang)}>
-            {TERMS[lang].title}
+            {DOC_HEADS.terms[lang].title}
           </Link>
         ) : part === '{privacy}' ? (
           <Link key={i} to={pagePath('privacy', lang)}>
-            {PRIVACY[lang].title}
+            {DOC_HEADS.privacy[lang].title}
           </Link>
         ) : (
           part

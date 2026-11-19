@@ -10,8 +10,7 @@ import { BUSINESS } from './business'
 import { ContactLink } from './contact/ContactLink'
 import type { SiteCopy } from './copy'
 import { EditorLink } from './EditorLink'
-import { LICENSES_UI } from './legal/credits'
-import { LEGAL_DOCS, LEGAL_PAGES, LEGAL_UI } from './legal/docs'
+import { DOC_HEADS, LEGAL_PAGES, LEGAL_UI } from './legal/heads'
 import { pagePath } from './routes'
 import { NoticeLine } from './NoticeBar'
 import { useNotice } from './notice'
@@ -218,10 +217,10 @@ export function Footer({ copy }: { copy: SiteCopy }) {
           <nav className="site-footer__legal" aria-label={LEGAL_UI[lang].eyebrow}>
             {LEGAL_PAGES.map((page) => (
               <Link key={page} to={pagePath(page, lang)} className={page === 'privacy' ? 'is-strong' : undefined}>
-                {LEGAL_DOCS[page][lang].title}
+                {DOC_HEADS[page][lang].title}
               </Link>
             ))}
-            <Link to={pagePath('licenses', lang)}>{LICENSES_UI[lang].title}</Link>
+            <Link to={pagePath('licenses', lang)}>{DOC_HEADS.licenses[lang].title}</Link>
           </nav>
           <LangPicker label={copy.nav.language} className="lang-picker--light" />
         </div>

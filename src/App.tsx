@@ -4,15 +4,17 @@ import { AccountPage } from './account/AccountPage'
 import { LangProvider } from './lang'
 import { ContactPage } from './site/contact/ContactPage'
 import { LandingPage } from './site/LandingPage'
-import { LegalPage } from './site/legal/LegalPage'
-import { LicensesPage } from './site/legal/LicensesPage'
+import { splitPages } from './site/lazyPages'
 import { NotFoundPage } from './site/NotFoundPage'
+import { PageLoading } from './site/PageLoading'
 import { langOfPath, matchPage } from './site/routes'
 
 // 편집기는 내보내기·받아쓰기 도구를 담고 있어 무겁다. 소개 페이지를 여는 사람은 내려받지 않게 따로 나눈다.
 const EditorPage = lazy(() => import('./editor/EditorPage').then((module) => ({ default: module.EditorPage })))
 // 관리자 화면도 운영자만 쓰므로 따로 나눈다.
 const AdminPage = lazy(() => import('./admin/AdminPage').then((module) => ({ default: module.AdminPage })))
+// 약관·도움말·라이선스는 글이 길어 그 쪽을 열 때만 받는다(src/site/lazyPages.ts — 미리 그린 HTML 을 이어받기 전에는 main.tsx 가 받아 둔다).
+const { legal: LegalPage, licenses: LicensesPage } = splitPages
 
 /** 쪽을 옮기면 맨 위에서 시작한다(# 이 붙은 주소는 그 구역으로). 처음 열 때는 브라우저가 되살린 위치를 그대로 둔다. */
 function useScrollToTop(pathname: string, hash: string) {
@@ -51,7 +53,9 @@ export function AppRoutes() {
       ) : page === 'home' ? (
         <LandingPage />
       ) : page === 'licenses' ? (
-        <LicensesPage />
+        <Suspense fallback={<PageLoading />}>
+          <LicensesPage />
+        </Suspense>
       ) : page === 'contact' ? (
         <ContactPage />
       ) : page === 'account' ? (
@@ -61,7 +65,9 @@ export function AppRoutes() {
           <AdminPage />
         </Suspense>
       ) : (
-        <LegalPage page={page} />
+        <Suspense fallback={<PageLoading />}>
+          <LegalPage page={page} />
+        </Suspense>
       )}
     </LangProvider>
   )

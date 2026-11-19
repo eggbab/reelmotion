@@ -27,13 +27,20 @@ const write = async (file, text) => {
 
 const plan = entry.prerenderPlan()
 const assets = await readdir(join(dist, 'assets'))
+// 약관·도움말·라이선스는 따로 받는 쪽이라(src/site/lazyPages.ts) 그리기 전에 받아 둔다 — 안 그러면 빈 자리만 그려진다
+await entry.preloadAllPages()
 for (const item of plan) {
   // 미리 그리지 않는 쪽(편집기 껍데기)에는 「여는 중」 한 줄과 편집기 코드 미리 받기(src/seo/template.ts)
   const html = item.key === null ? entry.shellHtml(item.target) : entry.render(item.url)
+  // 약관·도움말은 따로 받는 글을 미리 받게 하지 않는다 — 휴대폰 조건에서 스타일 파일과 대역을 다퉈 첫 글자가 0.15초 늦었다(2026-11-19)
   const hints = item.key === null ? entry.shellHints(item.target, assets) : ''
   const head = hints ? `${entry.headTags(item.target, origin)}\n    ${hints}` : entry.headTags(item.target, origin)
   await write(item.file, entry.fillTemplate(template, { lang: item.lang, head, html, key: item.key }))
 }
+// 첫 화면 스크립트에 약관·도움말 글 전체가 다시 들어갔으면 멈춘다(src/site/lazyPages.ts — 소개 페이지를 여는 모든 사람이 더 받게 된다)
+const firstScript = entry.entryScript(template)
+const leaked = firstScript ? entry.leakedSplitText(await readFile(join(dist, 'assets', firstScript), 'utf8')) : []
+if (leaked.length > 0) throw new Error(`첫 화면 스크립트(${firstScript})에 따로 받아야 할 글이 들어 있습니다: ${leaked.join(', ')} — 글 전체 대신 src/site/legal/heads.ts 를 쓰세요`)
 await write('robots.txt', entry.robotsTxt(origin))
 await write('llms.txt', entry.llmsTxt(origin))
 if (origin) await write('sitemap.xml', entry.sitemapXml(origin))

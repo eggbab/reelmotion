@@ -1,3 +1,4 @@
+import { DOC_HEADS } from './heads'
 import type { LegalDocs } from './types'
 
 /**
@@ -9,8 +10,7 @@ import type { LegalDocs } from './types'
  */
 export const TERMS: LegalDocs = {
   ko: {
-    title: '이용약관',
-    description: 'ReelMotion 이용약관 — 서비스 내용, 영상과 결과물의 권리, 금지 행위, 이용 한도, 약관 변경, 책임의 한계를 정합니다.',
+    ...DOC_HEADS.terms.ko,
     intro: '이 약관은 브이미랩스(이하 「회사」)가 운영하는 ReelMotion(이하 「서비스」)을 이용하는 조건입니다. 서비스를 이용하면 이 약관에 동의한 것으로 봅니다.',
     sections: [
       {
@@ -89,8 +89,7 @@ export const TERMS: LegalDocs = {
     ],
   },
   en: {
-    title: 'Terms of Service',
-    description: 'ReelMotion Terms of Service — what the service does, who owns your videos, what is not allowed, usage limits, changes and limits of liability.',
+    ...DOC_HEADS.terms.en,
     intro: 'These terms are the conditions for using ReelMotion (the “Service”), run by 브이미랩스 (the “Company”). By using the Service, you agree to these terms.',
     sections: [
       {
@@ -169,8 +168,7 @@ export const TERMS: LegalDocs = {
     ],
   },
   ja: {
-    title: '利用規約',
-    description: 'ReelMotion 利用規約 — サービスの内容、動画と作成物の権利、禁止事項、利用上限、規約の変更、責任の範囲を定めます。',
+    ...DOC_HEADS.terms.ja,
     intro: 'この規約は、브이미랩스(以下「当社」)が運営する ReelMotion(以下「本サービス」)の利用条件です。本サービスを利用すると、この規約に同意したものとみなします。',
     sections: [
       {

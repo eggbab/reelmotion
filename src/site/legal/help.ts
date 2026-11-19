@@ -1,7 +1,7 @@
-import type { Lang } from '../../langs'
+import { DOC_HEADS } from './heads'
 import type { LegalDocs } from './types'
 
-export const HELP_EYEBROW: Record<Lang, string> = { ko: '쓰는 법', en: 'HOW IT WORKS', ja: '使い方' }
+export { HELP_EYEBROW } from './heads'
 
 /**
  * 도움말: 편집기 쓰는 법. 단추·탭 이름은 편집기 글(src/editor/copy.ts)과 같게 쓴다 — 편집기 글을 바꾸면 여기도 고친다.
@@ -9,8 +9,7 @@ export const HELP_EYEBROW: Record<Lang, string> = { ko: '쓰는 법', en: 'HOW I
  */
 export const HELP: LegalDocs = {
   ko: {
-    title: '도움말',
-    description: 'ReelMotion 쓰는 법 — 영상 넣기, 말 받아쓰기, 그래픽 만들기와 고치기, 스타일, MP4 내보내기, 내 작업 저장.',
+    ...DOC_HEADS.help.ko,
     intro: '말하는 영상 하나로 모션그래픽 영상을 만드는 순서입니다. 편집기는 계정 없이 바로 쓸 수 있어요.',
     sections: [
       {
@@ -134,8 +133,7 @@ export const HELP: LegalDocs = {
     ],
   },
   en: {
-    title: 'Help',
-    description: 'How to use ReelMotion — add a video, transcribe it, make and edit graphics, pick a style, export an MP4 and keep your projects.',
+    ...DOC_HEADS.help.en,
     intro: 'Here is how to turn one talking video into a motion graphics video. The editor works right away, with no account.',
     sections: [
       {
@@ -259,8 +257,7 @@ export const HELP: LegalDocs = {
     ],
   },
   ja: {
-    title: 'ヘルプ',
-    description: 'ReelMotion の使い方 — 動画を入れる、声を書き起こす、グラフィックスを作って直す、スタイル、MP4 の書き出し、マイプロジェクト。',
+    ...DOC_HEADS.help.ja,
     intro: '話している動画ひとつから、モーショングラフィックス動画を作る手順です。エディターはアカウントなしですぐに使えます。',
     sections: [
       {

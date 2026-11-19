@@ -19,7 +19,9 @@ export function render(url: string): string {
 }
 
 export { headTags } from './seo/head'
+// 약관·도움말·라이선스는 따로 받는 쪽이라 그리기 전에 받아 둔다(scripts/prerender.mjs 가 먼저 부른다)
+export { preloadAllPages } from './site/lazyPages'
 export { llmsTxt, robotsTxt, sitemapXml } from './seo/files'
-export { fillTemplate, prerenderPlan, shellHints, shellHtml } from './seo/template'
+export { entryScript, fillTemplate, leakedSplitText, prerenderPlan, shellHints, shellHtml } from './seo/template'
 export { BUSINESS } from './site/business'
 export { KILL_SWITCH, SHELLS, precacheList, stampWorker } from './pwa/routes'

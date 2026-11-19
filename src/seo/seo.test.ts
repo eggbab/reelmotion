@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { llmsTxt, robotsTxt, sitemapXml } from './files'
 import { headTags } from './head'
-import { fillTemplate, prerenderPlan, shellHints, shellHtml } from './template'
+import { readFileSync } from 'node:fs'
+import { SPLIT_MARKERS, entryScript, fillTemplate, leakedSplitText, prerenderPlan, shellHints, shellHtml } from './template'
 
 const ORIGIN = 'https://reelmotion.test'
 
@@ -118,6 +119,18 @@ describe('fillTemplate / prerenderPlan', () => {
       '<link rel="modulepreload" crossorigin href="/assets/EditorPage-XyZ9.js" />\n    <link rel="preload" as="style" crossorigin href="/assets/EditorPage-Q1w2.css" />',
     )
     expect(shellHints({ kind: 'page', page: 'help', lang: 'en' }, assets)).toBe('')
+  })
+
+  it('첫 화면 스크립트에 따로 받는 글이 들어가면 찾아낸다(빌드가 멈춘다)', () => {
+    // 표시 글은 실제로 그 글에만 있어야 한다(없으면 지켜 주지 못한다)
+    const sources = ['../site/legal/privacy.ts', '../site/legal/terms.ts', '../site/legal/help.ts', '../site/legal/LicensesPage.tsx'].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
+    for (const [index, marker] of SPLIT_MARKERS.entries()) expect(sources[index], marker).toContain(marker)
+    for (const path of ['../site/Chrome.tsx', '../site/meta.ts', '../site/copy.ts', '../site/contact/copy.ts', '../site/legal/heads.ts']) {
+      expect(leakedSplitText(readFileSync(new URL(path, import.meta.url), 'utf8')), path).toEqual([])
+    }
+    expect(leakedSplitText('var a="권익침해 구제방법";var b="SIL Open Font License 1.1"')).toEqual(['권익침해 구제방법', 'SIL Open Font License'])
+    expect(entryScript('<head><script type="module" crossorigin src="/assets/index-DlLjF-mi.js"></script>')).toBe('index-DlLjF-mi.js')
+    expect(entryScript('<head></head>')).toBeNull()
   })
 
   it('틀이 바뀌어 넣을 자리를 못 찾으면 멈춘다', () => {

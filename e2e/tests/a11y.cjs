@@ -44,6 +44,10 @@ const PHONE_PAGES = ['/', '/ko', '/app', '/ko/app', '/ja/contact']
           await new Promise((resolve) => setTimeout(resolve, 30))
         }
       })
+      // 스크롤에 따라 밝아지는 움직임이 끝까지 따라올 때까지(빠르게 내리면 가끔 덜 밝은 채로 재서 대비 문제로 잡혔다)
+      await page
+        .waitForFunction(() => [...document.querySelectorAll('.statement__text span')].every((span) => getComputedStyle(span).opacity === '1'), null, { timeout: 5000 })
+        .catch(() => null)
     }
     await page.waitForTimeout(600)
     await page.addScriptTag({ path: AXE })

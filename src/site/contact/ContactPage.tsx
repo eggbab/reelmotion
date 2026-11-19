@@ -8,8 +8,7 @@ import type { Lang } from '../../langs'
 import { BUSINESS } from '../business'
 import { Footer, Header } from '../Chrome'
 import { SITE_COPY } from '../copy'
-import { LEGAL_DOCS } from '../legal/docs'
-import { HELP } from '../legal/help'
+import { DOC_HEADS } from '../legal/heads'
 import { pageMeta } from '../meta'
 import { pagePath } from '../routes'
 import { usePageMeta, useSiteBody } from '../usePageMeta'
@@ -27,14 +26,14 @@ function Rich({ text, lang }: { text: string; lang: Lang }) {
         if (token === 'help') {
           return (
             <Link key={index} to={pagePath('help', lang)}>
-              {HELP[lang].title}
+              {DOC_HEADS.help[lang].title}
             </Link>
           )
         }
         if (token === 'privacy') {
           return (
             <Link key={index} to={pagePath('privacy', lang)}>
-              {LEGAL_DOCS.privacy[lang].title}
+              {DOC_HEADS.privacy[lang].title}
             </Link>
           )
         }

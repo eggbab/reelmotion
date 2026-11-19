@@ -4,40 +4,10 @@ import { REFUND } from './refund'
 import { TERMS } from './terms'
 import type { LegalDocs, LegalPageId } from './types'
 
+// 쪽 제목·바닥글이 쓰는 작은 글은 heads.ts 에 있다(첫 화면이 이 큰 파일을 받지 않게). 예전 이름으로도 부를 수 있게 다시 내보낸다.
+export { LEGAL_PAGES, LEGAL_UI, formatDate } from './heads'
+
 export const LEGAL_DOCS: Record<LegalPageId, LegalDocs> = { terms: TERMS, privacy: PRIVACY, refund: REFUND }
-
-export const LEGAL_PAGES: readonly LegalPageId[] = ['terms', 'privacy', 'refund']
-
-/** account·pricing 은 글 속 {account}·{pricing} 링크의 글자 */
-export const LEGAL_UI: Record<Lang, { eyebrow: string; effective: string; translation: string; original: string; contactPending: string; account: string; pricing: string }> = {
-  ko: {
-    eyebrow: '약관과 정책',
-    effective: '시행일',
-    translation: '',
-    original: '',
-    contactPending: '문의 메일(정식 공개 전에 이 자리에 적습니다)',
-    account: '내 계정',
-    pricing: '요금 안내',
-  },
-  en: {
-    eyebrow: 'LEGAL',
-    effective: 'Effective',
-    translation: 'This is a translation of the Korean original. If they differ, the Korean original applies.',
-    original: 'Read the Korean original',
-    contactPending: 'our contact email (listed here before launch)',
-    account: 'My account',
-    pricing: 'pricing',
-  },
-  ja: {
-    eyebrow: '規約とポリシー',
-    effective: '施行日',
-    translation: 'これは韓国語原文の翻訳です。内容が異なる場合は、韓国語の原文に従います。',
-    original: '韓国語の原文を読む',
-    contactPending: 'お問い合わせ用メール(正式公開前にここに記載します)',
-    account: 'マイアカウント',
-    pricing: '料金案内',
-  },
-}
 
 /** 개인정보 침해 신고·상담 기관(같은 사업자의 AllMails 개인정보처리방침과 같다). */
 export const AGENCIES: { name: Record<Lang, string>; site: string; phone: Record<Lang, string> }[] = [
@@ -62,13 +32,3 @@ export const AGENCIES: { name: Record<Lang, string>; site: string; phone: Record
     phone: { ko: '국번 없이 182', en: '182 (within Korea)', ja: '182(韓国国内)' },
   },
 ]
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-
-/** 'YYYY-MM-DD' 를 그 언어의 날짜 글로. 시간대에 따라 하루가 밀리지 않게 직접 나눈다. */
-export function formatDate(iso: string, lang: Lang): string {
-  const [year, month, day] = iso.split('-').map(Number)
-  if (lang === 'ko') return `${year}년 ${month}월 ${day}일`
-  if (lang === 'ja') return `${year}年${month}月${day}日`
-  return `${MONTHS[month - 1]} ${day}, ${year}`
-}

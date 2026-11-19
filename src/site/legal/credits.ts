@@ -1,4 +1,5 @@
 import type { Lang } from '../../langs'
+import { DOC_HEADS } from './heads'
 
 /**
  * 「오픈소스 라이선스」 쪽(/licenses)에 적는 것: 글꼴·받아쓰기 모델·예시 영상·주요 프로그램과 그 사용 허가.
@@ -94,8 +95,7 @@ export const LICENSES_UI: Record<
   { title: string; description: string; intro: string; fonts: string; models: string; videos: string; videosBody: string; programs: string; full: string; fullBody: string; server: string; browser: string; source: string }
 > = {
   ko: {
-    title: '오픈소스 라이선스',
-    description: 'ReelMotion 이 쓰는 글꼴, AI 모델, 예시 영상, 공개 프로그램과 그 사용 허가입니다.',
+    ...DOC_HEADS.licenses.ko,
     intro: 'ReelMotion 은 아래 글꼴·모델·영상·공개 프로그램을 각 사용 허가에 따라 씁니다. 만든 분들께 감사드립니다.',
     fonts: '글꼴',
     models: 'AI 모델(받아쓰기·말로 고치기·얼굴 자리 찾기)',
@@ -109,8 +109,7 @@ export const LICENSES_UI: Record<
     source: '소스 코드',
   },
   en: {
-    title: 'Open-source licenses',
-    description: 'The fonts, AI models, sample videos and open-source software ReelMotion uses, and their licenses.',
+    ...DOC_HEADS.licenses.en,
     intro: 'ReelMotion uses the fonts, models, videos and open-source software below under their licenses. Thank you to everyone who made them.',
     fonts: 'Fonts',
     models: 'AI models (speech, chat editing and finding faces)',
@@ -124,8 +123,7 @@ export const LICENSES_UI: Record<
     source: 'Source code',
   },
   ja: {
-    title: 'オープンソースライセンス',
-    description: 'ReelMotion が使うフォント、AI モデル、サンプル動画、オープンソースソフトウェアとそのライセンスです。',
+    ...DOC_HEADS.licenses.ja,
     intro: 'ReelMotion は、下記のフォント・モデル・動画・オープンソースソフトウェアを、それぞれのライセンスに従って使っています。作ってくださった皆さんに感謝します。',
     fonts: 'フォント',
     models: 'AI モデル(文字起こし・話して直す・顔の位置を探す)',

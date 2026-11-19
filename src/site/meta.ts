@@ -2,9 +2,7 @@ import { ACCOUNT_COPY } from '../account/copy'
 import { ADMIN_COPY } from '../admin/copy'
 import type { Lang } from '../langs'
 import { CONTACT_COPY } from './contact/copy'
-import { LICENSES_UI } from './legal/credits'
-import { LEGAL_DOCS } from './legal/docs'
-import { HELP } from './legal/help'
+import { DOC_HEADS } from './legal/heads'
 import type { PageId } from './routes'
 
 /** 쪽의 제목(브라우저 탭·검색 결과)과 설명(검색 결과 아래 글, 160자 안팎). */
@@ -92,10 +90,10 @@ export const NOT_FOUND: Record<Lang, PageMeta & { heading: string; body: string;
 export function pageMeta(page: PageId, lang: Lang): PageMeta {
   if (page === 'home') return HOME[lang]
   if (page === 'app') return APP[lang]
-  if (page === 'licenses') return { title: `${LICENSES_UI[lang].title} — ReelMotion`, description: LICENSES_UI[lang].description }
   if (page === 'contact') return { title: `${CONTACT_COPY[lang].title} — ReelMotion`, description: CONTACT_COPY[lang].description }
   if (page === 'account') return { title: `${ACCOUNT_COPY[lang].title} — ReelMotion`, description: ACCOUNT_COPY[lang].loginBody }
   if (page === 'admin') return { title: `${ADMIN_COPY[lang].title} — ReelMotion`, description: ADMIN_COPY[lang].description }
-  const doc = page === 'help' ? HELP[lang] : LEGAL_DOCS[page][lang]
-  return { title: `${doc.title} — ReelMotion`, description: doc.description }
+  // 약관·정책·도움말·라이선스: 글 전체는 그 쪽을 열 때만 받으므로 제목·설명은 작은 파일(heads.ts)에서
+  const head = DOC_HEADS[page][lang]
+  return { title: `${head.title} — ReelMotion`, description: head.description }
 }

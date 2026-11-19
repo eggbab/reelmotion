@@ -9,7 +9,8 @@ import './site/site.css'
 import { watchErrors } from './errors'
 import { watchInstall } from './pwa/install'
 import { ErrorBoundary } from './site/ErrorBoundary'
-import { renderKey } from './site/routes'
+import { preloadPage } from './site/lazyPages'
+import { matchPage, renderKey } from './site/routes'
 
 // 「앱으로 설치」 사건은 화면보다 먼저 올 수 있어 여기서부터 듣는다(src/pwa/install.ts).
 watchInstall()
@@ -28,6 +29,11 @@ const app = (
 )
 
 // 빌드 때 미리 그린 쪽(scripts/prerender.mjs)이 지금 주소와 같은 화면이면 그 HTML 을 이어받고,
-// 아니면(편집기 껍데기, 개발 서버) 처음부터 그린다.
-if (root.dataset.page && root.dataset.page === renderKey(location.pathname)) hydrateRoot(root, app)
-else createRoot(root).render(app)
+// 아니면(편집기 껍데기, 개발 서버) 처음부터 그린다. 약관·도움말처럼 따로 받는 쪽은 그 글을 먼저 받아 두고 이어받는다
+// (그동안에도 미리 그린 글은 보인다 — src/site/lazyPages.ts). 못 받으면 그대로 이어받고, 받는 동안 그 자리를 비워 둔다.
+// HTML 에 미리 받기(modulepreload)를 넣지 않는 까닭은 scripts/prerender.mjs 에.
+if (root.dataset.page && root.dataset.page === renderKey(location.pathname)) {
+  void preloadPage(matchPage(location.pathname)?.page)
+    .catch(() => undefined)
+    .then(() => hydrateRoot(root, app))
+} else createRoot(root).render(app)

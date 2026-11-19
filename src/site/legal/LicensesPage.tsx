@@ -5,7 +5,7 @@ import { SITE_COPY } from '../copy'
 import { pageMeta } from '../meta'
 import { usePageMeta, useSiteBody } from '../usePageMeta'
 import { FONT_CREDITS, LICENSES_UI, MODEL_CREDITS, PROGRAM_CREDITS, VIDEO_LICENSE } from './credits'
-import { LEGAL_UI } from './docs'
+import { LEGAL_UI } from './heads'
 
 const LICENSE_NAMES: Record<string, string> = {
   'OFL-1.1': 'SIL Open Font License 1.1',
