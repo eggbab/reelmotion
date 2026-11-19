@@ -23,7 +23,7 @@ export const HELP: LegalDocs = {
           '「말 받아쓰기」를 누르면 말을 낱말마다 시간과 함께 받아 적어요. 「말하는 언어」에서 영어·한국어·일본어나 자동을 고르세요.',
           {
             list: [
-              'ReelMotion 서버(Qwen3-ASR): 기본값이고 더 정확해요. 영상의 소리만 보내고, 받아 적은 뒤 남기지 않아요. 한 번에 10분까지 받아요.',
+              'ReelMotion 서버(Qwen3-ASR): 기본값이고 더 정확해요. 영상의 소리만 보내고, 받아 적은 뒤 남기지 않아요. 10분이 넘는 소리는 조용한 틈에서 나눠 차례로 보내요(「(1/3)」처럼 보여요).',
               '이 브라우저: 서버를 쓸 수 없을 때 써요. 처음 한 번 받아쓰기 모델을 내려받아요(빠르게 약 250MB, 정확하게 약 760MB).',
             ],
           },
@@ -122,7 +122,7 @@ export const HELP: LegalDocs = {
           {
             list: [
               '받아쓰기 서버가 바쁘다고 하면: 잠시 뒤 다시 누르거나 「받아쓰는 곳」을 이 브라우저로 바꾸세요.',
-              '10분이 넘는 영상: 서버 대신 이 브라우저로 받아 적으세요.',
+              '10분이 넘는 영상: 서버가 나눠서 차례로 받아 적어 조금 더 걸려요. 중간에 멈추면 다시 누르세요.',
               '내보내기가 안 되면: 컴퓨터의 최신 크롬이나 엣지로 해 보세요.',
               '내보내기가 막히면: 창에 나온 까닭(로그인·영상 길이·한 달 횟수)을 보고 {account}에서 요금제를 확인하세요.',
             ],
@@ -147,7 +147,7 @@ export const HELP: LegalDocs = {
           'Press “Transcribe speech” and every word is written down with its timing. Pick English, Korean, Japanese or Auto under “Spoken language”.',
           {
             list: [
-              'ReelMotion server (Qwen3-ASR): the default, and more accurate. Only the sound is sent, and it is not kept. Up to 10 minutes at a time.',
+              'ReelMotion server (Qwen3-ASR): the default, and more accurate. Only the sound is sent, and it is not kept. Sound longer than 10 minutes is split at quiet moments and sent in turn (you will see “(1/3)”).',
               'This browser: used when the server is unavailable. The speech model downloads once the first time (about 250 MB for fast, 760 MB for accurate).',
             ],
           },
@@ -246,7 +246,7 @@ export const HELP: LegalDocs = {
           {
             list: [
               'The speech server is busy: try again in a moment, or switch “Transcribe with” to this browser.',
-              'Videos over 10 minutes: transcribe in this browser instead of the server.',
+              'Videos over 10 minutes: the server transcribes them in parts, one after another, so it takes a little longer. If it stops partway, press it again.',
               'Export does not work: try a recent Chrome or Edge on a computer.',
               'Export is blocked: read the reason in the window (login, video length or monthly exports) and check your plan in {account}.',
             ],
@@ -271,7 +271,7 @@ export const HELP: LegalDocs = {
           '「声を書き起こす」を押すと、言葉を単語ごとに時間付きで書き起こします。「話している言語」で英語・韓国語・日本語または自動を選んでください。',
           {
             list: [
-              'ReelMotion サーバー(Qwen3-ASR): 初期設定で、より正確です。動画の音声だけを送り、書き起こした後は残しません。一度に10分まで受け付けます。',
+              'ReelMotion サーバー(Qwen3-ASR): 初期設定で、より正確です。動画の音声だけを送り、書き起こした後は残しません。10分を超える音声は静かなところで分けて順に送ります(「(1/3)」のように表示されます)。',
               'このブラウザ: サーバーが使えないときに使います。初回だけ書き起こしモデルをダウンロードします(速い: 約250MB、正確: 約760MB)。',
             ],
           },
@@ -370,7 +370,7 @@ export const HELP: LegalDocs = {
           {
             list: [
               '書き起こしサーバーが混み合っているとき: 少し待ってからもう一度押すか、「書き起こす場所」をこのブラウザに変えてください。',
-              '10分を超える動画: サーバーではなく、このブラウザで書き起こしてください。',
+              '10分を超える動画: サーバーが分けて順に書き起こすため、少し長くかかります。途中で止まったら、もう一度押してください。',
               '書き出しができないとき: パソコンの最新の Chrome か Edge でお試しください。',
               '書き出しが止められたとき: 画面に出た理由(ログイン・動画の長さ・月の回数)を見て、{account}でプランを確認してください。',
             ],

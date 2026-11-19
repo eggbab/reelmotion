@@ -578,7 +578,7 @@ function Workspace({ initial, notice, projectId, onSaved, onNew, onOpen }: Works
       const language = speechLanguage === 'auto' ? null : (speechLanguage as 'en' | 'ko' | 'ja')
       const onProgress = (progress: SpeechProgress | ServerProgress) => current() && setSpeech(progress)
       const result =
-        engine === 'server' ? await transcribeOnServer(blob, { language, onProgress }) : await transcribe(blob, { quality: engine, language, onProgress })
+        engine === 'server' ? await transcribeOnServer(blob, { language, onProgress, maxSeconds: server?.maxSeconds }) : await transcribe(blob, { quality: engine, language, onProgress })
       if (!current()) return
       if (result.length === 0) {
         pulse('transcribe_failed')
@@ -1341,10 +1341,11 @@ function TranscriptPanel(p: TranscriptProps) {
         return fill(t.download, { n: Math.round(p.speech.progress * 100) })
       case 'listening':
         return t.listening
+      // 긴 소리는 나눠 보낸다(src/speech/chunks.ts) — 몇 번째 조각인지 함께
       case 'uploading':
-        return t.uploading
+        return p.speech.part ? `${t.uploading} (${p.speech.part.index}/${p.speech.part.count})` : t.uploading
       case 'serverListening':
-        return t.serverListening
+        return p.speech.part ? `${t.serverListening} (${p.speech.part.index}/${p.speech.part.count})` : t.serverListening
       case 'done':
         return fill(t.done, { n: p.speech.count })
       case 'failed':
