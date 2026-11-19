@@ -22,4 +22,5 @@ export const CLIPS: Record<ClipId, Clip> = {
 export const CLIP_SECONDS = 10
 
 export const clipUrl = (id: ClipId, small = false) => `/media/${id}${small ? '-sm' : ''}.mp4`
-export const posterUrl = (id: ClipId) => `/media/${id}.jpg`
+/** 정지 그림. small: 긴 변 480px(흐린 영상 벽·작은 칸·시작 화면의 예시 단추 — 큰 그림의 5분의 1 크기) */
+export const posterUrl = (id: ClipId, small = false) => `/media/${id}${small ? '-sm' : ''}.jpg`

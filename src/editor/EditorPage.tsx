@@ -1335,7 +1335,7 @@ function StartScreen({ copy, lang, notice, pending, onFile, onSample, onOpen, on
             {(Object.keys(CLIPS) as ClipId[]).map((clip) => (
               <li key={clip}>
                 <button type="button" onClick={() => onSample(clip)} className={CLIPS[clip].portrait ? 'is-tall' : undefined} aria-label={copy.start.sampleNames[clip]} title={copy.start.sampleNames[clip]}>
-                  <img src={posterUrl(clip)} alt="" loading="lazy" onError={() => setSamplesFailed(true)} />
+                  <img src={posterUrl(clip, true)} alt="" loading="lazy" onError={() => setSamplesFailed(true)} />
                 </button>
               </li>
             ))}

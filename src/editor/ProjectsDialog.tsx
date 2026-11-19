@@ -21,7 +21,7 @@ function ProjectCard({ item, copy, lang, now, current, onOpen, onDelete }: CardP
   const [confirming, setConfirming] = useState(false)
   const p = copy.projects
   const needsVideo = item.source.kind === 'file' && !item.hasMedia
-  const thumb = item.thumbnail ?? (item.source.kind === 'sample' ? posterUrl(item.source.clip) : null)
+  const thumb = item.thumbnail ?? (item.source.kind === 'sample' ? posterUrl(item.source.clip, true) : null)
   return (
     <li className={`project ${current ? 'is-current' : ''}`}>
       <button type="button" className="project__open" onClick={() => onOpen(item.id)}>

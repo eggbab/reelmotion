@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CLIP_SECONDS, clipUrl, posterUrl } from '../media/clips'
 import type { ClipId } from '../media/clips'
 import { loadFontsForGraphics } from '../motion/fonts'
@@ -24,6 +24,16 @@ type Props = {
 export function MotionStage({ clip, graphics, theme, small = false, label, className, bare = false }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // 정지 그림도 화면에 가까워질 때(600px 앞) 붙인다 — 쪽을 열자마자 아래 칸들의 큰 그림이 스타일 파일과 대역을 다퉈
+  // 첫 글자가 늦게 떴다(2026-11-19 휴대폰 조건에서 스타일 파일 1.3초 → 2.8초). 미리 그린 HTML 에는 그림이 없다.
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || near) return
+    const watcher = new IntersectionObserver(([entry]) => entry.isIntersecting && setNear(true), { rootMargin: '600px' })
+    watcher.observe(canvas)
+    return () => watcher.disconnect()
+  }, [near])
 
   useEffect(() => {
     const video = videoRef.current
@@ -74,7 +84,8 @@ export function MotionStage({ clip, graphics, theme, small = false, label, class
 
   return (
     <div className={`stage ${className ?? ''}`} role="img" aria-label={label}>
-      <video ref={videoRef} src={clipUrl(clip, small)} poster={posterUrl(clip)} muted loop playsInline preload="metadata" aria-hidden="true" />
+      {/* preload="none": 화면에 가까워져 재생할 때(아래의 IntersectionObserver) 받는다 — 쪽을 열자마자 칸 30여 개의 영상을 받지 않게 */}
+      <video ref={videoRef} src={clipUrl(clip, small)} poster={near ? posterUrl(clip, small) : undefined} muted loop playsInline preload="none" aria-hidden="true" />
       <canvas ref={canvasRef} aria-hidden="true" />
     </div>
   )
